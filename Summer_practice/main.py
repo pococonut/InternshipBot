@@ -1,10 +1,10 @@
 from aiogram import Bot, Dispatcher, executor, types
-from keyboard import ikb, kb, ikb2
+from keyboard import ikb, kb, ikb2, change_ikb
 import string
 from commands import register_student, select_student
 
 
-TOKEN_API = "6392143741:AAHR9cXnhECcoQdiJTrV37l7eRDTljnqmEQ"
+TOKEN_API = ""
 
 bot = Bot(TOKEN_API)
 dp = Dispatcher(bot)  # инициализация входящих данных
@@ -168,12 +168,15 @@ async def reg_callback(callback: types.CallbackQuery):
                             print(lst)
                             student = register_student(s_id, lst)
                             if student:
-                                await callback.message.answer('Регистрация окончена.', parse_mode='HTML')
+                                await callback.message.answer('Регистрация окончена.', parse_mode='HTML', reply_markup=ikb2)
+                                """if callback.data == 'change':
+                                    await callback.message.answer('Какой параметр изменить?', parse_mode='HTML')"""
+
                             #else:
                             #    await callback.message.answer('Вы уже зарегестрированы', parse_mode='HTML')
 
     elif callback.data == 'change':
-        await callback.message.answer('Выберите параметр, который желаете изменить')
+        await callback.message.answer('Выберите параметр, который желаете изменить', reply_markup=change_ikb)
     elif callback.data == 'show':
 
         student_show = select_student(s_id)
