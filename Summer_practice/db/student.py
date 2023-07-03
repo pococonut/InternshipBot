@@ -48,7 +48,7 @@ class Student(Base):
     upd_date = Column(DATE, onupdate=datetime.date.today())
 
     def __str__(self) -> str:
-        return f"<Student:{(self.user_id)}>"
+        return f"<Student:{(self.student_id)}>"
 
 
 Base.metadata.create_all(bind=engine)
