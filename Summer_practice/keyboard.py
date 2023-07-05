@@ -17,6 +17,15 @@ ib2_3 = InlineKeyboardButton(text="Просмотр стажировок", callb
 
 ikb_3.add(ib1_3, ib2_3)
 
+back_ikb = InlineKeyboardMarkup(row_width=2)
+back_b = InlineKeyboardButton(text="Отменить действие", callback_data="back")
+back_ikb.add(back_b)
+
+back_cont_ikb = InlineKeyboardMarkup(row_width=2)
+back_cont_b = InlineKeyboardButton(text="Начать регистрацию", callback_data="continue")
+back_cont_ikb.add(back_b, back_cont_b)
+
+
 change_ikb = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="ФИО", callback_data="student_name")
 change_ib2 = InlineKeyboardButton(text="ВУЗ", callback_data="university")
@@ -39,7 +48,8 @@ kb = ReplyKeyboardMarkup(resize_keyboard=True,
 b1 = KeyboardButton(text="/help")
 b2 = KeyboardButton(text="/description")
 b3 = KeyboardButton(text="/registration")
-b4 = KeyboardButton(text="/authorisation")
+b4 = KeyboardButton(text="/show")
 b5 = KeyboardButton(text="/change")
+b6 = KeyboardButton(text="/authorisation")
 
-kb.add(b1).add(b2).add(b3).add(b4).add(b5)
+kb.add(b1).add(b2).add(b3).add(b4).add(b5).add(b6)

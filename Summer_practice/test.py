@@ -308,3 +308,76 @@ async def button_cancel(message: types.Message, state: FSMContext):
     if current_state:  
         await state.finish()
     await message.answer("Операция отменена.", reply_markup=keyboards.users)"""
+
+"""
+@dp.callback_query_handler(text='student_name')
+async def f_callback(callback: types.CallbackQuery):
+    print('!!!!!!!! ', callback.data)
+    s_id = int(callback.from_user.id)
+
+    if select_student(s_id) is None:
+        await callback.message.answer('Вы пока не зарегестрированы', parse_mode='HTML')
+    else:
+        await callback.message.answer('Введите данные', parse_mode='HTML')
+
+        if callback.data == 'student_name':
+            print('s_name: ', callback.data)
+
+            print('Параметр: ', callback.data)
+
+            if select_txt() != []:
+                txt = select_txt()[0][0]
+                print(txt)
+
+                if (len(txt.split()) != 3 or any(chr.isdigit() for chr in txt) or any(
+                        chr in string.punctuation for chr in txt)):
+                    await callback.message.answer('ФИО введено в неккоректом формате', parse_mode='HTML')
+                else:
+                    change_stud_inform(s_id, callback.data, " ".join(i.capitalize() for i in txt.split(' ')))
+                    await callback.message.answer('Параметр обновлен', parse_mode='HTML')
+                    print("delete")
+                    delete_txt()
+
+
+@dp.callback_query_handler(text='university')
+async def f_callback(callback: types.CallbackQuery):
+    print('!!!!!!!! ', callback.data)
+    s_id = int(callback.from_user.id)
+
+    # print('FUUUUUUCKKK')
+    # if callback.data == 'student_name':
+
+    if select_student(s_id) is None:
+        await callback.message.answer('Вы пока не зарегестрированы', parse_mode='HTML')
+    else:
+        await callback.message.answer('Введите данные', parse_mode='HTML')
+
+        if callback.data == 'university':
+            print('university: ', callback.data)
+
+            print('Параметр: ', callback.data)
+
+            if select_txt() != []:
+
+                university = select_txt()[0][0]
+
+                if (len(university.split()) != 1 or any(chr.isdigit() for chr in university) or any(
+                        chr in string.punctuation for chr in university)):
+                    await callback.message.answer('ВУЗ введен в неккоректом формате', parse_mode='HTML')
+                else:
+                    change_stud_inform(s_id, callback.data, university.upper())
+                    await callback.message.answer('Параметр обновлен', parse_mode='HTML')
+                    print(university)
+                    """
+
+
+ch_d, chek_d = {'1': ['student_name', 'ФИО'],
+                '2': ['university', 'ВУЗ'],
+                '3': ['faculty', 'Факультет'],
+                '4': ['specialties', 'Направление'],
+                '5': ['department', 'Кафедра'],
+                '6': ['course', 'Курс'],
+                '7': ['group', 'Группа'],
+                '8': ['coursework', 'Курсовые работы'],
+                '9': ['knowledge', 'Знания'],
+                }, {}

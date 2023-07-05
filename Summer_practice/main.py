@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher, executor, types
-from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2
+from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb
 import string
 from commands import register_student, select_student, change_stud_inform, get_txt, select_txt, delete_txt
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -14,11 +14,12 @@ bot = Bot(TOKEN_API)
 dp = Dispatcher(bot, storage=MemoryStorage())  # инициализация входящих данных
 
 HELP_COMMAND = """
-<b>/help</b> - список комманд
-<b>/description</b> - описание бота
-<b>/registration</b> - регистрация студента
-<b>/authorisation</b> - авторизация персонала
-<b>/change</b> - изменение данных студента
+<b>/help</b> - список комманд\n
+<b>/description</b> - описание бота\n
+<b>/registration</b> - регистрация студента\n
+<b>/change</b> - изменение данных студента\n
+<b>/show</b> - просмотр данных студента\n
+<b>/authorisation</b> - авторизация персонала\n
 """
 
 DESCRIPTION = """
@@ -69,7 +70,6 @@ async def help_command(message: types.Message):
 async def start_command(message: types.Message):
     await message.answer(text="Добро пожаловать!",
                          reply_markup=kb)
-    # await message.delete()  # удаляем сообщение пользователя, которое он отправил
 
 
 class Student(StatesGroup):
@@ -89,12 +89,16 @@ async def registration_command(message: types.Message):
     # await message.answer(text="Выберите опцию:", reply_markup=ikb)
     student_exist = select_student(message.from_user.id)
     if student_exist:
-        await message.answer('Вы уже зарегестрированы', parse_mode='HTML', reply_markup=ikb_3)
+        await message.answer('Вы уже зарегестрированы.', parse_mode='HTML', reply_markup=ikb_3)
         await message.edit_reply_markup()
-        await message.delete()
     else:
-        await message.answer(FORM, parse_mode='HTML')
-        await message.answer("Введите ФИО")
+        await message.answer(FORM, parse_mode='HTML', reply_markup=back_cont_ikb)
+
+
+@dp.callback_query_handler(text='continue', state="*")
+async def cont_command(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.answer("Введите ФИО")
+    await callback.message.edit_reply_markup()
     await Student.student_name.set()
 
 
@@ -131,7 +135,7 @@ async def get_faculty(message: types.Message, state=FSMContext):
         await message.answer('Факультет введен в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(faculty=message.text)
-    await message.answer("Введите Специальность")
+    await message.answer("Введите Направление")
     await Student.next()
 
 
@@ -211,7 +215,6 @@ async def reg_callback(callback: types.CallbackQuery):
     s_id = int(callback.from_user.id)
     student_show = select_student(s_id)
     if student_show:
-
         await callback.message.answer(f"Ваши данные\n\n"
                                       f"ФИО: {student_show.student_name}\n\n"
                                       f"ВУЗ: {student_show.university}\n\n"
@@ -225,7 +228,51 @@ async def reg_callback(callback: types.CallbackQuery):
                                       f"Дата регистрации: {student_show.reg_date}\n\n"
                                       )
     else:
-        await callback.message.answer('Вы пока не зарегестрированы', parse_mode='HTML')
+        await callback.message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
+                                      parse_mode='HTML')
+
+
+@dp.message_handler(commands=['show'])
+async def show_params(message: types.Message):
+    s_id = int(message.from_user.id)
+    student_show = select_student(s_id)
+    if student_show:
+        await message.answer(f"Ваши данные\n\n"
+                             f"ФИО: {student_show.student_name}\n\n"
+                             f"ВУЗ: {student_show.university}\n\n"
+                             f"Факультет: {student_show.faculty}\n\n"
+                             f"Специальность: {student_show.specialties}\n\n"
+                             f"Кафедра: {student_show.department}\n\n"
+                             f"Курс: {student_show.course}\n\n"
+                             f"Группа: {student_show.group}\n\n"
+                             f"Курсовые: {student_show.coursework}\n\n"
+                             f"Знания: {student_show.knowledge}\n\n"
+                             f"Дата регистрации: {student_show.reg_date}\n\n"
+                             )
+    else:
+        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+
+
+def chek_param(p, v):
+    if p == '1' and (
+            len(v.split()) != 3 or any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v)):
+        return False
+    elif p == '2' and (
+            len(v.split()) != 1 or any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v)):
+        return False
+    elif p == '3' and (any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v)):
+        return False
+    elif p == '4' and (any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v)):
+        return False
+    elif p == '5' and (any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v)):
+        return False
+    elif p == '6' and (any(chr.isalpha() for chr in v) or any(chr in string.punctuation for chr in v)):
+        return False
+    elif p == '7' and (
+            any(chr.isalpha() for chr in v) or any(chr in string.punctuation.replace('./', '') for chr in v)):
+        return False
+
+    return True
 
 
 class Change_student(StatesGroup):
@@ -233,123 +280,77 @@ class Change_student(StatesGroup):
     new_val = State()
 
 
-ch_d = {'1': 'student_name',
-        '2': 'university',
-        '3': 'faculty',
-        '4': 'specialties',
-        '5': 'department',
-        '6': 'course',
-        '7': 'group',
-        '8': 'coursework',
-        '9': 'knowledge',
-        }
+change_d, chek_d = {}, {'1': ['student_name', 'ФИО'],
+                        '2': ['university', 'ВУЗ'],
+                        '3': ['faculty', 'Факультет'],
+                        '4': ['specialties', 'Направление'],
+                        '5': ['department', 'Кафедра'],
+                        '6': ['course', 'Курс'],
+                        '7': ['group', 'Группа'],
+                        '8': ['coursework', 'Курсовые работы'],
+                        '9': ['knowledge', 'Знания'],
+                        }
+
+
 @dp.message_handler(commands=['change'])
 async def change(message: types.Message):
-    await message.answer(f'Введите номер параметра, который желаете изменить:\n\n'
-                         f'ФИО - 1\n\n'
-                         f'ВУЗ - 2\n\n'
-                         f'Факультет - 3\n\n'
-                         f'Направление - 4\n\n'
-                         f'Кафедра - 5\n\n'
-                         f'Курс - 6\n\n'
-                         f'Группа - 7\n\n'
-                         f'Темы курсовых работ - 8\n\n'
-                         f'Ваши знания - 9\n\n'
-                         )
+    student_exist = select_student(message.from_user.id)
+    if not student_exist:
+        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+    else:
+        await message.answer(f'Введите номер параметра, который желаете изменить:\n\n'
+                             f'ФИО - 1\n\n'
+                             f'ВУЗ - 2\n\n'
+                             f'Факультет - 3\n\n'
+                             f'Направление - 4\n\n'
+                             f'Кафедра - 5\n\n'
+                             f'Курс - 6\n\n'
+                             f'Группа - 7\n\n'
+                             f'Темы курсовых работ - 8\n\n'
+                             f'Ваши знания - 9\n\n',
+                             reply_markup=back_ikb
+                             )
+        await Change_student.param.set()
 
-    print(message.text)
-    await Change_student.param.set()
+
+@dp.callback_query_handler(text='back', state="*")
+async def back_func(callback: types.CallbackQuery, state: FSMContext):
+    await state.finish()
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await callback.message.answer('Действие отменено.')
+
 
 @dp.message_handler(state=Change_student.param)
 async def get_param(message: types.Message, state=FSMContext):
+    if message.text not in chek_d:
+        await message.answer("Вы ввели неверный параметр.\nПожалуйста, повторите ввод.")
+        return
+    change_d['p'] = message.text
+    print(message.text)
     await state.update_data(param=message.text)
-    await message.answer("Введите новое значение")
+    await message.answer("Введите новое значение.")
     await Change_student.next()
+
 
 @dp.message_handler(state=Change_student.new_val)
 async def get_val(message: types.Message, state: FSMContext):
+    if chek_param(change_d['p'], message.text) is False:
+        await message.answer("Вы ввели значение в некоректном  формате.\n\n Пожалуйста, повторите ввод.")
+        return
 
+    change_d['v'] = message.text
     await state.update_data(new_val=message.text)
-
     data = await state.get_data()
-    await message.answer(f"Новые данные данные:\n\n"
-                         f"Параметр: {data['param']}\n\n"
+    await message.answer(f"Параметр: {chek_d.get(data['param'])[1]}\n\n"
                          f"Новое значение: {data['new_val']}")
 
-    k = ch_d.get(data['param'])
+    k = chek_d.get(data['param'])[0]
     v = data['new_val']
     change_stud_inform(message.from_user.id, k, v)
-    #student = register_student(message.from_user.id, data)
-    #if student:
-    await message.answer('Параметр изменен.', parse_mode='HTML')  # , reply_markup=ikb_2
+
+    await message.answer('Параметр изменен.', parse_mode='HTML', reply_markup=ikb_3)  # reply_markup=ikb_2
     await state.finish()
-"""@dp.message_handler()
-async def txt1(message: types.Message):
-    get_txt(message.text)
-    print("get text", message.text)"""
-
-
-@dp.callback_query_handler(text='student_name')
-async def f_callback(callback: types.CallbackQuery):
-    print('!!!!!!!! ', callback.data)
-    s_id = int(callback.from_user.id)
-
-    # print('FUUUUUUCKKK')
-    # if callback.data == 'student_name':
-
-    if select_student(s_id) is None:
-        await callback.message.answer('Вы пока не зарегестрированы', parse_mode='HTML')
-    else:
-        await callback.message.answer('Введите данные', parse_mode='HTML')
-
-        if callback.data == 'student_name':
-            print('s_name: ', callback.data)
-
-            print('Параметр: ', callback.data)
-
-            if select_txt() != []:
-                txt = select_txt()[0][0]
-                print(txt)
-
-                if (len(txt.split()) != 3 or any(chr.isdigit() for chr in txt) or any(
-                        chr in string.punctuation for chr in txt)):
-                    await callback.message.answer('ФИО введено в неккоректом формате', parse_mode='HTML')
-                else:
-                    change_stud_inform(s_id, callback.data, " ".join(i.capitalize() for i in txt.split(' ')))
-                    await callback.message.answer('Параметр обновлен', parse_mode='HTML')
-                    print("delete")
-                    delete_txt()
-
-
-@dp.callback_query_handler(text='university')
-async def f_callback(callback: types.CallbackQuery):
-    print('!!!!!!!! ', callback.data)
-    s_id = int(callback.from_user.id)
-
-    # print('FUUUUUUCKKK')
-    # if callback.data == 'student_name':
-
-    if select_student(s_id) is None:
-        await callback.message.answer('Вы пока не зарегестрированы', parse_mode='HTML')
-    else:
-        await callback.message.answer('Введите данные', parse_mode='HTML')
-
-        if callback.data == 'university':
-            print('university: ', callback.data)
-
-            print('Параметр: ', callback.data)
-
-            if select_txt() != []:
-
-                university = select_txt()[0][0]
-
-                if (len(university.split()) != 1 or any(chr.isdigit() for chr in university) or any(
-                        chr in string.punctuation for chr in university)):
-                    await callback.message.answer('ВУЗ введен в неккоректом формате', parse_mode='HTML')
-                else:
-                    change_stud_inform(s_id, callback.data, university.upper())
-                    await callback.message.answer('Параметр обновлен', parse_mode='HTML')
-                    print(university)
 
 
 if __name__ == "__main__":
