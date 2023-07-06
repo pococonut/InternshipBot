@@ -92,12 +92,12 @@ async def registration_command(message: types.Message):
         await message.answer('Вы уже зарегестрированы.', parse_mode='HTML', reply_markup=ikb_3)
         await message.edit_reply_markup()
     else:
-        await message.answer(FORM, parse_mode='HTML', reply_markup=back_cont_ikb)
+        await message.answer("Введите данные <b>отдельными сообщениями</b>.", parse_mode='HTML', reply_markup=back_cont_ikb)
 
 
 @dp.callback_query_handler(text='continue', state="*")
 async def cont_command(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.answer("Введите ФИО")
+    await callback.message.answer("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>", parse_mode='HTML')
     await callback.message.edit_reply_markup()
     await Student.student_name.set()
 
@@ -114,7 +114,7 @@ async def get_student_name(message: types.Message, state: FSMContext):
             await message.answer('ФИО введено в неккоректом формате', parse_mode='HTML')
             return
         await state.update_data(student_name=message.text)
-        await message.answer("Введите ВУЗ")
+        await message.answer("Введите <b>ВУЗ</b> в формате: <em>КУБГУ</em>", parse_mode='HTML')
         await Student.next()
 
 
@@ -125,7 +125,7 @@ async def get_university(message: types.Message, state=FSMContext):
         await message.answer('ВУЗ введен в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(university=message.text)
-    await message.answer("Введите Факультет")
+    await message.answer("Введите <b>Факультет</b> в формате: <em>Математика и компьютерные науки</em>", parse_mode='HTML')
     await Student.next()
 
 
@@ -135,7 +135,7 @@ async def get_faculty(message: types.Message, state=FSMContext):
         await message.answer('Факультет введен в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(faculty=message.text)
-    await message.answer("Введите Направление")
+    await message.answer("Введите <b>Направление</b> в формате: <em>Математика и компьютерные науки</em>", parse_mode='HTML')
     await Student.next()
 
 
@@ -145,7 +145,7 @@ async def get_specialties(message: types.Message, state=FSMContext):
         await message.answer('Направление введено в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(specialties=message.text)
-    await message.answer("Введите Кафедру")
+    await message.answer("Введите <b>Кафедру</b> (при отсутствии введите: 'Нет') в формате: <em>ВМИ</em>", parse_mode='HTML')
     await Student.next()
 
 
@@ -155,7 +155,7 @@ async def get_department(message: types.Message, state=FSMContext):
         await message.answer('Кафедра введена в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(department=message.text)
-    await message.answer("Введите Курс")
+    await message.answer("Введите <b>Курс</b> в формате: <em>2</em>", parse_mode='HTML')
     await Student.next()
 
 
@@ -165,7 +165,7 @@ async def get_course(message: types.Message, state=FSMContext):
         await message.answer('Курс введен в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(course=message.text)
-    await message.answer("Введите Группу")
+    await message.answer("Введите <b>Группу</b> в формате: <em>23/3</em>", parse_mode='HTML')
     await Student.next()
 
 
@@ -176,14 +176,14 @@ async def get_group(message: types.Message, state=FSMContext):
         await message.answer('Группа введена в неккоректом формате', parse_mode='HTML')
         return
     await state.update_data(group=message.text)
-    await message.answer("Введите Курсовые")
+    await message.answer('Введите <b>Темы курсовых работ</b> (при отсутствии введите: "Нет") в формате: <em>1)Разработка сайта для КУБГУ, 2)Калькулятор матриц</em>', parse_mode='HTML')
     await Student.next()
 
 
 @dp.message_handler(state=Student.coursework)
 async def get_coursework(message: types.Message, state=FSMContext):
     await state.update_data(coursework=message.text)
-    await message.answer("Введите Знания")
+    await message.answer("Введите <b>Ваши знания</b> (при отсутствии введите: 'Нет') в формате: <em>Python, SQL, C++, JS</em>", parse_mode='HTML')
     await Student.next()
 
 

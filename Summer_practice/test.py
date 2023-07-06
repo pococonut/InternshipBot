@@ -371,13 +371,54 @@ async def f_callback(callback: types.CallbackQuery):
                     """
 
 
-ch_d, chek_d = {'1': ['student_name', 'ФИО'],
-                '2': ['university', 'ВУЗ'],
-                '3': ['faculty', 'Факультет'],
-                '4': ['specialties', 'Направление'],
-                '5': ['department', 'Кафедра'],
-                '6': ['course', 'Курс'],
-                '7': ['group', 'Группа'],
-                '8': ['coursework', 'Курсовые работы'],
-                '9': ['knowledge', 'Знания'],
-                }, {}
+"""
+Введите данные <b>отдельными сообщениями</b>.
+
+<b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>
+
+<b>ВУЗ</b> в формате: <em>КУБГУ</em>
+
+<b>Факультет</b> в формате: <em>Математика и компьютерные науки</em>
+
+<b>Направление</b> в формате: <em>Математика и компьютерные науки</em>
+
+<b>Кафедра</b> (при отсутствии введите: "Нет") в формате: <em>ВМИ</em>
+
+<b>Курс</b> в формате: <em>2</em>
+
+<b>Группа</b> в формате: <em>23/3</em>
+
+<b>Темы курсовых работ</b> (при отсутствии введите: "Нет") в формате: <em>1)Разработка сайта для КУБГУ, 2)Калькулятор матриц</em>
+
+<b>Ваши знания</b> (при отсутствии введите: "Нет") в формате: <em>Python, SQL, C++, JS</em>
+"""
+
+class Employee(Base):
+    __tablename__ = "employee"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+    type = Column(String(50))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "employee",
+        "polymorphic_on": type,
+    }
+
+class Engineer(Employee):
+    __tablename__ = "engineer"
+    id = Column(Integer, ForeignKey("employee.id"), primary_key=True)
+    engineer_name = Column(String(30))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "engineer",
+    }
+
+
+class Manager(Employee):
+    __tablename__ = "manager"
+    id = Column(Integer, ForeignKey("employee.id"), primary_key=True)
+    manager_name = Column(String(30))
+
+    __mapper_args__ = {
+        "polymorphic_identity": "manager",
+    }
