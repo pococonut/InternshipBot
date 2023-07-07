@@ -113,6 +113,9 @@ class Director(User):
 
 
 Base.metadata.create_all(bind=engine)
+
+
+
 """
 try:
     student1 = Student_2(telegram_id='9',

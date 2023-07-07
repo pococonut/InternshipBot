@@ -62,6 +62,17 @@ class InternshipTask(Base):
 
 Base.metadata.create_all(bind=engine)
 
+def select_task():
+    try:
+        task = Task.query.all()
+        #for i in task:
+        #    print(i.task_name)
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
 """task = Task(task_name='x', task_description='x', num_people='1', materials='x')
 session.add(task)
 

@@ -27,14 +27,17 @@ back_cont_ikb.add(back_b, back_cont_b)
 
 admin_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_data="add_task")
-admin_b2 = InlineKeyboardButton(text="Изменить задачу", callback_data="change_task")
-admin_b3 = InlineKeyboardButton(text="Удалить задачу", callback_data="del_task")
-admin_b4 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
-admin_ikb.add(admin_b1).add(admin_b2).add(admin_b3).add(admin_b4)
+# admin_b2 = InlineKeyboardButton(text="Изменить задачу", callback_data="change_task")
+# admin_b3 = InlineKeyboardButton(text="Удалить задачу", callback_data="del_task")
+admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
+admin_b5 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
+admin_ikb.add(admin_b1).add(admin_b4).add(admin_b5)
 
-
-
-
+task_ikb = InlineKeyboardMarkup(row_width=2)
+task_b1 = InlineKeyboardButton(text="Изменить задачу", callback_data="change_task")
+task_b2 = InlineKeyboardButton(text="Удалить задачу", callback_data="del_task")
+task_b3 = InlineKeyboardButton(text="Дальше", callback_data="del_task")
+task_ikb.add(task_b1, task_b2, task_b3)
 
 change_ikb = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="ФИО", callback_data="student_name")

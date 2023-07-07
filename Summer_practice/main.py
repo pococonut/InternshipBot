@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher, executor, types
-from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb
+from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb
 import string
-from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, add_task
+from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, add_task, select_task
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -332,6 +332,15 @@ async def get_password(message: types.Message, state=FSMContext):
                              f'Количество людей: {data["num_people"]}\n\n'
                              f'Материалы: {data["materials"]}')
     await state.finish()
+
+
+@dp.callback_query_handler(text='show_task')
+async def reg_callback(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_task()
+    for t in tasks:
+        await callback.message.answer(f"{t.task_name}", parse_mode='HTML', reply_markup=task_ikb)
 
 
 @dp.callback_query_handler(text='show')

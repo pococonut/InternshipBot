@@ -124,6 +124,17 @@ def select_user(user_id):
     return user
 
 
+def select_task():
+    try:
+        task = Task.query.all()
+        #for i in task:
+        #    print(i.task_name)
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
 def user_type(user_id):
     try:
         user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
