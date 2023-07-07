@@ -393,32 +393,149 @@ async def f_callback(callback: types.CallbackQuery):
 <b>Ваши знания</b> (при отсутствии введите: "Нет") в формате: <em>Python, SQL, C++, JS</em>
 """
 
-class Employee(Base):
-    __tablename__ = "employee"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50))
-    type = Column(String(50))
-
-    __mapper_args__ = {
-        "polymorphic_identity": "employee",
-        "polymorphic_on": type,
-    }
-
-class Engineer(Employee):
-    __tablename__ = "engineer"
-    id = Column(Integer, ForeignKey("employee.id"), primary_key=True)
-    engineer_name = Column(String(30))
-
-    __mapper_args__ = {
-        "polymorphic_identity": "engineer",
-    }
 
 
-class Manager(Employee):
-    __tablename__ = "manager"
-    id = Column(Integer, ForeignKey("employee.id"), primary_key=True)
-    manager_name = Column(String(30))
+"""@dp.message_handler(commands=['change'])
+async def change(message: types.Message):
+    student_exist = select_student(message.from_user.id)
+    if not student_exist:
+        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+    else:
+        await message.answer(f'Введите номер параметра, который желаете изменить:\n\n'
+                             f'ФИО - 1\n\n'
+                             f'ВУЗ - 2\n\n'
+                             f'Факультет - 3\n\n'
+                             f'Направление - 4\n\n'
+                             f'Кафедра - 5\n\n'
+                             f'Курс - 6\n\n'
+                             f'Группа - 7\n\n'
+                             f'Темы курсовых работ - 8\n\n'
+                             f'Ваши знания - 9\n\n',
+                             reply_markup=back_ikb
+                             )
+        await Change_student.param.set()
 
-    __mapper_args__ = {
-        "polymorphic_identity": "manager",
-    }
+
+@dp.callback_query_handler(text='back', state="*")
+async def back_func(callback: types.CallbackQuery, state: FSMContext):
+    await state.finish()
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await callback.message.answer('Действие отменено.')
+
+
+@dp.message_handler(state=Change_student.param)
+async def get_param(message: types.Message, state=FSMContext):
+    if message.text not in chek_d:
+        await message.answer("Вы ввели неверный параметр.\nПожалуйста, повторите ввод.")
+        return
+    change_d['p'] = message.text
+    print(message.text)
+    await state.update_data(param=message.text)
+    await message.answer("Введите новое значение.")
+    await Change_student.next()
+
+
+@dp.message_handler(state=Change_student.new_val)
+async def get_val(message: types.Message, state: FSMContext):
+    if chek_param(change_d['p'], message.text) is False:
+        await message.answer("Вы ввели значение в некоректном  формате.\n\n Пожалуйста, повторите ввод.")
+        return
+
+    change_d['v'] = message.text
+    await state.update_data(new_val=message.text)
+    data = await state.get_data()
+    await message.answer(f"Параметр: {chek_d.get(data['param'])[1]}\n\n"
+                         f"Новое значение: {data['new_val']}")
+
+    k = chek_d.get(data['param'])[0]
+    v = data['new_val']
+    change_stud_inform(message.from_user.id, k, v)
+
+    await message.answer('Параметр изменен.', parse_mode='HTML', reply_markup=ikb_3)  # reply_markup=ikb_2
+    await state.finish()"""
+
+"""
+@dp.callback_query_handler(text='show')
+async def reg_callback(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+
+    s_id = int(callback.from_user.id)
+    user_show = select_user(s_id)
+    print(user_show)
+    if user_show.type == 'student':
+        await callback.message.answer(f"Ваши данные\n\n"
+                                      f"ФИО: {user_show.student_name}\n\n"
+                                      f"ВУЗ: {user_show.university}\n\n"
+                                      f"Факультет: {user_show.faculty}\n\n"
+                                      f"Специальность: {user_show.specialties}\n\n"
+                                      f"Кафедра: {user_show.department}\n\n"
+                                      f"Курс: {user_show.course}\n\n"
+                                      f"Группа: {user_show.group}\n\n"
+                                      f"Курсовые: {user_show.coursework}\n\n"
+                                      f"Знания: {user_show.knowledge}\n\n"
+                                      f"Дата регистрации: {user_show.reg_date}\n\n"
+                                      )
+    elif user_show.type != 'student':
+        await callback.message.answer(f"Ваши данные\n\n"
+                                      f"ФИО: {user_show.admin_name}\n\n")
+
+    else:
+        await callback.message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
+                                      parse_mode='HTML')"""
+
+@dp.message_handler(commands=['authorisation'])
+async def registration_command(message: types.Message):
+    # await message.answer(text="Выберите опцию:", reply_markup=ikb)
+    u_type = user_type(message.from_user.id)
+    print(u_type)
+
+    if u_type is None:
+        #admin_exist = select_employee(message.from_user.id)
+        #if admin_exist:
+        #await message.answer(f'Здравствуйте, {" ".join(admin_exist[0][0].split()[1:])}.\nВведите логин.', parse_mode='HTML', reply_markup=back_ikb)
+        await message.answer(f'Введите логин.', parse_mode='HTML', reply_markup=back_ikb)
+        #print(admin_exist[1][0], admin_exist[2][0])
+        #authorisation_lst.append(admin_exist[1][0])
+        #authorisation_lst.append(admin_exist[2][0])
+        await Authorisation.login.set()
+    elif u_type[0] == 'admin':
+        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
+    elif u_type[0] == 'student':
+        await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
+
+
+@dp.message_handler(state=Authorisation.login)
+async  def get_login(message: types.Message, state=FSMContext):
+    if message.text != log_pass.get('admin')[0]:
+        await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
+        return
+    await state.update_data(login=message.text)
+    await message.answer('Введите пароль.')
+    await Authorisation.next()
+
+
+@dp.message_handler(state=Authorisation.password)
+async  def get_login(message: types.Message, state=FSMContext):
+    if message.text != log_pass.get('admin')[1]:
+        await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
+        return
+    await state.update_data(password=message.text)
+    await message.answer('Введите ФИО.')
+    await Authorisation.next()
+
+
+@dp.message_handler(state=Authorisation.name)
+async def get_password(message: types.Message, state=FSMContext):
+    #if message.text != log_pass.get('admin')[1]:
+    #    await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
+    #   return
+    await state.update_data(name=message.text)
+    data = await state.get_data()
+    await message.answer(f'Добавлена задача:'
+                         f'{data["login"]}\npassword: {data["password"]}')
+    student = register_student(message.from_user.id, data)
+
+
+    await state.finish()

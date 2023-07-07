@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher, executor, types
-from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb
+from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb
 import string
-from commands import register_student, select_student, change_stud_inform, get_txt, select_txt, delete_txt
+from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, add_task
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -18,7 +18,7 @@ HELP_COMMAND = """
 <b>/description</b> - описание бота\n
 <b>/registration</b> - регистрация студента\n
 <b>/change</b> - изменение данных студента\n
-<b>/show</b> - просмотр данных студента\n
+<b>/show</b> - просмотр данных пользователя\n
 <b>/authorisation</b> - авторизация персонала\n
 """
 
@@ -87,12 +87,17 @@ class Student(StatesGroup):
 @dp.message_handler(commands=['registration'])
 async def registration_command(message: types.Message):
     # await message.answer(text="Выберите опцию:", reply_markup=ikb)
-    student_exist = select_student(message.from_user.id)
-    if student_exist:
-        await message.answer('Вы уже зарегестрированы.', parse_mode='HTML', reply_markup=ikb_3)
-        await message.edit_reply_markup()
+    user_exist = user_type(message.from_user.id)
+    usr = {'student': 'студент',
+           'admin': 'администранор',
+           'director': 'директор',
+           'worker': 'сотрудник'}
+    if user_exist:
+        await message.answer(f'Вы уже зарегестрированы как {usr.get(user_exist[0])}.', parse_mode='HTML', reply_markup=ikb_3)
+        #await message.edit_reply_markup()
     else:
         await message.answer("Введите данные <b>отдельными сообщениями</b>.", parse_mode='HTML', reply_markup=back_cont_ikb)
+
 
 
 @dp.callback_query_handler(text='continue', state="*")
@@ -104,7 +109,7 @@ async def cont_command(callback: types.CallbackQuery, state: FSMContext):
 
 @dp.message_handler(state=Student.student_name)
 async def get_student_name(message: types.Message, state: FSMContext):
-    student_exist = select_student(message.from_user.id)
+    student_exist = select_user(message.from_user.id)
     if student_exist:
         await state.finish()
         await state.reset_state(with_data=False)
@@ -207,26 +212,152 @@ async def get_knowledge(message: types.Message, state=FSMContext):
     await state.finish()
 
 
+class Authorisation(StatesGroup):
+    login = State()
+    password = State()
+    name = State()
+
+
+authorisation_lst = []
+
+log_pass = {'admin': ['1', '111']}
+
+
+@dp.message_handler(commands=['authorisation'])
+async def registration_command(message: types.Message):
+    # await message.answer(text="Выберите опцию:", reply_markup=ikb)
+    u_type = user_type(message.from_user.id)
+    print(u_type)
+
+    if u_type is None:
+        #admin_exist = select_employee(message.from_user.id)
+        #if admin_exist:
+        #await message.answer(f'Здравствуйте, {" ".join(admin_exist[0][0].split()[1:])}.\nВведите логин.', parse_mode='HTML', reply_markup=back_ikb)
+        await message.answer(f'Введите логин.', parse_mode='HTML', reply_markup=back_ikb)
+        #print(admin_exist[1][0], admin_exist[2][0])
+        #authorisation_lst.append(admin_exist[1][0])
+        #authorisation_lst.append(admin_exist[2][0])
+        await Authorisation.login.set()
+    elif u_type[0] == 'admin':
+        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
+    elif u_type[0] == 'student':
+        await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
+
+
+@dp.message_handler(state=Authorisation.login)
+async  def get_login(message: types.Message, state=FSMContext):
+    if message.text != log_pass.get('admin')[0]:
+        await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
+        return
+    await state.update_data(login=message.text)
+    await message.answer('Введите пароль.')
+    await Authorisation.next()
+
+
+@dp.message_handler(state=Authorisation.password)
+async  def get_login(message: types.Message, state=FSMContext):
+    if message.text != log_pass.get('admin')[1]:
+        await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
+        return
+    await state.update_data(password=message.text)
+    await message.answer('Введите ФИО.')
+    await Authorisation.next()
+
+
+@dp.message_handler(state=Authorisation.name)
+async def get_password(message: types.Message, state=FSMContext):
+    #if message.text != log_pass.get('admin')[1]:
+    #    await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
+    #   return
+    await state.update_data(name=message.text)
+    data = await state.get_data()
+    #await message.answer(f'login: {data["login"]}\npassword: {data["password"]}')
+    #student = register_student(message.from_user.id, data)
+    if data.get('login') == log_pass.get('admin')[0] and data.get('password') == log_pass.get('admin')[1]:
+        admin = register_admin(message.from_user.id, data)
+        if admin:
+            await message.answer('Вы авторизированны как администатор.', parse_mode='HTML')
+            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
+
+    await state.finish()
+
+
+class Task(StatesGroup):
+    task_name = State()
+    task_description = State()
+    num_people = State()
+    materials = State()
+
+
+@dp.callback_query_handler(text='add_task')
+async def reg_callback(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await callback.message.answer("Введите название задачи.", parse_mode='HTML', reply_markup=back_ikb)
+    await Task.task_name.set()
+
+
+@dp.message_handler(state=Task.task_name)
+async def get_login(message: types.Message, state=FSMContext):
+
+    await state.update_data(task_name=message.text)
+    await message.answer('Введите описание задачи.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.task_description)
+async  def get_login(message: types.Message, state=FSMContext):
+    await state.update_data(task_description=message.text)
+    await message.answer('Введите количество человек.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.num_people)
+async  def get_login(message: types.Message, state=FSMContext):
+    await state.update_data(num_people=message.text)
+    await message.answer('Введите материалы.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.materials)
+async def get_password(message: types.Message, state=FSMContext):
+
+    await state.update_data(materials=message.text)
+    data = await state.get_data()
+    task = add_task(data)
+    if task:
+        await message.answer(f'Добавлена задача:\n\n'
+                             f'Название: {data["task_name"]}\n\n'
+                             f'Описание: {data["task_description"]}\n\n'
+                             f'Количество людей: {data["num_people"]}\n\n'
+                             f'Материалы: {data["materials"]}')
+    await state.finish()
+
+
 @dp.callback_query_handler(text='show')
 async def reg_callback(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
 
     s_id = int(callback.from_user.id)
-    student_show = select_student(s_id)
-    if student_show:
+    user_show = select_user(s_id)
+    u_type = user_type(s_id)
+    if u_type[0] == 'student':
         await callback.message.answer(f"Ваши данные\n\n"
-                                      f"ФИО: {student_show.student_name}\n\n"
-                                      f"ВУЗ: {student_show.university}\n\n"
-                                      f"Факультет: {student_show.faculty}\n\n"
-                                      f"Специальность: {student_show.specialties}\n\n"
-                                      f"Кафедра: {student_show.department}\n\n"
-                                      f"Курс: {student_show.course}\n\n"
-                                      f"Группа: {student_show.group}\n\n"
-                                      f"Курсовые: {student_show.coursework}\n\n"
-                                      f"Знания: {student_show.knowledge}\n\n"
-                                      f"Дата регистрации: {student_show.reg_date}\n\n"
+                                      f"ФИО: {user_show.student_name}\n\n"
+                                      f"ВУЗ: {user_show.university}\n\n"
+                                      f"Факультет: {user_show.faculty}\n\n"
+                                      f"Специальность: {user_show.specialties}\n\n"
+                                      f"Кафедра: {user_show.department}\n\n"
+                                      f"Курс: {user_show.course}\n\n"
+                                      f"Группа: {user_show.group}\n\n"
+                                      f"Курсовые: {user_show.coursework}\n\n"
+                                      f"Знания: {user_show.knowledge}\n\n"
+                                      f"Дата регистрации: {user_show.reg_date}\n\n"
                                       )
+    elif u_type[0] != 'student':
+        await callback.message.answer(f"Ваши данные\n\n"
+                                      f"ФИО: {user_show.name}\n\n")
     else:
         await callback.message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
                                       parse_mode='HTML')
@@ -235,23 +366,27 @@ async def reg_callback(callback: types.CallbackQuery):
 @dp.message_handler(commands=['show'])
 async def show_params(message: types.Message):
     s_id = int(message.from_user.id)
-    student_show = select_student(s_id)
-    if student_show:
+    user_show = select_user(s_id)
+    u_type = user_type(s_id)
+    if u_type[0] == 'student':
         await message.answer(f"Ваши данные\n\n"
-                             f"ФИО: {student_show.student_name}\n\n"
-                             f"ВУЗ: {student_show.university}\n\n"
-                             f"Факультет: {student_show.faculty}\n\n"
-                             f"Специальность: {student_show.specialties}\n\n"
-                             f"Кафедра: {student_show.department}\n\n"
-                             f"Курс: {student_show.course}\n\n"
-                             f"Группа: {student_show.group}\n\n"
-                             f"Курсовые: {student_show.coursework}\n\n"
-                             f"Знания: {student_show.knowledge}\n\n"
-                             f"Дата регистрации: {student_show.reg_date}\n\n"
-                             )
+                                      f"ФИО: {user_show.student_name}\n\n"
+                                      f"ВУЗ: {user_show.university}\n\n"
+                                      f"Факультет: {user_show.faculty}\n\n"
+                                      f"Специальность: {user_show.specialties}\n\n"
+                                      f"Кафедра: {user_show.department}\n\n"
+                                      f"Курс: {user_show.course}\n\n"
+                                      f"Группа: {user_show.group}\n\n"
+                                      f"Курсовые: {user_show.coursework}\n\n"
+                                      f"Знания: {user_show.knowledge}\n\n"
+                                      f"Дата регистрации: {user_show.reg_date}\n\n"
+                                      )
+    elif u_type[0] != 'student':
+        await message.answer(f"Ваши данные\n\n"
+                             f"ФИО: {user_show.name}\n\n")
     else:
-        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
-
+        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
+                                      parse_mode='HTML')
 
 def chek_param(p, v):
     if p == '1' and (
@@ -294,9 +429,13 @@ change_d, chek_d = {}, {'1': ['student_name', 'ФИО'],
 
 @dp.message_handler(commands=['change'])
 async def change(message: types.Message):
-    student_exist = select_student(message.from_user.id)
+    u_type = user_type(message.from_user.id)
+    print(u_type)
+    student_exist = select_user(message.from_user.id)
     if not student_exist:
         await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+    elif u_type[0] != 'student':
+        await message.answer('Изменение данных доступно только для студентов.', parse_mode='HTML')
     else:
         await message.answer(f'Введите номер параметра, который желаете изменить:\n\n'
                              f'ФИО - 1\n\n'

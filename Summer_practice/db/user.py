@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer, Bool
 from dotenv import load_dotenv
 from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
 import datetime
+
 load_dotenv()
 
 host = "localhost"
@@ -20,7 +21,7 @@ class User(Base):
     __tablename__ = "user"
 
     # telegram user id
-    telegram_id = Column(String, unique=True,  nullable=False, primary_key=True, )
+    telegram_id = Column(String, unique=True, nullable=False, primary_key=True, )
     # ФИО
     type = Column(VARCHAR(50), nullable=False)
     # ВУЗ
@@ -79,6 +80,38 @@ class Worker(User):
     }
 
 
+class Admin(User):
+    __tablename__ = "admin"
+
+    telegram_id = Column(String, ForeignKey("user.telegram_id"), primary_key=True)
+
+    admin_name = Column(VARCHAR(50), nullable=False)
+
+    login = Column(String, nullable=False, primary_key=True)
+
+    password = Column(String, unique=True, nullable=False, primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "admin",
+    }
+
+
+class Director(User):
+    __tablename__ = "director"
+
+    telegram_id = Column(String, ForeignKey("user.telegram_id"), primary_key=True)
+
+    director_name = Column(VARCHAR(50), nullable=False)
+
+    login = Column(String, nullable=False, primary_key=True)
+
+    password = Column(String, unique=True, nullable=False, primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "director",
+    }
+
+
 Base.metadata.create_all(bind=engine)
 """
 try:
@@ -93,22 +126,38 @@ try:
                          group='x',
                          coursework='x',
                          knowledge='x')
-    worker1 = Worker(telegram_id='0',
-                     worker_name='x',
-                     name='ww',
+    worker1 = Worker(telegram_id='1',
+                     worker_name='Золотухина Полина Викторовна',
+                     name='Золотухина Полина Викторовна',
                      login='1',
-                     password='1')
-    session.add(worker1)
+                     password='2')
+
+    admin1 = Admin(telegram_id="1103049875",
+                   admin_name='Золотухина Полина Викторовна',
+                   name='Золотухина Полина Викторовна',
+                   login='1',
+                   password='111')
+
+    director1 = Director(telegram_id='3',
+                         director_name='Золотухина Полина Викторовна',
+                         name='Золотухина Полина Викторовна',
+                         login='1',
+                         password='4')
+    #session.add(worker1)
+
+    #session.add(admin1)
+    #session.add(director1)
+
     session.commit()
     # note that the Engineer table is not INSERTed into
 
-    #student1 = session.query(User).filter_by(telegram_id="1").one()
+    # student1 = session.query(User).filter_by(telegram_id="1").one()
     # the next line triggers an exception because it tries to lookup
     # the Engineer row, which is missing
-    #print(student1.eng_data)
+    # print(student1.eng_data)
 except Exception as e:
-    print(e)"""
-
+    print(e)
+"""
 """Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
