@@ -6,7 +6,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher.filters import Text
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 TOKEN_API = ""
 
@@ -339,8 +339,27 @@ async def reg_callback(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
     tasks = select_task()
-    for t in tasks:
-        await callback.message.answer(f"{t.task_name}", parse_mode='HTML', reply_markup=task_ikb)
+    count_tasks = len(tasks)
+
+
+    print(count_tasks)
+    await callback.message.answer(f"Название: {tasks[0].task_name}\n\n"
+                                  f"Описание: {tasks[0].task_description}\n\n"
+                                  f"Количество людей: {tasks[0].num_people}\n\n"
+                                  f"Материалы: {tasks[0].materials}", parse_mode='HTML', reply_markup=task_ikb)
+
+page = 0
+@dp.callback_query_handler(text='right')
+async def reg_callback(callback: types.CallbackQuery):
+    global page
+    tasks = select_task()
+    count_tasks = len(tasks)
+    page += 1
+    await callback.message.answer(f"Название: {tasks[page].task_name}\n\n"
+                                  f"Описание: {tasks[page].task_description}\n\n"
+                                  f"Количество людей: {tasks[page].num_people}\n\n"
+                                  f"Материалы: {tasks[page].materials}", parse_mode='HTML', reply_markup=task_ikb)
+
 
 
 @dp.callback_query_handler(text='show')
