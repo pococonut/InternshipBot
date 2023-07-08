@@ -108,6 +108,24 @@ def change_task(t_id, column, new_val):
     session.commit()
 
 
+def del_task(t_id):
+    try:
+        x1 = session.query(InternshipTask).filter(InternshipTask.task_id==t_id).one()
+        session.delete(x1)
+        session.commit()
+
+        x2 = session.query(Task).filter(Task.task_id == t_id).one()
+        session.delete(x2)
+        session.commit()
+
+        x3 = session.query(Internship).filter(Internship.internship_id == t_id).one()
+        session.delete(x3)
+        session.commit()
+
+    except Exception as e:
+        print(e)
+
+
 def user_type(user_id):
     try:
         user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()

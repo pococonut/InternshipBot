@@ -554,3 +554,8 @@ async def get_password(message: types.Message, state=FSMContext):
             await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
 
     await state.finish()
+
+
+
+
+

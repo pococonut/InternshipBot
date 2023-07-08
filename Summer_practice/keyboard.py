@@ -49,6 +49,10 @@ change_task_b4 = InlineKeyboardButton("Материалы", callback_data="chang
 change_task_ikb.add(change_task_b1, change_task_b2, change_task_b3, change_task_b4)
 change_task_ikb.add(back_b)
 
+del_task_ikb = InlineKeyboardMarkup(row_width=2)
+del_task_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_yes")
+del_task_ikb.add(del_task_ib1, back_b)
+
 change_ikb = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="ФИО", callback_data="student_name")
 change_ib2 = InlineKeyboardButton(text="ВУЗ", callback_data="university")
