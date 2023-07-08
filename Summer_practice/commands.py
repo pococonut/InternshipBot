@@ -84,6 +84,56 @@ def add_internship_task(*args):
         return False
 
 
+def select_user(user_id):
+    try:
+        user = session.query(User).filter(User.telegram_id == str(user_id)).first()
+        user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
+    except Exception as e:
+        print(e)
+        user = False
+    return user
+
+
+def select_task():
+    try:
+        task = Task.query.order_by(Task.task_id.desc()).all()
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
+def change_task(t_id, column, new_val):
+    session.query(Task).filter(Task.task_id == str(t_id)).update({f'{column}': new_val})
+    session.commit()
+
+
+def user_type(user_id):
+    try:
+        user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
+    except Exception as e:
+        print(e)
+        user_type = False
+    return user_type
+
+
+def select_employee(user_id):
+    try:
+        a_n = session.query(Admin.admin_name).filter(Admin.telegram_id == str(user_id)).first()
+        a_log = session.query(Admin.login).filter(Admin.telegram_id == str(user_id)).first()
+        a_pass = session.query(Admin.password).filter(Admin.telegram_id == str(user_id)).first()
+        adm_authorisation = [a_n, a_log, a_pass]
+    except Exception as e:
+        print(e)
+        adm_authorisation = False
+    return adm_authorisation
+
+
+def change_stud_inform(s_id, column, new_val):
+    session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
+    session.commit()
+
+
 def get_txt(txt):
     m = Text(message=txt)
 
@@ -112,50 +162,3 @@ def delete_txt():
         session.commit()
     except Exception as e:
         print(e)
-
-
-def select_user(user_id):
-    try:
-        user = session.query(User).filter(User.telegram_id == str(user_id)).first()
-        user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
-    except Exception as e:
-        print(e)
-        user = False
-    return user
-
-
-def select_task():
-    try:
-        task = Task.query.all()
-        #for i in task:
-        #    print(i.task_name)
-    except Exception as e:
-        print(e)
-        task = False
-    return task
-
-
-def user_type(user_id):
-    try:
-        user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
-    except Exception as e:
-        print(e)
-        user_type = False
-    return user_type
-
-
-def select_employee(user_id):
-    try:
-        a_n = session.query(Admin.admin_name).filter(Admin.telegram_id == str(user_id)).first()
-        a_log = session.query(Admin.login).filter(Admin.telegram_id == str(user_id)).first()
-        a_pass = session.query(Admin.password).filter(Admin.telegram_id == str(user_id)).first()
-        adm_authorisation = [a_n, a_log, a_pass]
-    except Exception as e:
-        print(e)
-        adm_authorisation = False
-    return adm_authorisation
-
-
-def change_stud_inform(s_id, column, new_val):
-    session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
-    session.commit()

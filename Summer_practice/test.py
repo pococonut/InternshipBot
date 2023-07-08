@@ -485,6 +485,18 @@ async def reg_callback(callback: types.CallbackQuery):
         await callback.message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
                                       parse_mode='HTML')"""
 
+
+class Authorisation(StatesGroup):
+    login = State()
+    password = State()
+    name = State()
+
+
+authorisation_lst = []
+
+log_pass = {'admin': ['1', '111']}
+
+
 @dp.message_handler(commands=['authorisation'])
 async def registration_command(message: types.Message):
     # await message.answer(text="Выберите опцию:", reply_markup=ikb)
@@ -533,9 +545,12 @@ async def get_password(message: types.Message, state=FSMContext):
     #   return
     await state.update_data(name=message.text)
     data = await state.get_data()
-    await message.answer(f'Добавлена задача:'
-                         f'{data["login"]}\npassword: {data["password"]}')
-    student = register_student(message.from_user.id, data)
-
+    #await message.answer(f'login: {data["login"]}\npassword: {data["password"]}')
+    #student = register_student(message.from_user.id, data)
+    if data.get('login') == log_pass.get('admin')[0] and data.get('password') == log_pass.get('admin')[1]:
+        admin = register_admin(message.from_user.id, data)
+        if admin:
+            await message.answer('Вы авторизированны как администатор.', parse_mode='HTML')
+            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
 
     await state.finish()

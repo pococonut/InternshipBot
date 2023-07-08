@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher, executor, types
-from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb
+from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb, change_task_ikb
 import string
-from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, add_task, select_task
+from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, add_task, select_task, change_task
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -290,7 +290,7 @@ class Task(StatesGroup):
 
 
 @dp.callback_query_handler(text='add_task')
-async def reg_callback(callback: types.CallbackQuery):
+async def add_task(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
     await callback.message.answer("Введите название задачи.", parse_mode='HTML', reply_markup=back_ikb)
@@ -298,7 +298,7 @@ async def reg_callback(callback: types.CallbackQuery):
 
 
 @dp.message_handler(state=Task.task_name)
-async def get_login(message: types.Message, state=FSMContext):
+async def add_task_name(message: types.Message, state=FSMContext):
 
     await state.update_data(task_name=message.text)
     await message.answer('Введите описание задачи.')
@@ -306,60 +306,158 @@ async def get_login(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.task_description)
-async  def get_login(message: types.Message, state=FSMContext):
+async def add_task_description(message: types.Message, state=FSMContext):
     await state.update_data(task_description=message.text)
     await message.answer('Введите количество человек.')
     await Task.next()
 
 
 @dp.message_handler(state=Task.num_people)
-async  def get_login(message: types.Message, state=FSMContext):
+async def add_task_num_people(message: types.Message, state=FSMContext):
     await state.update_data(num_people=message.text)
     await message.answer('Введите материалы.')
     await Task.next()
 
 
 @dp.message_handler(state=Task.materials)
-async def get_password(message: types.Message, state=FSMContext):
+async def add_task_materials(message: types.Message, state=FSMContext):
 
-    await state.update_data(materials=message.text)
+    await state.update_data(materials=str(message.text))
     data = await state.get_data()
     task = add_task(data)
     if task:
-        await message.answer(f'Добавлена задача:\n\n'
-                             f'Название: {data["task_name"]}\n\n'
-                             f'Описание: {data["task_description"]}\n\n'
-                             f'Количество людей: {data["num_people"]}\n\n'
-                             f'Материалы: {data["materials"]}')
+        await message.answer(f'<b>Добавлена задача:</b>\n\n'
+                             f'<b>Название:</b> {data["task_name"]}\n\n'
+                             f'<b>Описание:</b> {data["task_description"]}\n\n'
+                             f'<b>Количество людей:</b> {data["num_people"]}\n\n'
+                             f'<b>Материалы:</b> {str(data["materials"])}', parse_mode='HTML', reply_markup=admin_ikb)
     await state.finish()
 
+page = 0
 
 @dp.callback_query_handler(text='show_task')
-async def reg_callback(callback: types.CallbackQuery):
+async def show_task(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
     tasks = select_task()
     count_tasks = len(tasks)
 
-
     print(count_tasks)
-    await callback.message.answer(f"Название: {tasks[0].task_name}\n\n"
-                                  f"Описание: {tasks[0].task_description}\n\n"
-                                  f"Количество людей: {tasks[0].num_people}\n\n"
-                                  f"Материалы: {tasks[0].materials}", parse_mode='HTML', reply_markup=task_ikb)
+    await callback.message.answer(f"<b>№</b> {page+1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML', reply_markup=task_ikb)
+# f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
-page = 0
+
 @dp.callback_query_handler(text='right')
-async def reg_callback(callback: types.CallbackQuery):
+async def right(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
     global page
     tasks = select_task()
     count_tasks = len(tasks)
     page += 1
-    await callback.message.answer(f"Название: {tasks[page].task_name}\n\n"
-                                  f"Описание: {tasks[page].task_description}\n\n"
-                                  f"Количество людей: {tasks[page].num_people}\n\n"
-                                  f"Материалы: {tasks[page].materials}", parse_mode='HTML', reply_markup=task_ikb)
+    if page == count_tasks:
+        page = 0
+    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML', reply_markup=task_ikb)
 
+#f"<b>№</b> {page+1}/{count_tasks}\n\n"
+
+
+@dp.callback_query_handler(text='left')
+async def left(callback: types.CallbackQuery):
+    global page
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_task()
+    count_tasks = len(tasks)
+    page -= 1
+    if page == (-1)*count_tasks:
+        page = 0
+    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML', reply_markup=task_ikb)
+
+# f"<b>№</b> {(page - count_tasks) + 1}/{count_tasks}\n\n"
+
+
+class Task_change(StatesGroup):
+    num_task = State()
+    param = State()
+    value = State()
+
+
+#num_task = []
+
+@dp.callback_query_handler(text='change_task')
+async def ch_task(callback: types.CallbackQuery):
+    #num_task.append(page)
+    await callback.message.edit_reply_markup()
+    await callback.message.answer('Выберите параметр который желаете изменить.', parse_mode='HTML', reply_markup=change_task_ikb)
+    await Task_change.param.set()
+
+
+@dp.callback_query_handler(text='change_task_name', state=Task_change.param)
+async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await state.update_data(param=callback.data)
+    await state.update_data(num_task=page)
+    await callback.message.answer("Введите новое значение.")
+    await Task_change.next()
+
+
+@dp.callback_query_handler(text='change_task_description', state=Task_change.param)
+async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await state.update_data(param=callback.data)
+    await state.update_data(num_task=page)
+    await callback.message.answer("Введите новое значение.")
+    await Task_change.next()
+
+
+@dp.callback_query_handler(text='change_num_people', state=Task_change.param)
+async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await state.update_data(param=callback.data)
+    await state.update_data(num_task=page)
+    await callback.message.answer("Введите новое значение.")
+    await Task_change.next()
+
+
+@dp.callback_query_handler(text='change_materials', state=Task_change.param)
+async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await state.update_data(param=callback.data)
+    await state.update_data(num_task=page)
+    await callback.message.answer("Введите новое значение.")
+    await Task_change.next()
+
+param_task = {'change_task_name': 'Название',
+              'change_task_description': 'Описание',
+              'change_num_people': 'Количество людей',
+              'change_materials': 'Материалы'}
+
+@dp.message_handler(state=Task_change)
+async def ch_task_val(message: types.Message, state=FSMContext):
+    await state.update_data(value=message.text)
+    data = await state.get_data()
+    await message.answer(f"<b>Параметр:</b> {param_task.get(data['param'])}\n\n"
+                         f"<b>Новое значение:</b> {data['value']}\n\n", parse_mode='HTML')
+    tasks = select_task()
+    t_id = tasks[data['num_task']].task_id
+    change_task(t_id, data['param'][7:], data['value'])
+    await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=admin_ikb)
+    await state.finish()
 
 
 @dp.callback_query_handler(text='show')
