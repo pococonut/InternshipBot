@@ -102,6 +102,13 @@ def select_task():
         task = False
     return task
 
+def select_students():
+    try:
+        students = Student_2.query.order_by(User.reg_date.desc()).all()
+    except Exception as e:
+        print(e)
+        students = False
+    return students
 
 def change_task(t_id, column, new_val):
     session.query(Task).filter(Task.task_id == str(t_id)).update({f'{column}': new_val})

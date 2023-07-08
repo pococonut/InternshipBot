@@ -13,7 +13,7 @@ ikb_2.add(ib2_2)
 
 ikb_3 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 ib1_3 = InlineKeyboardButton(text="Просмотреть данные", callback_data="show")
-ib2_3 = InlineKeyboardButton(text="Просмотр стажировок", callback_data="intern_show")
+ib2_3 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
 
 ikb_3.add(ib1_3, ib2_3)
 
@@ -32,6 +32,9 @@ admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_d
 admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
 admin_b5 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
 admin_ikb.add(admin_b1).add(admin_b4).add(admin_b5)
+
+admin_ikb2 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+admin_ikb2.add(ib1_3).add(admin_b1).add(admin_b4).add(admin_b5)
 
 task_ikb = InlineKeyboardMarkup(row_width=2)
 task_b1 = InlineKeyboardButton(text="Изменить", callback_data="change_task")

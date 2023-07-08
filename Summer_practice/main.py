@@ -1,16 +1,16 @@
 from aiogram import Bot, Dispatcher, executor, types
 from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb, \
-    change_task_ikb, del_task_ikb
+    change_task_ikb, del_task_ikb, admin_ikb2
 import string
 from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, \
-    add_task, select_task, change_task, del_task
+    add_task, select_task, change_task, del_task, select_students
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
-TOKEN_API = "6392143741:AAEsx0nMPsI3CBm_fGHOnw8npgWVnOcmp0g"
+TOKEN_API = ""
 
 bot = Bot(TOKEN_API)
 dp = Dispatcher(bot, storage=MemoryStorage())  # инициализация входящих данных
@@ -94,9 +94,11 @@ async def registration_command(message: types.Message):
            'admin': 'администранор',
            'director': 'директор',
            'worker': 'сотрудник'}
-    if user_exist:
-        await message.answer(f'Вы уже зарегестрированы как {usr.get(user_exist[0])}.', parse_mode='HTML', reply_markup=ikb_3)
+    if user_exist and usr.get(user_exist[0]) != 'student':
+        await message.answer(f'Вы уже зарегестрированы как {usr.get(user_exist[0])}.', parse_mode='HTML', reply_markup=admin_ikb2)
         #await message.edit_reply_markup()
+    elif user_exist and usr.get(user_exist[0]) == 'student':
+        await message.answer(f'Вы уже зарегестрированы как {usr.get(user_exist[0])}.', parse_mode='HTML', reply_markup=ikb_3)
     else:
         await message.answer("Введите данные <b>отдельными сообщениями</b>.", parse_mode='HTML', reply_markup=back_cont_ikb)
 
@@ -388,6 +390,65 @@ async def left(callback: types.CallbackQuery):
                                   f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML', reply_markup=task_ikb)
 
 # f"<b>№</b> {(page - count_tasks) + 1}/{count_tasks}\n\n"
+
+#show_students
+
+page2 = 0
+
+@dp.callback_query_handler(text='show_students')
+async def show_stud(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    students = select_students()
+    count_students = len(students)
+
+    print(count_students)
+    await callback.message.answer(f"ФИО: {students[page2].student_name}\n\n"
+                                  f"ВУЗ: {students[page2].university}\n\n"
+                                  f"Факультет: {students[page2].faculty}\n\n"
+                                  f"Специальность: {students[page2].specialties}\n\n"
+                                  f"Кафедра: {students[page2].department}\n\n"
+                                  f"Курс: {students[page2].course}\n\n"
+                                  f"Группа: {students[page2].group}\n\n"
+                                  f"Курсовые: {students[page2].coursework}\n\n"
+                                  f"Знания: {students[page2].knowledge}\n\n"
+                                  f"Дата регистрации: {students[page2].reg_date}\n\n"
+                                  )
+# f"<b>№</b> {page+1}/{count_tasks}\n\n"
+
+
+@dp.callback_query_handler(text='right')
+async def right(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    global page2
+    tasks = select_task()
+    count_tasks = len(tasks)
+    page2 += 1
+    if page2 == count_tasks:
+        page2 = 0
+    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML', reply_markup=task_ikb)
+
+#f"<b>№</b> {page+1}/{count_tasks}\n\n"
+
+
+@dp.callback_query_handler(text='left')
+async def left(callback: types.CallbackQuery):
+    global page2
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_task()
+    count_tasks = len(tasks)
+    page2 -= 1
+    if page2 == (-1)*count_tasks:
+        page2 = 0
+    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML', reply_markup=task_ikb)
 
 
 class Task_change(StatesGroup):
