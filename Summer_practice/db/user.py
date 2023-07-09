@@ -118,17 +118,17 @@ Base.metadata.create_all(bind=engine)
 
 """
 try:
-    student1 = Student_2(telegram_id='9',
-                         student_name='x',
-                         name='x',
-                         university="x",
-                         faculty="x",
-                         specialties='x',
-                         department='x',
-                         course='x',
-                         group='x',
-                         coursework='x',
-                         knowledge='x')
+    student1 = Student_2(telegram_id='0',
+                         student_name='Золотухина Полина Викторовна',
+                         name='Золотухина Полина Викторовна',
+                         university="КУБГУ",
+                         faculty="Математика и компьютерные науки",
+                         specialties='Математика и компьютерные науки',
+                         department='ВМИ',
+                         course='2',
+                         group='23/3',
+                         coursework='1)Разработка парсера для телеграм канала',
+                         knowledge='Python, SQL')
     worker1 = Worker(telegram_id='1',
                      worker_name='Золотухина Полина Викторовна',
                      name='Золотухина Полина Викторовна',
@@ -146,7 +146,7 @@ try:
                          name='Золотухина Полина Викторовна',
                          login='1',
                          password='4')
-    #session.add(worker1)
+    session.add(student1)
 
     #session.add(admin1)
     #session.add(director1)
@@ -159,8 +159,8 @@ try:
     # the Engineer row, which is missing
     # print(student1.eng_data)
 except Exception as e:
-    print(e)
-"""
+    print(e)"""
+
 """Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)

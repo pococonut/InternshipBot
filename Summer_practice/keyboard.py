@@ -13,9 +13,9 @@ ikb_2.add(ib2_2)
 
 ikb_3 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 ib1_3 = InlineKeyboardButton(text="Просмотреть данные", callback_data="show")
-ib2_3 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
+ib2_3 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
 
-ikb_3.add(ib1_3, ib2_3)
+ikb_3.add(ib1_3).add(ib2_3)
 
 back_ikb = InlineKeyboardMarkup(row_width=2)
 back_b = InlineKeyboardButton(text="Отменить действие", callback_data="back")
@@ -35,6 +35,20 @@ admin_ikb.add(admin_b1).add(admin_b4).add(admin_b5)
 
 admin_ikb2 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_ikb2.add(ib1_3).add(admin_b1).add(admin_b4).add(admin_b5)
+
+stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+stud_ikb.add(ib1_3)
+
+change_stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+change_stud_b1 = InlineKeyboardButton(text="Изменнить данные", callback_data="change")
+change_stud_ikb.add(change_stud_b1)
+
+stud_appl_ikb = InlineKeyboardMarkup(row_width=2)
+stud_appl_b1 = InlineKeyboardButton(text="Отклонить", callback_data="reject")
+stud_appl_b2 = InlineKeyboardButton(text="Одобрить", callback_data="approve")
+stud_appl_b4 = InlineKeyboardButton("Назад", callback_data="left_stud")
+stud_appl_b5 = InlineKeyboardButton("Вперед", callback_data="right_stud")
+stud_appl_ikb.add(stud_appl_b1, stud_appl_b2, stud_appl_b4, stud_appl_b5)
 
 task_ikb = InlineKeyboardMarkup(row_width=2)
 task_b1 = InlineKeyboardButton(text="Изменить", callback_data="change_task")
@@ -67,6 +81,7 @@ change_ib7 = InlineKeyboardButton(text="Группа", callback_data="group")
 change_ib8 = InlineKeyboardButton(text="Курсовые", callback_data="coursework")
 change_ib9 = InlineKeyboardButton(text="Знания", callback_data="knowledge")
 change_ikb.add(change_ib1, change_ib2, change_ib3, change_ib4, change_ib5, change_ib6, change_ib7, change_ib8, change_ib9)
+change_ikb.add(back_b)
 
 change_ikb_2 = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
@@ -76,10 +91,10 @@ kb = ReplyKeyboardMarkup(resize_keyboard=True,
                          one_time_keyboard=True)
 
 b1 = KeyboardButton(text="/help")
-b2 = KeyboardButton(text="/description")
+#b2 = KeyboardButton(text="/description")
 b3 = KeyboardButton(text="/registration")
 b4 = KeyboardButton(text="/show")
 b5 = KeyboardButton(text="/change")
 b6 = KeyboardButton(text="/authorisation")
 
-kb.add(b1).add(b2).add(b3).add(b4).add(b5).add(b6)
+kb.add(b1).add(b3).add(b4).add(b5).add(b6)

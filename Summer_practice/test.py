@@ -41,8 +41,6 @@ async def reg_callback(callback: types.CallbackQuery):
     if callback.data == 'show':
         await callback.answer(text='Ваша заявка:')"""
 
-
-
 """@dp.callback_query_handler(text='change')
 async def reg_callback(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
@@ -370,7 +368,6 @@ async def f_callback(callback: types.CallbackQuery):
                     print(university)
                     """
 
-
 """
 Введите данные <b>отдельными сообщениями</b>.
 
@@ -392,8 +389,6 @@ async def f_callback(callback: types.CallbackQuery):
 
 <b>Ваши знания</b> (при отсутствии введите: "Нет") в формате: <em>Python, SQL, C++, JS</em>
 """
-
-
 
 """@dp.message_handler(commands=['change'])
 async def change(message: types.Message):
@@ -486,76 +481,64 @@ async def reg_callback(callback: types.CallbackQuery):
                                       parse_mode='HTML')"""
 
 
-class Authorisation(StatesGroup):
-    login = State()
-    password = State()
-    name = State()
+
+page = 0
 
 
-authorisation_lst = []
+@dp.callback_query_handler(text='show_task')
+async def show_task(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_task()
+    count_tasks = len(tasks)
 
-log_pass = {'admin': ['1', '111']}
-
-
-@dp.message_handler(commands=['authorisation'])
-async def registration_command(message: types.Message):
-    # await message.answer(text="Выберите опцию:", reply_markup=ikb)
-    u_type = user_type(message.from_user.id)
-    print(u_type)
-
-    if u_type is None:
-        #admin_exist = select_employee(message.from_user.id)
-        #if admin_exist:
-        #await message.answer(f'Здравствуйте, {" ".join(admin_exist[0][0].split()[1:])}.\nВведите логин.', parse_mode='HTML', reply_markup=back_ikb)
-        await message.answer(f'Введите логин.', parse_mode='HTML', reply_markup=back_ikb)
-        #print(admin_exist[1][0], admin_exist[2][0])
-        #authorisation_lst.append(admin_exist[1][0])
-        #authorisation_lst.append(admin_exist[2][0])
-        await Authorisation.login.set()
-    elif u_type[0] == 'admin':
-        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
-    elif u_type[0] == 'student':
-        await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
+    print(count_tasks)
+    await callback.message.answer(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
+                                  reply_markup=task_ikb)
 
 
-@dp.message_handler(state=Authorisation.login)
-async  def get_login(message: types.Message, state=FSMContext):
-    if message.text != log_pass.get('admin')[0]:
-        await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
-        return
-    await state.update_data(login=message.text)
-    await message.answer('Введите пароль.')
-    await Authorisation.next()
+# f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
 
-@dp.message_handler(state=Authorisation.password)
-async  def get_login(message: types.Message, state=FSMContext):
-    if message.text != log_pass.get('admin')[1]:
-        await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
-        return
-    await state.update_data(password=message.text)
-    await message.answer('Введите ФИО.')
-    await Authorisation.next()
+@dp.callback_query_handler(text='right')
+async def right(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    global page
+    tasks = select_task()
+    count_tasks = len(tasks)
+    page += 1
+    if page == count_tasks:
+        page = 0
+    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
+                                  reply_markup=task_ikb)
 
 
-@dp.message_handler(state=Authorisation.name)
-async def get_password(message: types.Message, state=FSMContext):
-    #if message.text != log_pass.get('admin')[1]:
-    #    await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
-    #   return
-    await state.update_data(name=message.text)
-    data = await state.get_data()
-    #await message.answer(f'login: {data["login"]}\npassword: {data["password"]}')
-    #student = register_student(message.from_user.id, data)
-    if data.get('login') == log_pass.get('admin')[0] and data.get('password') == log_pass.get('admin')[1]:
-        admin = register_admin(message.from_user.id, data)
-        if admin:
-            await message.answer('Вы авторизированны как администатор.', parse_mode='HTML')
-            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
-
-    await state.finish()
+# f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
 
+@dp.callback_query_handler(text='left')
+async def left(callback: types.CallbackQuery):
+    global page
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_task()
+    count_tasks = len(tasks)
+    page -= 1
+    if page == (-1) * count_tasks:
+        page = 0
+    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
+                                  reply_markup=task_ikb)
 
 
-
+# f"<b>№</b> {(page - count_tasks) + 1}/{count_tasks}\n\n"
