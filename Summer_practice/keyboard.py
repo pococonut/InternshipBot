@@ -50,6 +50,9 @@ stud_appl_b4 = InlineKeyboardButton("Назад", callback_data="left_stud")
 stud_appl_b5 = InlineKeyboardButton("Вперед", callback_data="right_stud")
 stud_appl_ikb.add(stud_appl_b1, stud_appl_b2, stud_appl_b4, stud_appl_b5)
 
+stud_appl_ikb_2 = InlineKeyboardMarkup(row_width=2)
+stud_appl_ikb_2.add(stud_appl_b4, stud_appl_b5)
+
 task_ikb = InlineKeyboardMarkup(row_width=2)
 task_b1 = InlineKeyboardButton(text="Изменить", callback_data="change_task")
 task_b2 = InlineKeyboardButton(text="Удалить", callback_data="del_task")
@@ -69,6 +72,10 @@ change_task_ikb.add(back_b)
 del_task_ikb = InlineKeyboardMarkup(row_width=2)
 del_task_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_yes")
 del_task_ikb.add(del_task_ib1, back_b)
+
+del_stud_ikb = InlineKeyboardMarkup(row_width=2)
+del_stud_ib1 = InlineKeyboardButton(text="Отклонить", callback_data="reject_yes")
+del_stud_ikb.add(del_stud_ib1, back_b)
 
 change_ikb = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="ФИО", callback_data="student_name")

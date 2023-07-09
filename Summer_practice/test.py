@@ -481,64 +481,26 @@ async def reg_callback(callback: types.CallbackQuery):
                                       parse_mode='HTML')"""
 
 
+class Task_del(StatesGroup):
+    del_t = State()
 
-page = 0
+
+@dp.callback_query_handler(text='del_task')
+async def del_t(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.answer('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
+    await Task_del.del_t.set()
 
 
-@dp.callback_query_handler(text='show_task')
-async def show_task(callback: types.CallbackQuery):
+@dp.callback_query_handler(text='del_yes', state=Task_del.del_t)
+async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
+    await state.update_data(del_t=callback.data)
     tasks = select_task()
-    count_tasks = len(tasks)
-
-    print(count_tasks)
-    await callback.message.answer(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
-                                  f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                  reply_markup=task_ikb)
-
-
-# f"<b>№</b> {page+1}/{count_tasks}\n\n"
-
-
-@dp.callback_query_handler(text='right')
-async def right(callback: types.CallbackQuery):
-    await callback.message.edit_reply_markup()
-    await callback.message.delete()
-    global page
-    tasks = select_task()
-    count_tasks = len(tasks)
-    page += 1
-    if page == count_tasks:
-        page = 0
-    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                  reply_markup=task_ikb)
-
-
-# f"<b>№</b> {page+1}/{count_tasks}\n\n"
-
-
-@dp.callback_query_handler(text='left')
-async def left(callback: types.CallbackQuery):
-    global page
-    await callback.message.edit_reply_markup()
-    await callback.message.delete()
-    tasks = select_task()
-    count_tasks = len(tasks)
-    page -= 1
-    if page == (-1) * count_tasks:
-        page = 0
-    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                  reply_markup=task_ikb)
-
-
-# f"<b>№</b> {(page - count_tasks) + 1}/{count_tasks}\n\n"
+    print(page)
+    t_id = tasks[page].task_id
+    print(t_id)
+    del_task(t_id)
+    await state.finish()
+    await callback.message.answer('Задача удалена', parse_mode='HTML', reply_markup=admin_ikb)

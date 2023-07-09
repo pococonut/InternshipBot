@@ -1,9 +1,9 @@
 from aiogram import Bot, Dispatcher, executor, types
 from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb, \
-    change_task_ikb, del_task_ikb, admin_ikb2, stud_ikb, change_stud_ikb, stud_appl_ikb
+    change_task_ikb, del_task_ikb, admin_ikb2, stud_ikb, change_stud_ikb, stud_appl_ikb, del_stud_ikb, stud_appl_ikb_2
 import string
 from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, \
-    add_task, select_task, change_task, del_task, select_students
+    add_task, select_task, change_task, del_task, select_students, add_application, select_applications
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -606,10 +606,12 @@ page_stud = 0
 async def show_stud(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
-    students = select_students()
-    count_students = len(students)
+    page_stud = 0
+    all_students = select_students()
+    #count_students = len(all_students)
+    applications = select_applications()
+    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
 
-    print(count_students)
     await callback.message.answer(f"ФИО: {students[page_stud].student_name}\n\n"
                                   f"ВУЗ: {students[page_stud].university}\n\n"
                                   f"Факультет: {students[page_stud].faculty}\n\n"
@@ -621,8 +623,7 @@ async def show_stud(callback: types.CallbackQuery):
                                   f"Знания: {students[page_stud].knowledge}\n\n"
                                   f"Дата регистрации: {students[page_stud].reg_date}\n\n",
                                   reply_markup=stud_appl_ikb
-                                  )
-
+                                          )
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
@@ -632,8 +633,11 @@ async def std_right(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
     global page_stud
-    students = select_students()
-    count_students = len(students)
+    all_students = select_students()
+    applications = select_applications()
+    count_students = len(all_students) - len(applications)
+    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
+
     page_stud += 1
     if page_stud == count_students:
         page_stud = 0
@@ -659,8 +663,11 @@ async def std_left(callback: types.CallbackQuery):
     global page_stud
     await callback.message.edit_reply_markup()
     await callback.message.delete()
-    students = select_students()
-    count_students = len(students)
+    all_students = select_students()
+    applications = select_applications()
+    count_students = len(all_students) - len(applications)
+    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
+
     page_stud -= 1
     if page_stud == (-1) * count_students:
         page_stud = 0
@@ -677,6 +684,37 @@ async def std_left(callback: types.CallbackQuery):
                                   reply_markup=stud_appl_ikb
                                   )
 
+
+@dp.callback_query_handler(text='approve')
+async def approve_stud(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    student_id = select_students()[page_stud].telegram_id
+    print(callback.from_user.id)
+    add_application(student_id, callback.from_user.id, 1)
+
+    await callback.message.answer('Заявка одобрена.', reply_markup=stud_appl_ikb_2)
+
+class Stud_del(StatesGroup):
+    del_s = State()
+
+
+@dp.callback_query_handler(text='reject')
+async def reject_stud(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.answer('Отклонить заявку?', parse_mode='HTML', reply_markup=del_stud_ikb)
+    await Stud_del.del_s.set()
+
+
+@dp.callback_query_handler(text='reject_yes', state=Stud_del.del_s)
+async def reject_stud(callback: types.CallbackQuery, state=FSMContext):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    await state.update_data(del_s=callback.data)
+    student_id = select_students()[page_stud].telegram_id
+    print(student_id, callback.from_user.id)
+    add_application(student_id, callback.from_user.id, 0)
+    await state.finish()
+    await callback.message.answer('Заявка отклонена.', reply_markup=stud_appl_ikb_2)
 
 # ----------------- Отображение информации студента\работника -----------------
 

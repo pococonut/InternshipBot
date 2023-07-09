@@ -4,6 +4,7 @@ from db.student import session, Student
 from db.user import User, Student_2, Worker, Admin, Director
 from db.text import Text
 from db.internship import Task, InternshipTask, Internship
+from db.applications import Application
 
 
 def register_student(s_id, *args):
@@ -102,6 +103,7 @@ def select_task():
         task = False
     return task
 
+
 def select_students():
     try:
         students = Student_2.query.order_by(User.reg_date.desc()).all()
@@ -109,6 +111,16 @@ def select_students():
         print(e)
         students = False
     return students
+
+
+def select_applications():
+    try:
+        applications = Application.query.all()
+    except Exception as e:
+        print(e)
+        applications = False
+    return applications
+
 
 def change_task(t_id, column, new_val):
     session.query(Task).filter(Task.task_id == str(t_id)).update({f'{column}': new_val})
@@ -157,6 +169,20 @@ def select_employee(user_id):
 def change_stud_inform(s_id, column, new_val):
     session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
     session.commit()
+
+
+def add_application(stud_id, work_id, b):
+    application = Application(
+                  student_id=stud_id,
+                  worker_id=work_id,
+                  approve=b
+                  )
+    session.add(application)
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()  # откатываем session.add(user)
+        print(e)
 
 
 def get_txt(txt):
