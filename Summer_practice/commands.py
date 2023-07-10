@@ -2,7 +2,6 @@ from sqlalchemy.exc import PendingRollbackError, IntegrityError
 
 from db.student import session, Student
 from db.user import User, Student_2, Worker, Admin, Director
-from db.text import Text
 from db.internship import Task, InternshipTask, Internship
 from db.applications import Application
 
@@ -38,9 +37,7 @@ def register_admin(s_id, *args):
                   login=args[0]['login'],
                   password=args[0]['password'],
                   )
-
     session.add(admin)
-
     try:
         session.commit()
         return True
@@ -49,8 +46,42 @@ def register_admin(s_id, *args):
         return False
 
 
-def add_task(*args):
+def register_director(s_id, *args):
+    director = Director(telegram_id=str(s_id),
+                        director_name=args[0]['name'],
+                        name=args[0]['name'],
+                        login=args[0]['login'],
+                        password=args[0]['password'],
+                        )
+    session.add(director)
+    try:
+        session.commit()
+        return True
+    except IntegrityError:
+        session.rollback()
+        return False
+
+
+def register_worker(s_id, *args):
+    worker = Worker(telegram_id=str(s_id),
+                    worker_name=args[0]['name'],
+                    name=args[0]['name'],
+                    login=args[0]['login'],
+                    password=args[0]['password'],
+                    )
+    session.add(worker)
+    try:
+        session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return False
+
+
+def add_task(f_id, *args):
     task = Task(task_name=args[0]['task_name'],
+                from_id=f_id,
                 task_description=args[0]['task_description'],
                 num_people=args[0]['num_people'],
                 materials=args[0]['materials'])
@@ -69,13 +100,12 @@ def add_task(*args):
 
 def add_internship_task(*args):
     internship_task = InternshipTask(
-                      task_name=args[0]['task_name'],
-                      task_description=args[0]['task_description'],
-                      num_people=args[0]['num_people'],
-                      materials=args[0]['materials'],
-                    )
+        task_name=args[0]['task_name'],
+        task_description=args[0]['task_description'],
+        num_people=args[0]['num_people'],
+        materials=args[0]['materials'],
+    )
     session.add(internship_task)
-
 
     try:
         session.commit()
@@ -98,6 +128,17 @@ def select_user(user_id):
 def select_task():
     try:
         task = Task.query.order_by(Task.task_id.desc()).all()
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
+def select_worker_task(f_id):
+    try:
+        task = session.query(Task).filter(Task.from_id == str(f_id)).order_by(Task.task_id.desc()).all()
+        #user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
+
     except Exception as e:
         print(e)
         task = False
@@ -129,7 +170,7 @@ def change_task(t_id, column, new_val):
 
 def del_task(t_id):
     try:
-        x1 = session.query(InternshipTask).filter(InternshipTask.task_id==t_id).one()
+        x1 = session.query(InternshipTask).filter(InternshipTask.task_id == t_id).one()
         session.delete(x1)
         session.commit()
 
@@ -173,10 +214,10 @@ def change_stud_inform(s_id, column, new_val):
 
 def add_application(stud_id, work_id, b):
     application = Application(
-                  student_id=stud_id,
-                  worker_id=work_id,
-                  approve=b
-                  )
+        student_id=stud_id,
+        worker_id=work_id,
+        approve=b
+    )
     session.add(application)
     try:
         session.commit()
@@ -185,7 +226,7 @@ def add_application(stud_id, work_id, b):
         print(e)
 
 
-def get_txt(txt):
+"""def get_txt(txt):
     m = Text(message=txt)
 
     session.add(m)
@@ -212,4 +253,4 @@ def delete_txt():
         session.query(Text).delete()
         session.commit()
     except Exception as e:
-        print(e)
+        print(e)"""

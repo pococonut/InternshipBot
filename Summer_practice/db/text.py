@@ -1,52 +1,24 @@
-import os
-from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer, Boolean, String
-from dotenv import load_dotenv
-from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
-import datetime
-load_dotenv()
+"""@dp.callback_query_handler(text='approve')
+async def approve_stud(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    all_students = select_students()
+    applications = select_applications()
+    count_students = len(all_students) - len(applications)
+    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
 
-host = "localhost"
-password = "123"
-database = "bot"
+    student_id = students[page_stud].telegram_id
+    print(page_stud, student_id, students[page_stud].student_name)
+    add_application(student_id, callback.from_user.id, 1)
 
-engine = create_engine(f"postgresql+psycopg2://postgres:{password}@{host}/{database}")
-
-session = scoped_session(sessionmaker(bind=engine))
-Base = declarative_base()
-Base.query = session.query_property()
+    await callback.message.answer('Заявка одобрена.', reply_markup=stud_appl_ikb_2)
 
 
-class Text(Base):
-    __tablename__ = "text"
-
-    text_id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-
-    message = Column(TEXT, nullable=True)
-
-    def __str__(self) -> str:
-        return f"<Student:{(self.student_id)}>"
-
-
-Base.metadata.create_all(bind=engine)
-
-"""Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
-new_user = Student(student_id=2,
-                   student_name='TEST',
-                   university='KUB',
-                   faculty='WWW',
-                   specialties='Q',
-                   department='E',
-                   course="1",
-                   group='12',
-                   coursework='NO',
-                   knowledge="NO")
-session.add(new_user)
-session.commit()
-
-student = session.query(Student).all()
-for s in student:
-    print(s.student_id, s.student_name, s.course)"""
+def approve_reject(page_s, from_id, b):
+    all_students = select_students()
+    applications = select_applications()
+    count_students = len(all_students) - len(applications)
+    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
+    student_id = students[page_s].telegram_id
+    print(page_stud, student_id, students[page_s].student_name)
+    add_application(student_id, from_id, b)"""

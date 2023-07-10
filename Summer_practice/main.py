@@ -1,9 +1,11 @@
 from aiogram import Bot, Dispatcher, executor, types
 from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb, \
-    change_task_ikb, del_task_ikb, admin_ikb2, stud_ikb, change_stud_ikb, stud_appl_ikb, del_stud_ikb, stud_appl_ikb_2
+    change_task_ikb, del_task_ikb, admin_ikb2, stud_ikb, change_stud_ikb, stud_appl_ikb, del_stud_ikb, stud_appl_ikb_2, \
+    worker_ikb, task_worker_ikb, task_worker_own_ikb
 import string
 from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, \
-    add_task, select_task, change_task, del_task, select_students, add_application, select_applications
+    add_task, select_task, change_task, del_task, select_students, add_application, select_applications, \
+    register_director, register_worker, select_worker_task
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -74,6 +76,7 @@ async def start_command(message: types.Message):
     await message.answer(text="Добро пожаловать!",
                          reply_markup=kb)
 
+
 # ---------------- Регистрация\подача заявки для студента ----------------
 
 
@@ -100,7 +103,7 @@ async def registration_command(message: types.Message):
     if user_exist and user_exist[0] != 'student':
         print(user_exist[0])
         await message.answer(f'Вы уже зарегестрированы как {usr.get(user_exist[0])}.', parse_mode='HTML',
-                             reply_markup=admin_ikb)
+                             reply_markup=admin_ikb if user_exist[0] != 'worker' else worker_ikb)
         # await message.edit_reply_markup()
     elif user_exist and user_exist[0] == 'student':
         await message.answer(f'Вы уже зарегестрированы как {usr.get(user_exist[0])}.', parse_mode='HTML',
@@ -227,7 +230,8 @@ async def get_knowledge(message: types.Message, state=FSMContext):
     student = register_student(message.from_user.id, data)
     if student:
         await message.answer(f'Регистрация окончена.\n\n'
-                             f'После рассмотрения заявки сотрудниками, вам придет уведомление.', parse_mode='HTML', reply_markup=ikb_3)
+                             f'После рассмотрения заявки сотрудниками, вам придет уведомление.', parse_mode='HTML',
+                             reply_markup=ikb_3)
     await state.finish()
 
 
@@ -250,8 +254,9 @@ def chek_param(p, v):
     elif p == 'course' and (
             len(v) != 1 or any(chr.isalpha() for chr in v) or any(chr in string.punctuation for chr in v)):
         return False
-    elif p == 'group' and ( (re.fullmatch('\d{,3}\D\d', v) is None) or ' ' in v or any(chr.isalpha() for chr in v) or any(
-                chr in string.punctuation.replace('/', '') for chr in v)):
+    elif p == 'group' and (
+            (re.fullmatch('\d{,3}\D\d', v) is None) or ' ' in v or any(chr.isalpha() for chr in v) or any(
+            chr in string.punctuation.replace('/', '') for chr in v)):
         return False
 
     return True
@@ -331,7 +336,7 @@ async def get_val_student(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-# ------------------- Регистрация администратора -------------------
+# ------------------- Регистрация сотрудников -------------------
 
 
 class Authorisation(StatesGroup):
@@ -342,7 +347,10 @@ class Authorisation(StatesGroup):
 
 authorisation_lst = []
 
-log_pass = {'admin': ['1', '111']}
+log_pass = {'admin': ['1', '111'],
+            'director': ['2', '222'],
+            'worker': [['3', '333'], ['4', '444']],
+            }
 
 
 @dp.message_handler(commands=['authorisation'])
@@ -352,23 +360,22 @@ async def registration_command(message: types.Message):
     print(u_type)
 
     if u_type is None:
-        # admin_exist = select_employee(message.from_user.id)
-        # if admin_exist:
-        # await message.answer(f'Здравствуйте, {" ".join(admin_exist[0][0].split()[1:])}.\nВведите логин.', parse_mode='HTML', reply_markup=back_ikb)
         await message.answer(f'Введите логин.', parse_mode='HTML', reply_markup=back_ikb)
-        # print(admin_exist[1][0], admin_exist[2][0])
-        # authorisation_lst.append(admin_exist[1][0])
-        # authorisation_lst.append(admin_exist[2][0])
         await Authorisation.login.set()
     elif u_type[0] == 'admin':
         await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
+    elif u_type[0] == 'director':
+        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
+    elif u_type[0] == 'worker':
+        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=worker_ikb)
     elif u_type[0] == 'student':
         await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
 
 
 @dp.message_handler(state=Authorisation.login)
 async def get_login(message: types.Message, state=FSMContext):
-    if message.text != log_pass.get('admin')[0]:
+    if message.text != log_pass.get('admin')[0] and message.text != log_pass.get('director')[0] and message.text != \
+            log_pass.get('worker')[0][0] and message.text != log_pass.get('worker')[1][0]:
         await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(login=message.text)
@@ -378,7 +385,8 @@ async def get_login(message: types.Message, state=FSMContext):
 
 @dp.message_handler(state=Authorisation.password)
 async def get_login(message: types.Message, state=FSMContext):
-    if message.text != log_pass.get('admin')[1]:
+    if message.text != log_pass.get('admin')[1] and message.text != log_pass.get('director')[1] and message.text != \
+            log_pass.get('worker')[0][1] and message.text != log_pass.get('worker')[1][1]:
         await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(password=message.text)
@@ -400,8 +408,26 @@ async def get_password(message: types.Message, state=FSMContext):
         if admin:
             await message.answer('Вы авторизированны как администатор.', parse_mode='HTML')
             await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
+    elif data.get('login') == log_pass.get('director')[0] and data.get('password') == log_pass.get('director')[1]:
+        director = register_director(message.from_user.id, data)
+        if director:
+            await message.answer('Вы авторизированны как директор.', parse_mode='HTML')
+            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
+    elif data.get('login') == log_pass.get('worker')[0][0] and data.get('password') == log_pass.get('worker')[0][1]:
+        worker = register_worker(message.from_user.id, data)
+        if worker:
+            await message.answer('Вы авторизированны как сотрудник.', parse_mode='HTML')
+            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=worker_ikb)
+    elif data.get('login') == log_pass.get('worker')[1][0] and data.get('password') == log_pass.get('worker')[1][1]:
+        worker = register_worker(message.from_user.id, data)
+        if worker:
+            await message.answer('Вы авторизированны как сотрудник.', parse_mode='HTML')
+            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=worker_ikb)
+        else:
+            print(worker)
 
     await state.finish()
+
 
 # ------------------------- Добавление задачи -------------------------
 
@@ -446,14 +472,15 @@ async def add_task_num_people(message: types.Message, state=FSMContext):
 async def add_task_materials(message: types.Message, state=FSMContext):
     await state.update_data(materials=str(message.text))
     data = await state.get_data()
-    task = add_task(data)
-    print(task)
+    task = add_task(message.from_id, data)
+    u_type = user_type(message.from_user.id)[0]
     if task:
         await message.answer(f'<b>Добавлена задача:</b>\n\n'
                              f'<b>Название:</b> {data["task_name"]}\n\n'
                              f'<b>Описание:</b> {data["task_description"]}\n\n'
                              f'<b>Количество людей:</b> {data["num_people"]}\n\n'
-                             f'<b>Материалы:</b> {str(data["materials"])}', parse_mode='HTML', reply_markup=admin_ikb)
+                             f'<b>Материалы:</b> {str(data["materials"])}', parse_mode='HTML',
+                             reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
     await state.finish()
 
 
@@ -468,14 +495,17 @@ async def show_task(callback: types.CallbackQuery):
     await callback.message.delete()
     tasks = select_task()
     count_tasks = len(tasks)
-
-    print(count_tasks)
-    await callback.message.answer(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
-                                  f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                  f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                  f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                  f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                  reply_markup=task_ikb)
+    u_type = user_type(callback.from_user.id)[0]
+    if not tasks:
+        await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
+                                      reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
+    else:
+        await callback.message.answer(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
+                                      f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                      f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                      f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                      f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
+                                      reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
 
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
@@ -491,11 +521,12 @@ async def right(callback: types.CallbackQuery):
     page += 1
     if page == count_tasks:
         page = 0
+    u_type = user_type(callback.from_user.id)[0]
     await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                  reply_markup=task_ikb)
+                                  reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
 
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
@@ -511,14 +542,76 @@ async def left(callback: types.CallbackQuery):
     page -= 1
     if page == (-1) * count_tasks:
         page = 0
+    u_type = user_type(callback.from_user.id)[0]
     await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                  reply_markup=task_ikb)
+                                  reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
 
 
 # f"<b>№</b> {(page - count_tasks) + 1}/{count_tasks}\n\n"
+
+# -------------------- Просмотр задач сотрудника --------------------
+# worker_task
+
+page_w = 0
+
+@dp.callback_query_handler(text='worker_task')
+async def show_task(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_worker_task(callback.from_user.id)
+    count_tasks = len(tasks)
+    await callback.message.answer(f"<b>№</b> {page_w + 1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
+                                  reply_markup=task_worker_own_ikb)
+
+
+# f"<b>№</b> {page+1}/{count_tasks}\n\n"
+
+
+@dp.callback_query_handler(text='worker_right')
+async def right(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    global page_w
+    tasks = select_worker_task(callback.from_user.id)
+    count_tasks = len(tasks)
+    page_w += 1
+    if page_w == count_tasks:
+        page_w = 0
+    u_type = user_type(callback.from_user.id)[0]
+    await callback.message.answer(f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
+                                  reply_markup=task_worker_own_ikb)
+
+
+# f"<b>№</b> {page+1}/{count_tasks}\n\n"
+
+
+@dp.callback_query_handler(text='worker_left')
+async def left(callback: types.CallbackQuery):
+    global page_w
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_worker_task(callback.from_user.id)
+    count_tasks = len(tasks)
+    page_w -= 1
+    if page_w == (-1) * count_tasks:
+        page_w = 0
+    u_type = user_type(callback.from_user.id)[0]
+    await callback.message.answer(f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
+                                  reply_markup=task_worker_own_ikb)
+
 
 # -------------------- Изменение параметров задачи --------------------
 
@@ -565,7 +658,8 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     tasks = select_task()
     t_id = tasks[data['num_task']].task_id
     change_task(t_id, data['param'][7:], data['value'])
-    await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=admin_ikb)
+    u_type = user_type(message.from_user.id)[0]
+    await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
     await state.finish()
 
 
@@ -593,13 +687,28 @@ async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
     t_id = tasks[page].task_id
     print(t_id)
     del_task(t_id)
+    u_type = user_type(callback.from_user.id)[0]
     await state.finish()
-    await callback.message.answer('Задача удалена', parse_mode='HTML', reply_markup=admin_ikb)
+    await callback.message.answer('Задача удалена', parse_mode='HTML', reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
 
 
 # --------------------- Просмотр заявок студентов ---------------------
 
 page_stud = 0
+
+
+def print_stud(students, page_stud):
+    s = f"""ФИО: {students[page_stud].student_name}\n
+ВУЗ: {students[page_stud].university}\n
+Факультет: {students[page_stud].faculty}\n
+Специальность: {students[page_stud].specialties}\n
+Кафедра: {students[page_stud].department}\n
+Курс: {students[page_stud].course}\n
+Группа: {students[page_stud].group}\n
+Курсовые: {students[page_stud].coursework}\n
+Знания: {students[page_stud].knowledge}\n
+Дата регистрации: {students[page_stud].reg_date}\n"""
+    return s
 
 
 @dp.callback_query_handler(text='show_students')
@@ -608,22 +717,14 @@ async def show_stud(callback: types.CallbackQuery):
     await callback.message.delete()
     page_stud = 0
     all_students = select_students()
-    #count_students = len(all_students)
     applications = select_applications()
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
+    if not students:
+        u_type = user_type(callback.from_user.id)[0]
+        await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
+    else:
+        await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
 
-    await callback.message.answer(f"ФИО: {students[page_stud].student_name}\n\n"
-                                  f"ВУЗ: {students[page_stud].university}\n\n"
-                                  f"Факультет: {students[page_stud].faculty}\n\n"
-                                  f"Специальность: {students[page_stud].specialties}\n\n"
-                                  f"Кафедра: {students[page_stud].department}\n\n"
-                                  f"Курс: {students[page_stud].course}\n\n"
-                                  f"Группа: {students[page_stud].group}\n\n"
-                                  f"Курсовые: {students[page_stud].coursework}\n\n"
-                                  f"Знания: {students[page_stud].knowledge}\n\n"
-                                  f"Дата регистрации: {students[page_stud].reg_date}\n\n",
-                                  reply_markup=stud_appl_ikb
-                                          )
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
@@ -637,22 +738,13 @@ async def std_right(callback: types.CallbackQuery):
     applications = select_applications()
     count_students = len(all_students) - len(applications)
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
-
-    page_stud += 1
-    if page_stud == count_students:
-        page_stud = 0
-    await callback.message.answer(f"ФИО: {students[page_stud].student_name}\n\n"
-                                  f"ВУЗ: {students[page_stud].university}\n\n"
-                                  f"Факультет: {students[page_stud].faculty}\n\n"
-                                  f"Специальность: {students[page_stud].specialties}\n\n"
-                                  f"Кафедра: {students[page_stud].department}\n\n"
-                                  f"Курс: {students[page_stud].course}\n\n"
-                                  f"Группа: {students[page_stud].group}\n\n"
-                                  f"Курсовые: {students[page_stud].coursework}\n\n"
-                                  f"Знания: {students[page_stud].knowledge}\n\n"
-                                  f"Дата регистрации: {students[page_stud].reg_date}\n\n",
-                                  reply_markup=stud_appl_ikb
-                                  )
+    if not students:
+        await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
+    else:
+        page_stud += 1
+        if page_stud >= count_students:
+            page_stud = 0
+        await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
 
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
@@ -667,32 +759,37 @@ async def std_left(callback: types.CallbackQuery):
     applications = select_applications()
     count_students = len(all_students) - len(applications)
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
+    if not students:
+        await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
+    else:
+        print(page_stud, count_students)
+        page_stud -= 1
+        if page_stud <= (-1) * count_students:
+            page_stud = 0
+        await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
 
-    page_stud -= 1
-    if page_stud == (-1) * count_students:
-        page_stud = 0
-    await callback.message.answer(f"ФИО: {students[page_stud].student_name}\n\n"
-                                  f"ВУЗ: {students[page_stud].university}\n\n"
-                                  f"Факультет: {students[page_stud].faculty}\n\n"
-                                  f"Специальность: {students[page_stud].specialties}\n\n"
-                                  f"Кафедра: {students[page_stud].department}\n\n"
-                                  f"Курс: {students[page_stud].course}\n\n"
-                                  f"Группа: {students[page_stud].group}\n\n"
-                                  f"Курсовые: {students[page_stud].coursework}\n\n"
-                                  f"Знания: {students[page_stud].knowledge}\n\n"
-                                  f"Дата регистрации: {students[page_stud].reg_date}\n\n",
-                                  reply_markup=stud_appl_ikb
-                                  )
+
+# ---------------------- Принятие\отклонение заявки ----------------------
+
+
+def current_student(page_s):
+    all_students = select_students()
+    applications = select_applications()
+    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
+    student_id = students[page_s].telegram_id
+    print(page_s, student_id, students[page_s].student_name)
+    return student_id
 
 
 @dp.callback_query_handler(text='approve')
 async def approve_stud(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
-    student_id = select_students()[page_stud].telegram_id
-    print(callback.from_user.id)
+    await callback.message.delete()
+    student_id = current_student(page_stud)
     add_application(student_id, callback.from_user.id, 1)
 
     await callback.message.answer('Заявка одобрена.', reply_markup=stud_appl_ikb_2)
+
 
 class Stud_del(StatesGroup):
     del_s = State()
@@ -701,6 +798,7 @@ class Stud_del(StatesGroup):
 @dp.callback_query_handler(text='reject')
 async def reject_stud(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
+    await callback.message.delete()
     await callback.message.answer('Отклонить заявку?', parse_mode='HTML', reply_markup=del_stud_ikb)
     await Stud_del.del_s.set()
 
@@ -710,11 +808,11 @@ async def reject_stud(callback: types.CallbackQuery, state=FSMContext):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
     await state.update_data(del_s=callback.data)
-    student_id = select_students()[page_stud].telegram_id
-    print(student_id, callback.from_user.id)
+    student_id = current_student(page_stud)
     add_application(student_id, callback.from_user.id, 0)
     await state.finish()
     await callback.message.answer('Заявка отклонена.', reply_markup=stud_appl_ikb_2)
+
 
 # ----------------- Отображение информации студента\работника -----------------
 
@@ -757,28 +855,29 @@ async def show_params(message: types.Message):
     u_type = user_type(s_id)
     if u_type is None:
         await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
-                                      parse_mode='HTML')
+                             parse_mode='HTML')
     elif u_type[0] == 'student':
         await message.answer(f"<b>Ваши данные</b>\n\n"
-                                      f"<b>ФИО:</b> {user_show.student_name}\n\n"
-                                      f"<b>ВУЗ:</b> {user_show.university}\n\n"
-                                      f"<b>Факультет:</b> {user_show.faculty}\n\n"
-                                      f"<b>Направление:</b> {user_show.specialties}\n\n"
-                                      f"<b>Кафедра:</b> {user_show.department}\n\n"
-                                      f"<b>Курс:</b> {user_show.course}\n\n"
-                                      f"<b>Группа:</b> {user_show.group}\n\n"
-                                      f"<b>Курсовые:</b> {user_show.coursework}\n\n"
-                                      f"<b>Знания:</b> {user_show.knowledge}\n\n"
-                                      f"<b>Дата регистрации:</b> {user_show.reg_date}\n\n",
-                                      parse_mode='HTML',
-                                      reply_markup=change_stud_ikb
-                                      )
+                             f"<b>ФИО:</b> {user_show.student_name}\n\n"
+                             f"<b>ВУЗ:</b> {user_show.university}\n\n"
+                             f"<b>Факультет:</b> {user_show.faculty}\n\n"
+                             f"<b>Направление:</b> {user_show.specialties}\n\n"
+                             f"<b>Кафедра:</b> {user_show.department}\n\n"
+                             f"<b>Курс:</b> {user_show.course}\n\n"
+                             f"<b>Группа:</b> {user_show.group}\n\n"
+                             f"<b>Курсовые:</b> {user_show.coursework}\n\n"
+                             f"<b>Знания:</b> {user_show.knowledge}\n\n"
+                             f"<b>Дата регистрации:</b> {user_show.reg_date}\n\n",
+                             parse_mode='HTML',
+                             reply_markup=change_stud_ikb
+                             )
     else:
         await message.answer(f"Ваши данные\n\n"
-                                      f"ФИО: {user_show.name}\n\n")
+                             f"ФИО: {user_show.name}\n\n")
 
 
 # -------------------- Отмена действия --------------------
+
 
 @dp.callback_query_handler(text='back', state="*")
 async def back_func(callback: types.CallbackQuery, state: FSMContext):

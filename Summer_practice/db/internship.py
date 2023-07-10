@@ -23,6 +23,10 @@ class Task(Base):
     # telegram user id
     task_id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
     # ФИО
+    from_id = Column(String, nullable=True)
+
+    student_id = Column(String, nullable=True)
+
     task_name = Column(VARCHAR(200))
 
     task_description = Column(TEXT)
@@ -59,18 +63,10 @@ class InternshipTask(Base):
     internship_id = Column(Integer, ForeignKey('internship.internship_id'))
 
 
+#InternshipTask.__table__.drop(engine)
 
 Base.metadata.create_all(bind=engine)
 
-def select_task():
-    try:
-        task = Task.query.all()
-        #for i in task:
-        #    print(i.task_name)
-    except Exception as e:
-        print(e)
-        task = False
-    return task
 
 
 """task = Task(task_name='x', task_description='x', num_people='1', materials='x')
