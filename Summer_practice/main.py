@@ -256,7 +256,7 @@ def chek_param(p, v):
         return False
     elif p == 'group' and (
             (re.fullmatch('\d{,3}\D\d', v) is None) or ' ' in v or any(chr.isalpha() for chr in v) or any(
-            chr in string.punctuation.replace('/', '') for chr in v)):
+        chr in string.punctuation.replace('/', '') for chr in v)):
         return False
 
     return True
@@ -372,10 +372,26 @@ async def registration_command(message: types.Message):
         await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
 
 
+def chek_wlogin(l, *args):
+    f = False
+    for i in args[0]:
+        if i[0] == l:
+            f = True
+    return f
+
+
+def chek_wpassword(p, *args):
+    f = False
+    for i in args[0]:
+        if i[1] == p:
+            f = True
+    return f
+
+
 @dp.message_handler(state=Authorisation.login)
 async def get_login(message: types.Message, state=FSMContext):
-    if message.text != log_pass.get('admin')[0] and message.text != log_pass.get('director')[0] and message.text != \
-            log_pass.get('worker')[0][0] and message.text != log_pass.get('worker')[1][0]:
+    m = message.text
+    if (m != log_pass.get('admin')[0]) and (m != log_pass.get('director')[0]) and not chek_wlogin(m, log_pass.get('worker')):
         await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(login=message.text)
@@ -385,8 +401,8 @@ async def get_login(message: types.Message, state=FSMContext):
 
 @dp.message_handler(state=Authorisation.password)
 async def get_login(message: types.Message, state=FSMContext):
-    if message.text != log_pass.get('admin')[1] and message.text != log_pass.get('director')[1] and message.text != \
-            log_pass.get('worker')[0][1] and message.text != log_pass.get('worker')[1][1]:
+    m = message.text
+    if m != log_pass.get('admin')[1] and m != log_pass.get('director')[1] and not chek_wpassword(m, log_pass.get('worker')):
         await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(password=message.text)
@@ -396,13 +412,8 @@ async def get_login(message: types.Message, state=FSMContext):
 
 @dp.message_handler(state=Authorisation.name)
 async def get_password(message: types.Message, state=FSMContext):
-    # if message.text != log_pass.get('admin')[1]:
-    #    await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
-    #   return
     await state.update_data(name=message.text)
     data = await state.get_data()
-    # await message.answer(f'login: {data["login"]}\npassword: {data["password"]}')
-    # student = register_student(message.from_user.id, data)
     if data.get('login') == log_pass.get('admin')[0] and data.get('password') == log_pass.get('admin')[1]:
         admin = register_admin(message.from_user.id, data)
         if admin:
@@ -413,18 +424,12 @@ async def get_password(message: types.Message, state=FSMContext):
         if director:
             await message.answer('Вы авторизированны как директор.', parse_mode='HTML')
             await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
-    elif data.get('login') == log_pass.get('worker')[0][0] and data.get('password') == log_pass.get('worker')[0][1]:
+    elif chek_wlogin(data.get('login'), log_pass.get('worker')) and chek_wpassword(data.get('password'), log_pass.get('worker')):
         worker = register_worker(message.from_user.id, data)
         if worker:
             await message.answer('Вы авторизированны как сотрудник.', parse_mode='HTML')
             await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=worker_ikb)
-    elif data.get('login') == log_pass.get('worker')[1][0] and data.get('password') == log_pass.get('worker')[1][1]:
-        worker = register_worker(message.from_user.id, data)
-        if worker:
-            await message.answer('Вы авторизированны как сотрудник.', parse_mode='HTML')
-            await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=worker_ikb)
-        else:
-            print(worker)
+
 
     await state.finish()
 
@@ -480,7 +485,7 @@ async def add_task_materials(message: types.Message, state=FSMContext):
                              f'<b>Описание:</b> {data["task_description"]}\n\n'
                              f'<b>Количество людей:</b> {data["num_people"]}\n\n'
                              f'<b>Материалы:</b> {str(data["materials"])}', parse_mode='HTML',
-                             reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
+                             reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
     await state.finish()
 
 
@@ -522,7 +527,8 @@ async def right(callback: types.CallbackQuery):
     if page == count_tasks:
         page = 0
     u_type = user_type(callback.from_user.id)[0]
-    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+    await callback.message.answer(f"<b>№</b> {page+1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
@@ -557,6 +563,7 @@ async def left(callback: types.CallbackQuery):
 
 page_w = 0
 
+
 @dp.callback_query_handler(text='worker_task')
 async def show_task(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
@@ -585,7 +592,8 @@ async def right(callback: types.CallbackQuery):
     if page_w == count_tasks:
         page_w = 0
     u_type = user_type(callback.from_user.id)[0]
-    await callback.message.answer(f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+    await callback.message.answer(f"<b>№</b> {page_w+1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
@@ -603,10 +611,13 @@ async def left(callback: types.CallbackQuery):
     tasks = select_worker_task(callback.from_user.id)
     count_tasks = len(tasks)
     page_w -= 1
-    if page_w == (-1) * count_tasks:
+    if page_w <= (-1) * count_tasks:
         page_w = 0
+    p_l = page_w
     u_type = user_type(callback.from_user.id)[0]
-    await callback.message.answer(f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+    print(count_tasks, p_l)
+    await callback.message.answer(f"<b>№</b> {count_tasks+p_l+1 if p_l < 0 else count_tasks-p_l+1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
@@ -644,7 +655,11 @@ async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
     await state.update_data(param=callback.data)
-    await state.update_data(num_task=page)
+    u_type = user_type(callback.from_user.id)[0]
+    if u_type == 'worker':
+        await state.update_data(num_task=page_w)
+    else:
+        await state.update_data(num_task=page)
     await callback.message.answer("Введите новое значение.")
     await Task_change.next()
 
@@ -659,7 +674,8 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     t_id = tasks[data['num_task']].task_id
     change_task(t_id, data['param'][7:], data['value'])
     u_type = user_type(message.from_user.id)[0]
-    await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
+    await message.answer('Задача изменена.', parse_mode='HTML',
+                         reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
     await state.finish()
 
 
@@ -683,13 +699,15 @@ async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
     await callback.message.delete()
     await state.update_data(del_t=callback.data)
     tasks = select_task()
-    print(page)
-    t_id = tasks[page].task_id
-    print(t_id)
-    del_task(t_id)
     u_type = user_type(callback.from_user.id)[0]
+    if u_type == 'worker':
+        t_id = tasks[page_w].task_id
+    else:
+        t_id = tasks[page].task_id
+    del_task(t_id)
     await state.finish()
-    await callback.message.answer('Задача удалена', parse_mode='HTML', reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
+    await callback.message.answer('Задача удалена', parse_mode='HTML',
+                                  reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
 
 
 # --------------------- Просмотр заявок студентов ---------------------
@@ -721,7 +739,8 @@ async def show_stud(callback: types.CallbackQuery):
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
     if not students:
         u_type = user_type(callback.from_user.id)[0]
-        await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
+        await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.',
+                                      reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
     else:
         await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
 

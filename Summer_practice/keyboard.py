@@ -72,8 +72,8 @@ task_worker_ikb.add(task_b4, task_b5)
 task_worker_own_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_own_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_worker_own_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
-task_worker_own_ikb.add(task_worker_own_b1, task_worker_own_b2)
 task_worker_own_ikb.add(task_b1, task_b2)
+task_worker_own_ikb.add(task_worker_own_b1, task_worker_own_b2)
 
 
 change_task_ikb = InlineKeyboardMarkup(row_width=2)
