@@ -31,6 +31,8 @@ admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_d
 # admin_b3 = InlineKeyboardButton(text="Удалить задачу", callback_data="del_task")
 admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
 admin_b5 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
+admin_b6 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
+
 admin_ikb.add(admin_b1).add(admin_b4).add(admin_b5)
 
 admin_ikb2 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)

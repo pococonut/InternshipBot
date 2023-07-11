@@ -13,7 +13,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 import re
 
-TOKEN_API = ""
+TOKEN_API = "6392143741:AAEsx0nMPsI3CBm_fGHOnw8npgWVnOcmp0g"
 
 bot = Bot(TOKEN_API)
 dp = Dispatcher(bot, storage=MemoryStorage())  # инициализация входящих данных
@@ -347,8 +347,8 @@ class Authorisation(StatesGroup):
 
 authorisation_lst = []
 
-log_pass = {'admin': ['1', '111'],
-            'director': ['2', '222'],
+log_pass = {'admin': [['1', '111'], ['0', '000']],
+            'director': [['2', '222'], []],
             'worker': [['3', '333'], ['4', '444']],
             }
 
@@ -391,7 +391,7 @@ def chek_wpassword(p, *args):
 @dp.message_handler(state=Authorisation.login)
 async def get_login(message: types.Message, state=FSMContext):
     m = message.text
-    if (m != log_pass.get('admin')[0]) and (m != log_pass.get('director')[0]) and not chek_wlogin(m, log_pass.get('worker')):
+    if not chek_wlogin(m, log_pass.get('admin')) and not chek_wlogin(m, log_pass.get('director')) and not chek_wlogin(m, log_pass.get('worker')):
         await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(login=message.text)
@@ -402,7 +402,7 @@ async def get_login(message: types.Message, state=FSMContext):
 @dp.message_handler(state=Authorisation.password)
 async def get_login(message: types.Message, state=FSMContext):
     m = message.text
-    if m != log_pass.get('admin')[1] and m != log_pass.get('director')[1] and not chek_wpassword(m, log_pass.get('worker')):
+    if not chek_wpassword(m, log_pass.get('admin')) and not chek_wpassword(m, log_pass.get('director')) and not chek_wpassword(m, log_pass.get('worker')):
         await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(password=message.text)
@@ -414,12 +414,12 @@ async def get_login(message: types.Message, state=FSMContext):
 async def get_password(message: types.Message, state=FSMContext):
     await state.update_data(name=message.text)
     data = await state.get_data()
-    if data.get('login') == log_pass.get('admin')[0] and data.get('password') == log_pass.get('admin')[1]:
+    if chek_wlogin(data.get('login'), log_pass.get('admin')) and chek_wpassword(data.get('password'), log_pass.get('admin')):
         admin = register_admin(message.from_user.id, data)
         if admin:
             await message.answer('Вы авторизированны как администатор.', parse_mode='HTML')
             await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=admin_ikb)
-    elif data.get('login') == log_pass.get('director')[0] and data.get('password') == log_pass.get('director')[1]:
+    elif chek_wlogin(data.get('login'), log_pass.get('director')) and chek_wpassword(data.get('password'), log_pass.get('director')):
         director = register_director(message.from_user.id, data)
         if director:
             await message.answer('Вы авторизированны как директор.', parse_mode='HTML')
@@ -505,6 +505,7 @@ async def show_task(callback: types.CallbackQuery):
         await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
                                       reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
     else:
+        print(page)
         await callback.message.answer(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
                                       f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                       f"<b>Описание:</b> {tasks[page].task_description}\n\n"
@@ -526,8 +527,13 @@ async def right(callback: types.CallbackQuery):
     page += 1
     if page == count_tasks:
         page = 0
+    p_r = page
+    if page == -1:
+        p_r = count_tasks-1
     u_type = user_type(callback.from_user.id)[0]
-    await callback.message.answer(f"<b>№</b> {page+1}/{count_tasks}\n\n"
+    print(page)
+
+    await callback.message.answer(f"<b>№</b> {p_r+1}/{count_tasks}\n\n"
                                   f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
@@ -546,20 +552,23 @@ async def left(callback: types.CallbackQuery):
     tasks = select_task()
     count_tasks = len(tasks)
     page -= 1
+    p_l = 0
     if page == (-1) * count_tasks:
         page = 0
+    if page <= -1:
+        p_l = count_tasks
     u_type = user_type(callback.from_user.id)[0]
-    await callback.message.answer(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+    print(p_l, page)
+
+    await callback.message.answer(f"<b>№</b> {(p_l + page) + 1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
                                   reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
 
 
-# f"<b>№</b> {(page - count_tasks) + 1}/{count_tasks}\n\n"
-
 # -------------------- Просмотр задач сотрудника --------------------
-# worker_task
 
 page_w = 0
 
@@ -578,9 +587,6 @@ async def show_task(callback: types.CallbackQuery):
                                   reply_markup=task_worker_own_ikb)
 
 
-# f"<b>№</b> {page+1}/{count_tasks}\n\n"
-
-
 @dp.callback_query_handler(text='worker_right')
 async def right(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
@@ -591,16 +597,15 @@ async def right(callback: types.CallbackQuery):
     page_w += 1
     if page_w == count_tasks:
         page_w = 0
-    u_type = user_type(callback.from_user.id)[0]
-    await callback.message.answer(f"<b>№</b> {page_w+1}/{count_tasks}\n\n"
+    p_rw = page_w
+    if page_w == -1:
+        p_rw = count_tasks-1
+    await callback.message.answer(f"<b>№</b> {p_rw+1}/{count_tasks}\n\n"
                                   f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
                                   f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
                                   reply_markup=task_worker_own_ikb)
-
-
-# f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
 
 @dp.callback_query_handler(text='worker_left')
@@ -611,12 +616,12 @@ async def left(callback: types.CallbackQuery):
     tasks = select_worker_task(callback.from_user.id)
     count_tasks = len(tasks)
     page_w -= 1
-    if page_w <= (-1) * count_tasks:
+    p_lw = 0
+    if page_w == (-1) * count_tasks:
         page_w = 0
-    p_l = page_w
-    u_type = user_type(callback.from_user.id)[0]
-    print(count_tasks, p_l)
-    await callback.message.answer(f"<b>№</b> {count_tasks+p_l+1 if p_l < 0 else count_tasks-p_l+1}/{count_tasks}\n\n"
+    if page <= -1:
+        p_lw = count_tasks
+    await callback.message.answer(f"<b>№</b> {(p_lw + page_w) + 1}/{count_tasks}\n\n"
                                   f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
                                   f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
                                   f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
@@ -733,16 +738,17 @@ def print_stud(students, page_stud):
 async def show_stud(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
-    page_stud = 0
+    #page_stud = 0
     all_students = select_students()
     applications = select_applications()
+    count_students = len(all_students) - len(applications)
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
     if not students:
         u_type = user_type(callback.from_user.id)[0]
         await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.',
                                       reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
     else:
-        await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
+        await callback.message.answer(f"<b>№</b> {page_stud + 1}/{count_students}\n\n" + print_stud(students, page_stud), reply_markup=stud_appl_ikb, parse_mode='HTML')
 
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
@@ -761,9 +767,12 @@ async def std_right(callback: types.CallbackQuery):
         await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
     else:
         page_stud += 1
-        if page_stud >= count_students:
+        if page_stud == count_students:
             page_stud = 0
-        await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
+        p_rs = page_stud
+        if page_stud == -1:
+            p_rs = count_students - 1
+        await callback.message.answer(f"<b>№</b> {p_rs+1}/{count_students}\n\n" + print_stud(students, page_stud), reply_markup=stud_appl_ikb, parse_mode='HTML')
 
 
 # f"<b>№</b> {page+1}/{count_tasks}\n\n"
@@ -781,11 +790,15 @@ async def std_left(callback: types.CallbackQuery):
     if not students:
         await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
     else:
-        print(page_stud, count_students)
         page_stud -= 1
-        if page_stud <= (-1) * count_students:
+        p_ls = 0
+        if page_stud == (-1) * count_students:
             page_stud = 0
-        await callback.message.answer(print_stud(students, page_stud), reply_markup=stud_appl_ikb)
+        if page_stud <= -1:
+            p_ls = count_students
+        print(p_ls, page_stud)
+
+        await callback.message.answer(f"<b>№</b> {(p_ls + page_stud) + 1}/{count_students}\n\n" + print_stud(students, page_stud), reply_markup=stud_appl_ikb, parse_mode='HTML')
 
 
 # ---------------------- Принятие\отклонение заявки ----------------------

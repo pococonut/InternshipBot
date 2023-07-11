@@ -480,27 +480,61 @@ async def reg_callback(callback: types.CallbackQuery):
         await callback.message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
                                       parse_mode='HTML')"""
 
-
-class Task_del(StatesGroup):
-    del_t = State()
+page_w = 0
 
 
-@dp.callback_query_handler(text='del_task')
-async def del_t(callback: types.CallbackQuery):
-    await callback.message.edit_reply_markup()
-    await callback.message.answer('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
-    await Task_del.del_t.set()
-
-
-@dp.callback_query_handler(text='del_yes', state=Task_del.del_t)
-async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
+@dp.callback_query_handler(text='worker_task')
+async def show_task(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     await callback.message.delete()
-    await state.update_data(del_t=callback.data)
-    tasks = select_task()
-    print(page)
-    t_id = tasks[page].task_id
-    print(t_id)
-    del_task(t_id)
-    await state.finish()
-    await callback.message.answer('Задача удалена', parse_mode='HTML', reply_markup=admin_ikb)
+    tasks = select_worker_task(callback.from_user.id)
+    count_tasks = len(tasks)
+    await callback.message.answer(f"<b>№</b> {page_w + 1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
+                                  reply_markup=task_worker_own_ikb)
+
+
+@dp.callback_query_handler(text='worker_right')
+async def right(callback: types.CallbackQuery):
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    global page_w
+    tasks = select_worker_task(callback.from_user.id)
+    count_tasks = len(tasks)
+    page_w += 1
+    if page_w == count_tasks:
+        page_w = 0
+    p_rw = page_w
+    if page_w == -1:
+        p_rw = count_tasks-1
+    await callback.message.answer(f"<b>№</b> {p_rw+1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
+                                  reply_markup=task_worker_own_ikb)
+
+
+@dp.callback_query_handler(text='worker_left')
+async def left(callback: types.CallbackQuery):
+    global page_w
+    await callback.message.edit_reply_markup()
+    await callback.message.delete()
+    tasks = select_worker_task(callback.from_user.id)
+    count_tasks = len(tasks)
+    page_w -= 1
+    p_lw = 0
+    if page_w == (-1) * count_tasks:
+        page_w = 0
+    if page <= -1:
+        p_lw = count_tasks
+    await callback.message.answer(f"<b>№</b> {(p_lw + page_w) + 1}/{count_tasks}\n\n"
+                                  f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                  f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                  f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                  f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
+                                  reply_markup=task_worker_own_ikb)
+
