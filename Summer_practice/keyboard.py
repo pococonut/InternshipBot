@@ -33,7 +33,7 @@ admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_dat
 admin_b5 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
 admin_b6 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
 
-admin_ikb.add(admin_b1).add(admin_b4).add(admin_b5)
+admin_ikb.add(admin_b1).add(admin_b4).add(admin_b6).add(admin_b5)
 
 admin_ikb2 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_ikb2.add(ib1_3).add(admin_b1).add(admin_b4).add(admin_b5)
@@ -74,8 +74,9 @@ task_worker_ikb.add(task_b4, task_b5)
 task_worker_own_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_own_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_worker_own_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
-task_worker_own_ikb.add(task_b1, task_b2)
-task_worker_own_ikb.add(task_worker_own_b1, task_worker_own_b2)
+task_worker_own_b3 = InlineKeyboardButton(text="Изменить", callback_data="change_task_w")
+task_worker_own_b4 = InlineKeyboardButton(text="Удалить", callback_data="del_task_w")
+task_worker_own_ikb.add(task_worker_own_b3, task_worker_own_b4, task_worker_own_b1, task_worker_own_b2)
 
 
 change_task_ikb = InlineKeyboardMarkup(row_width=2)
