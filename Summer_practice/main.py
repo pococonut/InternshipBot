@@ -3,11 +3,12 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb, \
     change_task_ikb, del_task_ikb, admin_ikb2, stud_ikb, change_stud_ikb, stud_appl_ikb, del_stud_ikb, stud_appl_ikb_2, \
-    worker_ikb, task_worker_ikb, task_worker_own_ikb
+    worker_ikb, task_worker_ikb, task_worker_own_ikb, student_task_show, student_task_choose, stud_is_approve, \
+    student_task_choose_cont, student_task_already_choose, stud_reject_task
 import string
 from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, \
     add_task, select_task, change_task, del_task, select_students, add_application, select_applications, \
-    register_director, register_worker, select_worker_task
+    register_director, register_worker, select_worker_task, stud_approve, select_task_for_stud, select_already_get_stud
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -21,10 +22,10 @@ bot = Bot(TOKEN_API)
 dp = Dispatcher(bot, storage=MemoryStorage())  # инициализация входящих данных
 
 commands = [
-    types.BotCommand(command='/student', description='Регистрация студента'),
+    types.BotCommand(command='/student', description='Меню студента'),
+    types.BotCommand(command='/menu', description='Меню персонала'),
     types.BotCommand(command='/change', description='Изменение данных студента'),
     types.BotCommand(command='/show', description='Просмотр данных пользователя'),
-    types.BotCommand(command='/menu', description='Меню персонала')
 ]
 
 
@@ -34,27 +35,20 @@ async def set_commands(dp):
 
 DESCRIPTION = "Данный телеграм бот предназначен для рабты с практиками и стажировками," \
               " с которыми можно ознакомиться после регистрации и подачи заявки."
-
 FORM = """
-Введите данные <b>отдельными сообщениями</b>.
+Для подачи заявки необходиммо ввести такие данные как:
 
-<b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>
+ФИО
+ВУЗ
+Факультет
+Направление
+Кафедра
+Курс
+Группа
+Темы курсовых работ
+Ваши знания
 
-<b>ВУЗ</b> в формате: <em>КУБГУ</em>
-
-<b>Факультет</b> в формате: <em>Математика и компьютерные науки</em>
-
-<b>Направление</b> в формате: <em>Математика и компьютерные науки</em>
-
-<b>Кафедра</b> (при отсутствии введите: "Нет") в формате: <em>ВМИ</em>
-
-<b>Курс</b> в формате: <em>2</em>
-
-<b>Группа</b> в формате: <em>23/3</em>
-
-<b>Темы курсовых работ</b> (при отсутствии введите: "Нет") в формате: <em>1)Разработка сайта для КУБГУ, 2)Калькулятор матриц</em>
-
-<b>Ваши знания</b> (при отсутствии введите: "Нет") в формате: <em>Python, SQL, C++, JS</em>
+<b>отдельными сообщениями</b>.
 """
 
 
@@ -103,17 +97,22 @@ async def registration_command(message: types.Message):
            'admin': 'администранор',
            'director': 'директор',
            'worker': 'сотрудник'}
-    if user_exist and user_exist[0] != 'student':
-        print(user_exist[0])
-        await message.answer(f'Вы уже зарегестрированы как <b>{usr.get(user_exist[0])}</b>.', parse_mode='HTML',
-                             reply_markup=admin_ikb if user_exist[0] != 'worker' else worker_ikb)
-        # await message.edit_reply_markup()
-    elif user_exist and user_exist[0] == 'student':
-        await message.answer(f'Вы уже зарегестрированы как <b>{usr.get(user_exist[0])}</b>.', parse_mode='HTML',
-                             reply_markup=ikb_3)
-    else:
-        await message.answer("Введите данные <b>отдельными сообщениями</b>.", parse_mode='HTML',
+    if not user_exist:
+        await message.answer(FORM, parse_mode='HTML',
                              reply_markup=back_cont_ikb)
+    else:
+        keyboard = task_ikb
+        if user_exist[0] == 'worker':
+            keyboard = task_worker_ikb
+        elif user_exist[0] == 'student':
+            approve = stud_approve(message.from_user.id)
+            if approve:
+                keyboard = stud_is_approve
+            else:
+                keyboard = ikb_3
+        print(user_exist[0])
+        await message.answer(f'Вы зарегестрированы как <b>{usr.get(user_exist[0])}</b>.', parse_mode='HTML',
+                             reply_markup=keyboard)
 
 
 @dp.callback_query_handler(text='continue', state="*")
@@ -158,7 +157,7 @@ async def get_faculty(message: types.Message, state=FSMContext):
         await message.answer('Факультет введен в некорректом формате', parse_mode='HTML')
         return
     await state.update_data(faculty=message.text.capitalize())
-    await message.answer("Введите <b>Направление</b> в формате: <em>Математика и компьютерные науки</em>",
+    await message.answer("Введите <b>Направление</b> в формате: <em>Фундаментальные математика и механика</em>",
                          parse_mode='HTML')
     await Student.next()
 
@@ -275,10 +274,12 @@ def chek_param(p, v):
             return v
     elif p == 'group':
         if ((re.fullmatch('\d{,3}\D\d', v) is None) or ' ' in v or any(chr.isalpha() for chr in v) or any(
-        chr in string.punctuation.replace('/', '') for chr in v)):
+                chr in string.punctuation.replace('/', '') for chr in v)):
             return False
         else:
             return v
+    else:
+        return v
 
 
 class Change_student(StatesGroup):
@@ -369,7 +370,7 @@ class Authorisation(StatesGroup):
 authorisation_lst = []
 
 log_pass = {'admin': [['1', '111'], ['0', '000']],
-            'director': [['2', '222'],],
+            'director': [['2', '222'], ],
             'worker': [['3', '333'], ['4', '444']],
             }
 
@@ -413,8 +414,8 @@ def chek_wpassword(p, *args):
 @dp.message_handler(state=Authorisation.login)
 async def get_login(message: types.Message, state=FSMContext):
     m = message.text
-    if not chek_wlogin(m, log_pass.get('admin')) and not chek_wlogin(m, log_pass.get('director'))\
-            and not chek_wlogin(m,log_pass.get('worker')):
+    if not chek_wlogin(m, log_pass.get('admin')) and not chek_wlogin(m, log_pass.get('director')) \
+            and not chek_wlogin(m, log_pass.get('worker')):
         await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(login=message.text)
@@ -524,77 +525,113 @@ page = 0
 
 @dp.callback_query_handler(text='show_task')
 async def show_task(callback: types.CallbackQuery):
-    # page = 0
-    tasks = select_task()
-    count_tasks = len(tasks)
+    page = 0
     u_type = user_type(callback.from_user.id)[0]
+
+    if u_type == 'student':
+        tasks = select_task_for_stud()
+        already_get = select_already_get_stud(callback.from_user.id)
+        if already_get:
+            keyboard = student_task_already_choose
+        else:
+            keyboard = student_task_choose
+    else:
+        tasks = select_task()
+        keyboard = task_ikb
+        if u_type == 'worker':
+            keyboard = task_worker_ikb
     if not tasks:
         try:
-            await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.',
-                                             reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb)
+            await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
         except:
             await callback.message.edit_reply_markup()
             await callback.message.delete()
             await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
-                                          reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
+                                          reply_markup=keyboard)
     else:
-        print(page)
+        count_tasks = len(tasks)
         await callback.message.edit_text(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
                                          f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                          f"<b>Описание:</b> {tasks[page].task_description}\n\n"
                                          f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                         f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                         reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb,
+                                         f"<b>Материалы:</b> {str(tasks[page].materials)}",
+                                         parse_mode='HTML',
+                                         reply_markup=keyboard,
                                          disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='right')
 async def right(callback: types.CallbackQuery):
-    # await callback.message.edit_reply_markup()
-    # await callback.message.delete()
-    global page
-    tasks = select_task()
-    count_tasks = len(tasks)
-    page += 1
-    if page == count_tasks:
-        page = 0
-    p_r = page
-    if page <= -1:
-        p_r = count_tasks + page
+    global page, page_s
     u_type = user_type(callback.from_user.id)[0]
-    print(page)
-
-    await callback.message.edit_text(f"<b>№</b> {p_r + 1}/{count_tasks}\n\n"
-                                     f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                     f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                     f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                     f"<b>Материалы:</b> {str(tasks[page].materials)}",
-                                     parse_mode='HTML',
-                                     reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb,
-                                     disable_web_page_preview=True)
+    if u_type == 'student':
+        tasks = select_task_for_stud()
+        already_get = select_already_get_stud(callback.from_user.id)
+        if already_get:
+            keyboard = student_task_already_choose
+        else:
+            keyboard = student_task_choose
+    else:
+        tasks = select_task()
+        keyboard = task_ikb
+        if u_type == 'worker':
+            keyboard = task_worker_ikb
+    if not tasks:
+        if u_type == 'student':
+            keyboard = stud_is_approve
+        await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
+    else:
+        count_tasks = len(tasks)
+        page += 1
+        if page == count_tasks:
+            page = 0
+        p_r = page
+        if page <= -1:
+            p_r = count_tasks + page
+        print(page)
+        await callback.message.edit_text(f"<b>№</b> {p_r + 1}/{count_tasks}\n\n"
+                                         f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                         f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                         f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                         f"<b>Материалы:</b> {str(tasks[page].materials)}",
+                                         parse_mode='HTML',
+                                         reply_markup=keyboard,
+                                         disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='left')
 async def left(callback: types.CallbackQuery):
-    global page
-    tasks = select_task()
-    count_tasks = len(tasks)
-    page -= 1
-    p_l = 0
-    if page == (-1) * count_tasks:
-        page = 0
-    if page <= -1:
-        p_l = count_tasks
+    global page, page_s
     u_type = user_type(callback.from_user.id)[0]
-    # print(p_l, page)
-
-    await callback.message.edit_text(f"<b>№</b> {(p_l + page) + 1}/{count_tasks}\n\n"
-                                     f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                     f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                     f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                     f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
-                                     reply_markup=task_ikb if u_type != 'worker' else task_worker_ikb,
-                                     disable_web_page_preview=True)
+    if u_type == 'student':
+        tasks = select_task_for_stud()
+        already_get = select_already_get_stud(callback.from_user.id)
+        if already_get:
+            keyboard = student_task_already_choose
+        else:
+            keyboard = student_task_choose
+    else:
+        tasks = select_task()
+        keyboard = task_ikb
+        if u_type == 'worker':
+            keyboard = task_worker_ikb
+    if not tasks:
+        await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
+    else:
+        count_tasks = len(tasks)
+        page -= 1
+        p_l = 0
+        if page == (-1) * count_tasks:
+            page = 0
+        if page <= -1:
+            p_l = count_tasks
+        await callback.message.edit_text(f"<b>№</b> {(p_l + page) + 1}/{count_tasks}\n\n"
+                                         f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                         f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                         f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                         f"<b>Материалы:</b> {str(tasks[page].materials)}", parse_mode='HTML',
+                                         reply_markup=keyboard,
+                                         disable_web_page_preview=True)
 
 
 # -------------------- Изменение параметров задачи --------------------
@@ -841,7 +878,7 @@ def print_stud(students, page_stud):
 async def show_stud(callback: types.CallbackQuery):
     # await callback.message.edit_reply_markup()
     # await callback.message.delete()
-    # page_stud = 0
+    page_stud = 0
     all_students = select_students()
     applications = select_applications()
     count_students = len(all_students) - len(applications)
@@ -857,12 +894,13 @@ async def show_stud(callback: types.CallbackQuery):
             await callback.message.answer('В данный момент заявок нет.\nЗагляните позже.',
                                           reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
     else:
-        await callback.message.edit_text(
-            f"<b>№</b> {page_stud + 1}/{count_students}\n\n" + print_stud(students, page_stud),
-            reply_markup=stud_appl_ikb, parse_mode='HTML')
-
-
-# f"<b>№</b> {page+1}/{count_tasks}\n\n"
+        try:
+            await callback.message.edit_text(
+                f"<b>№</b> {page_stud + 1}/{count_students}\n\n" + print_stud(students, page_stud),
+                reply_markup=stud_appl_ikb, parse_mode='HTML')
+        except Exception as e:
+            print(page_stud)
+            print(e)
 
 
 @dp.callback_query_handler(text='right_stud')
@@ -883,9 +921,6 @@ async def std_right(callback: types.CallbackQuery):
             p_rs = count_students + page_stud
         await callback.message.edit_text(f"<b>№</b> {p_rs + 1}/{count_students}\n\n" + print_stud(students, page_stud),
                                          reply_markup=stud_appl_ikb, parse_mode='HTML')
-
-
-# f"<b>№</b> {page+1}/{count_tasks}\n\n"
 
 
 @dp.callback_query_handler(text='left_stud')
@@ -925,12 +960,15 @@ def current_student(page_s):
 
 @dp.callback_query_handler(text='approve')
 async def approve_stud(callback: types.CallbackQuery):
-    # await callback.message.edit_reply_markup()
-    # await callback.message.delete()
     student_id = current_student(page_stud)
     add_application(student_id, callback.from_user.id, 1)
-
-    await callback.message.edit_text('Заявка одобрена.', reply_markup=stud_appl_ikb_2)
+    try:
+        await bot.send_message(student_id, 'Ваша заявка была <b>одобрена</b>.\n\nВы можете выбрать задачу из списка '
+                                           'доступных задач.',
+                               reply_markup=student_task_show, parse_mode='HTML')
+        await callback.message.edit_text('Заявка одобрена.', reply_markup=stud_appl_ikb_2)
+    except Exception as e:
+        await callback.message.edit_text('ID студента не был найден.', reply_markup=stud_appl_ikb_2)
 
 
 class Stud_del(StatesGroup):
@@ -953,7 +991,44 @@ async def reject_stud(callback: types.CallbackQuery, state=FSMContext):
     student_id = current_student(page_stud)
     add_application(student_id, callback.from_user.id, 0)
     await state.finish()
-    await callback.message.edit_text('Заявка отклонена.', reply_markup=stud_appl_ikb_2)
+    try:
+        await bot.send_message(student_id, 'Ваша заявка была <b>отклонена</b>.', parse_mode='HTML')
+        await callback.message.edit_text('Заявка отклонена.', reply_markup=stud_appl_ikb_2)
+    except Exception as e:
+        await callback.message.edit_text('ID студента не был найден.', reply_markup=stud_appl_ikb_2)
+
+
+# ----------------- Выбор задачи студентом -----------------
+
+
+@dp.callback_query_handler(text='stud_get_task')
+async def stud_get_task(callback: types.CallbackQuery):
+    global page
+    tasks = select_task_for_stud()
+    t_id = tasks[page].task_id
+    page = 0
+    change_task(t_id, 'student_id', callback.from_user.id)
+    await callback.message.edit_text('Задача выбрана.\nВы можете отказаться от задачи в разделе "Выбранные задачи".',
+                                     reply_markup=student_task_choose_cont)
+
+
+# ----------------- Просмотр выбранной студентом задачи -----------------
+
+
+@dp.callback_query_handler(text='stud_chosen_tasks')
+async def stud_get_task(callback: types.CallbackQuery):
+    task = select_already_get_stud(callback.from_user.id)
+    if not task:
+        await callback.message.edit_text('Вы еще не выбрали задачу.', reply_markup=stud_is_approve)
+    else:
+        await callback.message.edit_text(f"<b>Выбранная задача:</b>\n\n"
+                                         f"<b>Название:</b> {task.task_name}\n\n"
+                                         f"<b>Описание:</b> {task.task_description}\n\n"
+                                         f"<b>Количество людей:</b> {task.num_people}\n\n"
+                                         f"<b>Материалы:</b> {str(task.materials)}",
+                                         parse_mode='HTML',
+                                         reply_markup=stud_reject_task,
+                                         disable_web_page_preview=True)
 
 
 # ----------------- Отображение информации студента\работника -----------------

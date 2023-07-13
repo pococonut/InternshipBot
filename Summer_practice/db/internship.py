@@ -67,7 +67,8 @@ class InternshipTask(Base):
 
 Base.metadata.create_all(bind=engine)
 
-
+#session.query(Task).filter(Task.student_id != None).update({f'student_id': None})
+#session.commit()
 
 """task = Task(task_name='x', task_description='x', num_people='1', materials='x')
 session.add(task)

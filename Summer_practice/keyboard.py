@@ -71,6 +71,31 @@ task_ikb.add(task_b4, task_b5)
 task_worker_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_ikb.add(task_b4, task_b5)
 
+stud_is_approve = InlineKeyboardMarkup(row_width=2)
+stud_is_approve_b1 = InlineKeyboardButton('Выбранные задачи', callback_data="stud_chosen_tasks")
+stud_is_approve.add(ib1_3).add(ib2_3).add(admin_b4).add(stud_is_approve_b1)
+
+stud_reject_task = InlineKeyboardMarkup(row_width=2)
+stud_reject_task_b1 = InlineKeyboardButton('Отказаться от задачи', callback_data='reject_task')
+stud_reject_task.add(stud_reject_task_b1)
+
+student_task_show = InlineKeyboardMarkup(row_width=2)
+student_task_show.add(admin_b4)
+
+student_task_choose = InlineKeyboardMarkup(row_width=2)
+student_task_choose_b1 = InlineKeyboardButton("Подробнее", callback_data="more_task")
+student_task_choose_b2 = InlineKeyboardButton("Выбрать", callback_data="stud_get_task")
+student_task_choose.add(task_b4, task_b5)
+student_task_choose.add(student_task_choose_b1)
+student_task_choose.add(student_task_choose_b2)
+
+student_task_already_choose = InlineKeyboardMarkup(row_width=2)
+student_task_already_choose.add(task_b4, task_b5)
+student_task_already_choose.add(student_task_choose_b1)
+
+student_task_choose_cont = InlineKeyboardMarkup(row_width=2)
+student_task_choose_cont.add(task_b4, task_b5)
+
 task_worker_own_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_own_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_worker_own_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")

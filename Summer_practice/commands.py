@@ -118,7 +118,6 @@ def add_internship_task(*args):
 def select_user(user_id):
     try:
         user = session.query(User).filter(User.telegram_id == str(user_id)).first()
-        user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:
         print(e)
         user = False
@@ -145,6 +144,24 @@ def select_worker_task(f_id):
     return task
 
 
+def select_task_for_stud():
+    try:
+        task = session.query(Task).filter(Task.student_id == None).order_by(Task.task_id.desc()).all()
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
+def select_already_get_stud(s_id):
+    try:
+        task = session.query(Task).filter(Task.student_id == str(s_id)).order_by(Task.task_id.desc()).first()
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
 def select_students():
     try:
         students = Student_2.query.order_by(User.reg_date.desc()).all()
@@ -161,6 +178,15 @@ def select_applications():
         print(e)
         applications = False
     return applications
+
+
+def stud_approve(s_id):
+    try:
+        approve = session.query(Application.approve).filter(Application.student_id == str(s_id)).first()
+    except Exception as e:
+        print(e)
+        approve = False
+    return approve
 
 
 def change_task(t_id, column, new_val):
