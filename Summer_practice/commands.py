@@ -162,6 +162,25 @@ def select_already_get_stud(s_id):
     return task
 
 
+def select_worker_reject(s_id):
+    try:
+        task = session.query(Task).filter(Task.student_id == str(s_id)).order_by(Task.task_id.desc()).first()
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
+def select_chosen_tasks(w_id):
+    try:
+        task = session.query(Task).filter(Task.student_id != None, Task.from_id == str(w_id)).order_by(Task.task_id.desc()).all()
+    except Exception as e:
+        print(e)
+        task = False
+    return task
+
+
+
 def select_students():
     try:
         students = Student_2.query.order_by(User.reg_date.desc()).all()
@@ -191,6 +210,11 @@ def stud_approve(s_id):
 
 def change_task(t_id, column, new_val):
     session.query(Task).filter(Task.task_id == str(t_id)).update({f'{column}': new_val})
+    session.commit()
+
+
+def change_task_stud(s_id, column, new_val):
+    session.query(Task).filter(Task.student_id == str(s_id)).update({f'{column}': new_val})
     session.commit()
 
 
