@@ -1,6 +1,6 @@
-from sqlalchemy.exc import PendingRollbackError, IntegrityError
+from sqlalchemy.exc import IntegrityError
 
-from db.student import session, Student
+from db.student import session
 from db.user import User, Student_2, Worker, Admin, Director
 from db.internship import Task, InternshipTask, Internship
 from db.applications import Application
@@ -82,7 +82,11 @@ def register_worker(s_id, *args):
 def add_task(f_id, *args):
     task = Task(task_name=args[0]['task_name'],
                 from_id=f_id,
+                task_goal=args[0]['task_goal'],
                 task_description=args[0]['task_description'],
+                task_tasks=args[0]['task_tasks'],
+                task_technologies=args[0]['task_technologies'],
+                task_new_skills=args[0]['task_new_skills'],
                 num_people=args[0]['num_people'],
                 materials=args[0]['materials'])
     session.add(task)
@@ -180,7 +184,6 @@ def select_chosen_tasks(w_id):
     return task
 
 
-
 def select_students():
     try:
         students = Student_2.query.order_by(User.reg_date.desc()).all()
@@ -275,32 +278,3 @@ def add_application(stud_id, work_id, b):
         session.rollback()  # откатываем session.add(user)
         print(e)
 
-
-"""def get_txt(txt):
-    m = Text(message=txt)
-
-    session.add(m)
-
-    try:
-        session.commit()
-        return True
-    except IntegrityError:
-        session.rollback()  # откатываем session.add(user)
-        return False
-
-
-def select_txt():
-    try:
-        m = session.query(Text.message).all()
-    except Exception as e:
-        print(e)
-        m = False
-    return m
-
-
-def delete_txt():
-    try:
-        session.query(Text).delete()
-        session.commit()
-    except Exception as e:
-        print(e)"""

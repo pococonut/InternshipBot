@@ -1,22 +1,22 @@
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-from keyboard import ikb, kb, ikb_2, ikb_3, change_ikb, change_ikb_2, back_ikb, back_cont_ikb, admin_ikb, task_ikb, \
-    change_task_ikb, del_task_ikb, admin_ikb2, stud_ikb, change_stud_ikb, stud_appl_ikb, del_stud_ikb, stud_appl_ikb_2, \
-    worker_ikb, task_worker_ikb, task_worker_own_ikb, student_task_show, student_task_choose, stud_is_approve, \
-    student_task_choose_cont, student_task_already_choose, stud_reject_task, reject_task_ikb, task_is_approve, \
-    task_worker_stud, back_to_std, task_without_del, task_worker_without_del
-import string
-from commands import register_student, select_user, user_type, change_stud_inform, select_employee, register_admin, \
-    add_task, select_task, change_task, del_task, select_students, add_application, select_applications, \
-    register_director, register_worker, select_worker_task, stud_approve, select_task_for_stud, select_already_get_stud, \
-    change_task_stud, select_chosen_tasks, select_worker_reject
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.dispatcher.filters import Text
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, BotCommand, BotCommandScopeDefault
+import string
 import re
+from keyboard import ikb_3, change_ikb, back_ikb, back_cont_ikb, admin_ikb, task_ikb, \
+    change_task_ikb, del_task_ikb, change_stud_ikb, stud_appl_ikb, del_stud_ikb, stud_appl_ikb_2, \
+    worker_ikb, task_worker_ikb, task_worker_own_ikb, student_task_show, student_task_choose, stud_is_approve, \
+    student_task_choose_cont, student_task_already_choose, stud_reject_task, reject_task_ikb, task_is_approve, \
+    task_worker_stud, back_to_std, task_without_del, task_worker_without_del, back_cont_task_ikb, back_to_tasks, \
+    back_to_tasks_w
+from commands import register_student, select_user, user_type, change_stud_inform, register_admin, \
+    add_task, select_task, change_task, del_task, select_students, add_application, select_applications, \
+    register_director, register_worker, select_worker_task, stud_approve, select_task_for_stud, select_already_get_stud, \
+    change_task_stud, select_chosen_tasks, select_worker_reject
+
 
 TOKEN_API = ""
 
@@ -53,29 +53,6 @@ FORM = """
 <b>отдельными сообщениями</b>.
 """
 
-
-async def on_startup(_):
-    print("Бот запущен")
-
-
-# описание бота
-@dp.message_handler(commands=['description'])
-async def desc_command(message: types.Message):
-    await message.answer(DESCRIPTION)
-
-
-"""# помощь
-@dp.message_handler(commands=['help'])
-async def help_command(message: types.Message):
-    await message.answer(text=HELP_COMMAND, parse_mode='HTML')"""
-
-
-# старт
-@dp.message_handler(commands=['start'])
-async def start_command(message: types.Message):
-    await message.answer("Добро пожаловать!\n\n" + DESCRIPTION)
-
-
 # ---------------- Регистрация\подача заявки для студента ----------------
 
 
@@ -93,7 +70,6 @@ class Student(StatesGroup):
 
 @dp.message_handler(commands=['student'])
 async def registration_command(message: types.Message):
-    # await message.answer(text="Выберите опцию:", reply_markup=ikb)
     user_exist = user_type(message.from_user.id)
     usr = {'student': 'студент',
            'admin': 'администратор',
@@ -465,30 +441,81 @@ async def get_password(message: types.Message, state=FSMContext):
 
 # ------------------------- Добавление задачи -------------------------
 
+FORM_task = """Для добавления новой задачи необходимо ввести:
+
+<em>Название
+Цель
+Описание
+Задачи
+Необходимые навыки и технологии
+Навыки и умения, получаемые в процессе прохождения практики
+Количество людей
+Материалы</em>
+
+<b>отдельными сообщениями</b>.
+"""
+
 
 class Task(StatesGroup):
     task_name = State()
+    task_goal = State()
     task_description = State()
+    task_tasks = State()
+    task_technologies = State()
+    task_new_skills = State()
     num_people = State()
     materials = State()
 
 
 @dp.callback_query_handler(text='add_task')
 async def add_t(callback: types.CallbackQuery):
-    await callback.message.edit_text("Введите название задачи.", parse_mode='HTML', reply_markup=back_ikb)
+    await callback.message.edit_text(FORM_task, parse_mode='HTML', reply_markup=back_cont_task_ikb)
+
+
+@dp.callback_query_handler(text='continue_task', state="*")
+async def cont_task_command(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Введите назание задачи.", parse_mode='HTML', reply_markup=back_ikb)
     await Task.task_name.set()
 
 
 @dp.message_handler(state=Task.task_name)
 async def add_task_name(message: types.Message, state=FSMContext):
     await state.update_data(task_name=message.text)
-    await message.answer('Введите описание задачи.')
+    await message.answer('Введите цель работы.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.task_goal)
+async def add_task_goal(message: types.Message, state=FSMContext):
+    await state.update_data(task_goal=message.text)
+    await message.answer('Введите описание работы.')
     await Task.next()
 
 
 @dp.message_handler(state=Task.task_description)
 async def add_task_description(message: types.Message, state=FSMContext):
     await state.update_data(task_description=message.text)
+    await message.answer('Введите задачи работы.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.task_tasks)
+async def add_task_tasks(message: types.Message, state=FSMContext):
+    await state.update_data(task_tasks=message.text)
+    await message.answer('Введите необходимые навыки и технологии.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.task_technologies)
+async def add_task_technologies(message: types.Message, state=FSMContext):
+    await state.update_data(task_technologies=message.text)
+    await message.answer('Введите навыки, получаемые в процессе проходения практики.')
+    await Task.next()
+
+
+@dp.message_handler(state=Task.task_new_skills)
+async def add_task_new_skills(message: types.Message, state=FSMContext):
+    await state.update_data(task_new_skills=message.text)
     await message.answer('Введите количество человек.')
     await Task.next()
 
@@ -510,12 +537,16 @@ async def add_task_materials(message: types.Message, state=FSMContext):
         keyboard = admin_ikb
         if u_type == 'worker':
             keyboard = worker_ikb
-        await message.answer(f'<b>Добавлена задача:</b>\n\n'
+        await message.answer(f'📝 <b>Добавлена задача</b>\n\n'
                              f'<b>Название:</b> {data["task_name"]}\n\n'
+                             f'<b>Цель:</b> {data["task_goal"]}\n\n'
                              f'<b>Описание:</b> {data["task_description"]}\n\n'
+                             f'<b>Задачи:</b>\n{data["task_tasks"]}\n\n'
+                             f'<b>Необходимые навыки и технологии:</b>\n{data["task_technologies"]}\n\n'
+                             f'<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{data["task_new_skills"]}\n\n'
                              f'<b>Количество людей:</b> {data["num_people"]}\n\n'
                              f'<b>Материалы:</b> {str(data["materials"])}', parse_mode='HTML',
-                             reply_markup=keyboard)
+                             reply_markup=keyboard, disable_web_page_preview=True)
         global page
         page = 0
     await state.finish()
@@ -534,19 +565,15 @@ async def show_task(callback: types.CallbackQuery):
 
     if u_type == 'student':
         tasks = select_task_for_stud()
-        already_get = select_already_get_stud(callback.from_user.id)
-        if already_get:
-            keyboard = student_task_already_choose
-        else:
-            keyboard = student_task_choose
     else:
         tasks = select_task()
-        keyboard = task_ikb
-        if tasks[page].student_id is not None:
-            keyboard = task_without_del
-        if u_type == 'worker':
-            keyboard = task_worker_ikb
+
     if not tasks:
+        keyboard = admin_ikb
+        if u_type == 'worker':
+            keyboard = worker_ikb
+        elif u_type == 'student':
+            keyboard = stud_is_approve
         try:
             await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
         except:
@@ -555,12 +582,23 @@ async def show_task(callback: types.CallbackQuery):
             await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
                                           reply_markup=keyboard)
     else:
+        if u_type == 'student':
+            already_get = select_already_get_stud(callback.from_user.id)
+            if already_get:
+                keyboard = student_task_already_choose
+            else:
+                keyboard = student_task_choose
+        else:
+            keyboard = task_ikb
+            if u_type == 'worker':
+                keyboard = task_worker_ikb
+
         count_tasks = len(tasks)
         await callback.message.edit_text(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
                                          f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                         f'<b>Цель:</b> {tasks[page].task_goal}\n\n'
                                          f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                         f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                         f"<b>Материалы:</b> {str(tasks[page].materials)}",
+                                         f'<b>Необходимые навыки и технологии:</b>\n{tasks[page].task_technologies}\n\n',
                                          parse_mode='HTML',
                                          reply_markup=keyboard,
                                          disable_web_page_preview=True)
@@ -571,21 +609,32 @@ async def right(callback: types.CallbackQuery):
     global page
 
     u_type = user_type(callback.from_user.id)[0]
+
     if u_type == 'student':
         tasks = select_task_for_stud()
-        already_get = select_already_get_stud(callback.from_user.id)
-        if already_get:
-            keyboard = student_task_already_choose
-        else:
-            keyboard = student_task_choose
     else:
         tasks = select_task()
 
     if not tasks:
-        if u_type == 'student':
+        keyboard = admin_ikb
+        if u_type == 'worker':
+            keyboard = worker_ikb
+        elif u_type == 'student':
             keyboard = stud_is_approve
+
         await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
     else:
+        if u_type == 'student':
+            already_get = select_already_get_stud(callback.from_user.id)
+            if already_get:
+                keyboard = student_task_already_choose
+            else:
+                keyboard = student_task_choose
+        else:
+            keyboard = task_ikb
+            if u_type == 'worker':
+                keyboard = task_worker_ikb
+
         count_tasks = len(tasks)
         s = ''
         if callback.data == 'right':
@@ -613,12 +662,37 @@ async def right(callback: types.CallbackQuery):
             if u_type == 'worker':
                 keyboard = task_worker_ikb
         await callback.message.edit_text(s + f"<b>Название:</b> {tasks[page].task_name}\n\n"
-                                         f"<b>Описание:</b> {tasks[page].task_description}\n\n"
-                                         f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
-                                         f"<b>Материалы:</b> {str(tasks[page].materials)}",
+                                             f'<b>Цель:</b> {tasks[page].task_goal}\n\n'
+                                             f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                             f'<b>Необходимые навыки и технологии:</b>\n{tasks[page].task_technologies}\n\n',
                                          parse_mode='HTML',
                                          reply_markup=keyboard,
                                          disable_web_page_preview=True)
+
+
+# -------------------- Подробный просмотр задачи --------------------
+
+
+@dp.callback_query_handler(text='more_task')
+async def show_task(callback: types.CallbackQuery):
+    u_type = user_type(callback.from_user.id)[0]
+
+    if u_type == 'student':
+        tasks = select_task_for_stud()
+    else:
+        tasks = select_task()
+
+    await callback.message.edit_text(f"<b>Название:</b> {tasks[page].task_name}\n\n"
+                                     f'<b>Цель:</b> {tasks[page].task_goal}\n\n'
+                                     f"<b>Описание:</b> {tasks[page].task_description}\n\n"
+                                     f'<b>Задачи:</b>\n{tasks[page].task_tasks}\n\n'
+                                     f'<b>Необходимые навыки и технологии:</b>\n{tasks[page].task_technologies}\n\n'
+                                     f'<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{tasks[page].task_new_skills}\n\n'
+                                     f"<b>Количество людей:</b> {tasks[page].num_people}\n\n"
+                                     f"<b>Материалы:</b> {str(tasks[page].materials)}",
+                                     parse_mode='HTML',
+                                     reply_markup=back_to_tasks,
+                                     disable_web_page_preview=True)
 
 
 # -------------------- Изменение параметров задачи --------------------
@@ -631,11 +705,16 @@ class Task_change(StatesGroup):
 
 
 param_task = {'change_task_name': 'Название',
+              'change_task_goal': 'Цель',
               'change_task_description': 'Описание',
+              'change_task_tasks': 'Задачи',
+              'change_task_technologies': 'Навыки и технологии',
+              'change_task_new_skills': 'Получаемые навыки',
               'change_num_people': 'Количество людей',
               'change_materials': 'Материалы'}
 
-ch_task_lst = ['change_task_name', 'change_task_description', 'change_num_people', 'change_materials']
+ch_task_lst = ['change_task_name', 'change_task_goal', 'change_task_description', 'change_task_tasks',
+               'change_task_technologies', 'change_task_new_skills', 'change_num_people', 'change_materials']
 
 
 @dp.callback_query_handler(text='change_task')
@@ -663,7 +742,7 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     await state.update_data(value=message.text)
     data = await state.get_data()
     await message.answer(f"<b>Параметр:</b> {param_task.get(data['param'])}\n\n"
-                         f"<b>Новое значение:</b> {data['value']}\n\n", parse_mode='HTML')
+                         f"<b>Новое значение:</b>\n{data['value']}\n\n", parse_mode='HTML')
     tasks = select_task()
     t_id = tasks[data['num_task']].task_id
     change_task(t_id, data['param'][7:], data['value'])
@@ -714,15 +793,21 @@ async def show_task(callback: types.CallbackQuery):
     global page_w
     page_w = 0
     tasks = select_worker_task(callback.from_user.id)
+
     if not tasks:
+        u_type = user_type(callback.from_user.id)[0]
+
+        keyboard = admin_ikb
+        if u_type == 'worker':
+            keyboard = worker_ikb
         try:
             await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.',
-                                             reply_markup=task_worker_own_ikb)
+                                             reply_markup=keyboard)
         except:
             await callback.message.edit_reply_markup()
             await callback.message.delete()
             await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
-                                          reply_markup=task_worker_own_ikb)
+                                          reply_markup=keyboard)
     else:
         count_tasks = len(tasks)
         keyboard = task_worker_own_ikb
@@ -730,10 +815,10 @@ async def show_task(callback: types.CallbackQuery):
             keyboard = task_worker_without_del
         await callback.message.edit_text(f"<b>№</b> {page_w + 1}/{count_tasks}\n\n"
                                          f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                         f'<b>Цель:</b> {tasks[page_w].task_goal}\n\n'
                                          f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
-                                         f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
-                                         f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
-                                         reply_markup=keyboard, disable_web_page_preview=True)
+                                         f'<b>Необходимые навыки и технологии:</b>\n{tasks[page_w].task_technologies}\n\n',
+                                         parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text=['worker_right', 'worker_left'])
@@ -741,11 +826,10 @@ async def right(callback: types.CallbackQuery):
     global page_w
     tasks = select_worker_task(callback.from_user.id)
     if not tasks:
-        await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=task_worker_own_ikb)
+        await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.',
+                                         reply_markup=task_worker_own_ikb)
     else:
         count_tasks = len(tasks)
-
-
         s = ''
         if callback.data == 'worker_right':
             page_w += 1
@@ -768,10 +852,30 @@ async def right(callback: types.CallbackQuery):
         if tasks[page_w].student_id is not None:
             keyboard = task_worker_without_del
         await callback.message.edit_text(s + f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                             f'<b>Цель:</b> {tasks[page_w].task_goal}\n\n'
                                              f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
-                                             f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
-                                             f"<b>Материалы:</b> {str(tasks[page_w].materials)}", parse_mode='HTML',
-                                             reply_markup=keyboard, disable_web_page_preview=True)
+                                             f'<b>Необходимые навыки и технологии:</b>\n{tasks[page_w].task_technologies}\n\n',
+                                         parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+
+
+# -------------------- Подробный просмотр задачи сотрудника--------------------
+
+
+@dp.callback_query_handler(text='more_task_w')
+async def show_task(callback: types.CallbackQuery):
+    tasks = select_worker_task(callback.from_user.id)
+
+    await callback.message.edit_text(f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                     f'<b>Цель:</b> {tasks[page_w].task_goal}\n\n'
+                                     f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                     f'<b>Задачи:</b>\n{tasks[page_w].task_tasks}\n\n'
+                                     f'<b>Необходимые навыки и технологии:</b>\n{tasks[page_w].task_technologies}\n\n'
+                                     f'<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{tasks[page_w].task_new_skills}\n\n'
+                                     f"<b>Количество людей:</b> {tasks[page_w].num_people}\n\n"
+                                     f"<b>Материалы:</b> {str(tasks[page_w].materials)}",
+                                     parse_mode='HTML',
+                                     reply_markup=back_to_tasks_w,
+                                     disable_web_page_preview=True)
 
 
 # -------------------- Изменение параметров задачи сотрудника--------------------
@@ -1012,19 +1116,25 @@ async def stud_chosen_task(callback: types.CallbackQuery):
         if not task:
             await callback.message.edit_text('Вы еще не выбрали задачу.', reply_markup=stud_is_approve)
         else:
-            await callback.message.edit_text(f"<b>Выбранная задача:</b>\n\n"
+            await callback.message.edit_text(f"<b>Выбранная задача</b>\n\n"
                                              f"<b>Название:</b> {task.task_name}\n\n"
+                                             f'<b>Цель:</b> {task.task_goal}\n\n'
                                              f"<b>Описание:</b> {task.task_description}\n\n"
+                                             f'<b>Задачи:</b>\n{task.task_tasks}\n\n'
+                                             f'<b>Необходимые навыки и технологии:</b>\n{task.task_technologies}\n\n'
+                                             f'<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{task.task_new_skills}\n\n'
                                              f"<b>Количество людей:</b> {task.num_people}\n\n"
                                              f"<b>Материалы:</b> {str(task.materials)}",
                                              parse_mode='HTML',
                                              reply_markup=stud_reject_task,
                                              disable_web_page_preview=True)
+
     except Exception as e:
         print(e)
 
 
 # ----------------- Отказ от выбранной студентом задачи -----------------
+
 
 class RejectTaskStud(StatesGroup):
     reject_ts = State()

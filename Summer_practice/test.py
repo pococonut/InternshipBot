@@ -552,25 +552,3 @@ async def task_ws_show(callback: types.CallbackQuery):
                                          parse_mode='HTML',
                                          reply_markup=task_worker_stud,
                                          disable_web_page_preview=True)"""
-
-@dp.callback_query_handler(text='left_stud')
-async def std_left(callback: types.CallbackQuery):
-    global page_stud
-    all_students = select_students()
-    applications = select_applications()
-    count_students = len(all_students) - len(applications)
-    students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
-    if not students:
-        await callback.message.edit_text('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
-    else:
-        page_stud -= 1
-        p_ls = 0
-        if page_stud == (-1) * count_students:
-            page_stud = 0
-        if page_stud <= -1:
-            p_ls = count_students
-        print(p_ls, page_stud)
-
-        await callback.message.edit_text(
-            f"<b>№</b> {(p_ls + page_stud) + 1}/{count_students}\n\n" + print_stud(students, page_stud),
-            reply_markup=stud_appl_ikb, parse_mode='HTML')

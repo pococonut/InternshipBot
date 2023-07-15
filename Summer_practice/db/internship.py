@@ -29,14 +29,21 @@ class Task(Base):
 
     task_name = Column(VARCHAR(200))
 
+    task_goal = Column(TEXT)
+
     task_description = Column(TEXT)
+
+    task_tasks = Column(TEXT)
+
+    task_technologies = Column(TEXT)
+
+    task_new_skills = Column(TEXT)
 
     num_people = Column(VARCHAR(10))
 
-    materials = Column(TEXT, nullable=True)
+    materials = Column(TEXT)
 
     internship = relationship("Internship", secondary='internship_task')
-
 
 class Internship(Base):
     __tablename__ = "internship"
@@ -66,6 +73,8 @@ class InternshipTask(Base):
 #InternshipTask.__table__.drop(engine)
 
 Base.metadata.create_all(bind=engine)
+
+
 
 #session.query(Task).filter(Task.student_id != None).update({f'student_id': None})
 #session.commit()
