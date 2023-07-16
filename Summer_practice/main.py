@@ -11,12 +11,11 @@ from keyboard import ikb_3, change_ikb, back_ikb, back_cont_ikb, admin_ikb, task
     worker_ikb, task_worker_ikb, task_worker_own_ikb, student_task_show, student_task_choose, stud_is_approve, \
     student_task_choose_cont, student_task_already_choose, stud_reject_task, reject_task_ikb, task_is_approve, \
     task_worker_stud, back_to_std, task_without_del, task_worker_without_del, back_cont_task_ikb, back_to_tasks, \
-    back_to_tasks_w
-from commands import register_student, select_user, user_type, change_stud_inform, register_admin, \
+    back_to_tasks_w, task_rl_ikb, task_rlw_ikb
+from commands import register_student, select_user, user_type, register_admin, \
     add_task, select_task, change_task, del_task, select_students, add_application, select_applications, \
     register_director, register_worker, select_worker_task, stud_approve, select_task_for_stud, select_already_get_stud, \
-    change_task_stud, select_chosen_tasks, select_worker_reject
-
+    change_task_stud, select_chosen_tasks, select_worker_reject, change_inform
 
 TOKEN_API = ""
 
@@ -26,8 +25,8 @@ dp = Dispatcher(bot, storage=MemoryStorage())  # инициализация вх
 commands = [
     types.BotCommand(command='/student', description='Меню студента'),
     types.BotCommand(command='/menu', description='Меню сотрудника'),
-    types.BotCommand(command='/change', description='Изменение данных студента'),
-    types.BotCommand(command='/show', description='Просмотр данных пользователя'),
+    types.BotCommand(command='/change', description='Изменение данных'),
+    types.BotCommand(command='/show', description='Просмотр данных'),
 ]
 
 
@@ -286,14 +285,14 @@ async def change(message: types.Message):
     student_exist = select_user(message.from_user.id)
     if not student_exist:
         await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
-    elif u_type[0] == 'worker':
-        await message.answer('Изменение данных доступно только для студентов.',
-                             reply_markup=worker_ikb,
-                             parse_mode='HTML')
-    elif u_type[0] == 'admin' or u_type[0] == 'director':
-        await message.answer('Изменение данных доступно только для студентов.',
-                             reply_markup=admin_ikb,
-                             parse_mode='HTML')
+        """    elif u_type[0] == 'worker':
+                await message.answer('Изменение данных доступно только для студентов.',
+                                     reply_markup=worker_ikb,
+                                     parse_mode='HTML')
+            elif u_type[0] == 'admin' or u_type[0] == 'director':
+                await message.answer('Изменение данных доступно только для студентов.',
+                                     reply_markup=admin_ikb,
+                                     parse_mode='HTML')"""
     else:
         await message.answer(f'Выберите параметр, который желаете изменить.', reply_markup=change_ikb)
         await Change_student.par.set()
@@ -330,8 +329,8 @@ async def get_val_student(message: types.Message, state: FSMContext):
     data = await state.get_data()
     await message.answer(f"<b>Параметр:</b> {chek_d.get(data['par'])}\n\n"
                          f"<b>Новое значение:</b> {data['new_val']}", parse_mode='HTML')
-
-    change_stud_inform(message.from_user.id, data['par'], data['new_val'])
+    u_type = user_type(message.from_user.id)
+    change_inform(message.from_user.id, u_type, data['par'], data['new_val'])
     await message.answer('Параметр изменен.', parse_mode='HTML', reply_markup=ikb_3)  # reply_markup=ikb_2
     await state.finish()
 
@@ -560,7 +559,7 @@ page = 0
 @dp.callback_query_handler(text='show_task')
 async def show_task(callback: types.CallbackQuery):
     global page
-    page = 0
+    #page = 0
     u_type = user_type(callback.from_user.id)[0]
 
     if u_type == 'student':
@@ -592,9 +591,12 @@ async def show_task(callback: types.CallbackQuery):
             keyboard = task_ikb
             if u_type == 'worker':
                 keyboard = task_worker_ikb
-
+        p = page
         count_tasks = len(tasks)
-        await callback.message.edit_text(f"<b>№</b> {page + 1}/{count_tasks}\n\n"
+        if page <= -1:
+            p = count_tasks + page
+        count_tasks = len(tasks)
+        await callback.message.edit_text(f"<b>№</b> {p + 1}/{count_tasks}\n\n"
                                          f"<b>Название:</b> {tasks[page].task_name}\n\n"
                                          f'<b>Цель:</b> {tasks[page].task_goal}\n\n'
                                          f"<b>Описание:</b> {tasks[page].task_description}\n\n"
@@ -746,9 +748,8 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     tasks = select_task()
     t_id = tasks[data['num_task']].task_id
     change_task(t_id, data['param'][7:], data['value'])
-    u_type = user_type(message.from_user.id)[0]
     await message.answer('Задача изменена.', parse_mode='HTML',
-                         reply_markup=admin_ikb if u_type != 'worker' else worker_ikb)
+                         reply_markup=task_rl_ikb)
     await state.finish()
 
 
@@ -762,7 +763,6 @@ class Task_del(StatesGroup):
 @dp.callback_query_handler(text='del_task')
 async def del_t(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
-    global page
     print("delite ", page + 1)
     await callback.message.answer('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
     await Task_del.del_t.set()
@@ -770,17 +770,15 @@ async def del_t(callback: types.CallbackQuery):
 
 @dp.callback_query_handler(text='del_yes', state=Task_del.del_t)
 async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
+    global page
     await state.update_data(del_t=callback.data)
     tasks = select_task()
-    u_type = user_type(callback.from_user.id)[0]
     t_id = tasks[page].task_id
     del_task(t_id)
     await state.finish()
-    keyboard = admin_ikb
-    if u_type == 'worker':
-        keyboard = worker_ikb
+    page -= 1
     await callback.message.edit_text('Задача удалена', parse_mode='HTML',
-                                     reply_markup=keyboard)
+                                     reply_markup=task_rl_ikb)
 
 
 # -------------------- Просмотр задач сотрудника --------------------
@@ -791,7 +789,7 @@ page_w = 0
 @dp.callback_query_handler(text='worker_task')
 async def show_task(callback: types.CallbackQuery):
     global page_w
-    page_w = 0
+    #page_w = 0
     tasks = select_worker_task(callback.from_user.id)
 
     if not tasks:
@@ -809,11 +807,17 @@ async def show_task(callback: types.CallbackQuery):
             await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
                                           reply_markup=keyboard)
     else:
-        count_tasks = len(tasks)
         keyboard = task_worker_own_ikb
+
+        pw = page_w
+        count_tasks = len(tasks)
+        if page_w <= -1:
+            pw = count_tasks + page_w
+        count_tasks = len(tasks)
+
         if tasks[page_w].student_id is not None:
             keyboard = task_worker_without_del
-        await callback.message.edit_text(f"<b>№</b> {page_w + 1}/{count_tasks}\n\n"
+        await callback.message.edit_text(f"<b>№</b> {pw + 1}/{count_tasks}\n\n"
                                          f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
                                          f'<b>Цель:</b> {tasks[page_w].task_goal}\n\n'
                                          f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
@@ -915,12 +919,8 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     t_id = tasks[data['num_task']].task_id
     print(t_id)
     change_task(t_id, data['param'][7:], data['value'])
-    u_type = user_type(message.from_user.id)[0]
-    keyboard = admin_ikb
-    if u_type == 'worker':
-        keyboard = worker_ikb
     await message.answer('Задача изменена.', parse_mode='HTML',
-                         reply_markup=keyboard)
+                         reply_markup=task_rlw_ikb)
     await state.finish()
 
 
@@ -940,19 +940,17 @@ async def del_t(callback: types.CallbackQuery):
 
 @dp.callback_query_handler(text='del_yes', state=Task_del_w.del_t)
 async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
+    global page_w
     await state.update_data(del_t=callback.data)
     tasks = select_worker_task(callback.from_user.id)
     print(tasks)
     print("delite ", page + 1)
     t_id = tasks[page_w].task_id
     del_task(t_id)
-    u_type = user_type(callback.from_user.id)[0]
     await state.finish()
-    keyboard = admin_ikb
-    if u_type == 'worker':
-        keyboard = worker_ikb
+    page_w -= 1
     await callback.message.edit_text('Задача удалена', parse_mode='HTML',
-                                     reply_markup=worker_ikb)
+                                     reply_markup=task_rlw_ikb)
 
 
 # --------------------- Просмотр заявок студентов ---------------------

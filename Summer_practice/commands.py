@@ -260,8 +260,19 @@ def select_employee(user_id):
     return adm_authorisation
 
 
-def change_stud_inform(s_id, column, new_val):
-    session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
+def change_inform(s_id, type, column, new_val):
+    type = type[0]
+    if type == 'student':
+        session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
+    else:
+        session.query(User).filter(User.telegram_id == str(s_id)).update({f'name': new_val})
+
+        if type == 'admin':
+            session.query(Admin).filter(Admin.telegram_id == str(s_id)).update({f'admin_name': new_val})
+        elif type == 'worker':
+            session.query(Worker).filter(Worker.telegram_id == str(s_id)).update({f'worker_name': new_val})
+        elif type == 'director':
+            session.query(Director).filter(Director.telegram_id == str(s_id)).update({f'director_name': new_val})
     session.commit()
 
 

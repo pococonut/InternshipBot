@@ -68,6 +68,16 @@ stud_appl_ikb.add(stud_appl_b1, stud_appl_b2, stud_appl_b4, stud_appl_b5)
 stud_appl_ikb_2 = InlineKeyboardMarkup(row_width=2)
 stud_appl_ikb_2.add(stud_appl_b4, stud_appl_b5)
 
+task_rl_ikb = InlineKeyboardMarkup(row_width=2)
+task_rl_b1 = InlineKeyboardButton("Назад", callback_data="left")
+task_rl_b2 = InlineKeyboardButton("Вперед", callback_data="right")
+task_rl_ikb.add(task_rl_b1, task_rl_b2)
+
+task_rlw_ikb = InlineKeyboardMarkup(row_width=2)
+task_rlw_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
+task_rlw_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
+task_rlw_ikb.add(task_rlw_b1, task_rlw_b2)
+
 task_ikb = InlineKeyboardMarkup(row_width=2)
 task_b0 = InlineKeyboardButton("Подробнее", callback_data="more_task")
 task_b1 = InlineKeyboardButton(text="Изменить", callback_data="change_task")
@@ -182,6 +192,9 @@ change_ib8 = InlineKeyboardButton(text="Курсовые", callback_data="course
 change_ib9 = InlineKeyboardButton(text="Знания", callback_data="knowledge")
 change_ikb.add(change_ib1, change_ib2, change_ib3, change_ib4, change_ib5, change_ib6, change_ib7, change_ib8, change_ib9)
 change_ikb.add(back_b)
+
+change_worker_ikb = InlineKeyboardMarkup(row_width=2)
+change_worker_ikb.add(change_ib1)
 
 change_ikb_2 = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
