@@ -552,3 +552,81 @@ async def task_ws_show(callback: types.CallbackQuery):
                                          parse_mode='HTML',
                                          reply_markup=task_worker_stud,
                                          disable_web_page_preview=True)"""
+
+
+page_w = 0
+
+
+@dp.callback_query_handler(text='worker_task')
+async def show_task(callback: types.CallbackQuery):
+    global page_w
+    # page_w = 0
+    tasks = select_worker_task(callback.from_user.id)
+
+    if not tasks:
+        keyboard = admin_ikb
+        if user_type(callback.from_user.id)[0] == 'worker':
+            keyboard = worker_ikb
+        try:
+            await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.',
+                                             reply_markup=keyboard)
+        except:
+            await callback.message.edit_reply_markup()
+            await callback.message.delete()
+            await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
+                                          reply_markup=keyboard)
+    else:
+        keyboard = task_worker_own_ikb
+
+        pw = page_w
+        count_tasks = len(tasks)
+        if page_w <= -1:
+            pw = count_tasks + page_w
+        count_tasks = len(tasks)
+
+        if tasks[page_w].student_id is not None:
+            keyboard = task_worker_without_del
+        await callback.message.edit_text(f"<b>№</b> {pw + 1}/{count_tasks}\n\n"
+                                         f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                         f'<b>Цель:</b> {tasks[page_w].task_goal}\n\n'
+                                         f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                         f'<b>Необходимые навыки и технологии:</b>\n{tasks[page_w].task_technologies}\n\n',
+                                         parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+
+
+@dp.callback_query_handler(text=['worker_right', 'worker_left'])
+async def right(callback: types.CallbackQuery):
+    global page_w
+    tasks = select_worker_task(callback.from_user.id)
+    if not tasks:
+        await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.',
+                                         reply_markup=task_worker_own_ikb)
+    else:
+        count_tasks = len(tasks)
+        s = ''
+        if callback.data == 'worker_right':
+            page_w += 1
+            if page_w == count_tasks:
+                page_w = 0
+            p_rw = page_w
+            if page_w <= -1:
+                p_rw = count_tasks + page_w
+            s = f"<b>№</b> {p_rw + 1}/{count_tasks}\n\n"
+        if callback.data == 'worker_left':
+            page_w -= 1
+            p_lw = 0
+            if page_w == (-1) * count_tasks:
+                page_w = 0
+            if page_w <= -1:
+                p_lw = count_tasks
+            s = f"<b>№</b> {(p_lw + page_w) + 1}/{count_tasks}\n\n"
+
+        keyboard = task_worker_own_ikb
+        if tasks[page_w].student_id is not None:
+            keyboard = task_worker_without_del
+        await callback.message.edit_text(s + f"<b>Название:</b> {tasks[page_w].task_name}\n\n"
+                                             f'<b>Цель:</b> {tasks[page_w].task_goal}\n\n'
+                                             f"<b>Описание:</b> {tasks[page_w].task_description}\n\n"
+                                             f'<b>Необходимые навыки и технологии:</b>\n{tasks[page_w].task_technologies}\n\n',
+                                         parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+

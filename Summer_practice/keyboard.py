@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 ikb = InlineKeyboardMarkup(row_width=2)
 ib1 = InlineKeyboardButton(text="Новый пользователь", callback_data="new")
@@ -37,7 +37,7 @@ admin_b5 = InlineKeyboardButton(text="Свои задачи", callback_data="wor
 admin_b6 = InlineKeyboardButton('Выбранные задачи', callback_data="worker_chosen_tasks")
 admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
 
-admin_ikb.add(admin_b1,admin_b4,admin_b5,admin_b6,admin_b7)
+admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7)
 
 back_to_std = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 back_to_std_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="worker_chosen_tasks")
@@ -68,15 +68,24 @@ stud_appl_ikb.add(stud_appl_b1, stud_appl_b2, stud_appl_b4, stud_appl_b5)
 stud_appl_ikb_2 = InlineKeyboardMarkup(row_width=2)
 stud_appl_ikb_2.add(stud_appl_b4, stud_appl_b5)
 
+stud_appl_back_ikb = InlineKeyboardMarkup(row_width=2)
+stud_appl_back_b = InlineKeyboardButton("Вернуться", callback_data="show_students")
+stud_appl_back_ikb.add(stud_appl_back_b)
+
 task_rl_ikb = InlineKeyboardMarkup(row_width=2)
 task_rl_b1 = InlineKeyboardButton("Назад", callback_data="left")
 task_rl_b2 = InlineKeyboardButton("Вперед", callback_data="right")
 task_rl_ikb.add(task_rl_b1, task_rl_b2)
 
+back_task_ikb = InlineKeyboardMarkup(row_width=2)
+back_task_b = InlineKeyboardButton("Вернуться", callback_data="show_task")
+back_task_ikb.add(back_task_b)
+
 task_rlw_ikb = InlineKeyboardMarkup(row_width=2)
 task_rlw_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_rlw_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
 task_rlw_ikb.add(task_rlw_b1, task_rlw_b2)
+
 
 task_ikb = InlineKeyboardMarkup(row_width=2)
 task_b0 = InlineKeyboardButton("Подробнее", callback_data="more_task")
@@ -95,11 +104,8 @@ task_without_del.add(task_b4, task_b5)
 
 
 task_worker_ikb = InlineKeyboardMarkup(row_width=2)
+task_worker_ikb.add(task_b0)
 task_worker_ikb.add(task_b4, task_b5)
-
-back_to_tasks = InlineKeyboardMarkup()
-back_to_tasks_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="show_task")
-back_to_tasks.add(back_to_tasks_b1)
 
 back_to_tasks_w = InlineKeyboardMarkup()
 back_to_tasks_w_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="worker_task")
@@ -107,7 +113,7 @@ back_to_tasks_w.add(back_to_tasks_w_b1)
 
 stud_is_approve = InlineKeyboardMarkup(row_width=2)
 stud_is_approve_b1 = InlineKeyboardButton('Выбранная задача', callback_data="stud_chosen_tasks")
-stud_is_approve.add(ib1_3).add(ib2_3).add(admin_b4).add(stud_is_approve_b1)
+stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1)
 
 stud_reject_task = InlineKeyboardMarkup(row_width=2)
 stud_reject_task_b1 = InlineKeyboardButton('Отказаться от задачи', callback_data="reject_task")
@@ -199,6 +205,3 @@ change_worker_ikb.add(change_ib1)
 change_ikb_2 = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
 change_ikb_2.add(change_ib1)
-
-kb = ReplyKeyboardMarkup(resize_keyboard=True,
-                         one_time_keyboard=True)

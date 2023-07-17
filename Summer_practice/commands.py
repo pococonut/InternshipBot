@@ -119,6 +119,20 @@ def add_internship_task(*args):
         return False
 
 
+def add_application(stud_id, work_id, b):
+    application = Application(
+        student_id=stud_id,
+        worker_id=work_id,
+        approve=b
+    )
+    session.add(application)
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()  # откатываем session.add(user)
+        print(e)
+
+
 def select_user(user_id):
     try:
         user = session.query(User).filter(User.telegram_id == str(user_id)).first()
@@ -202,13 +216,16 @@ def select_applications():
     return applications
 
 
-def stud_approve(s_id):
+def select_employee(user_id):
     try:
-        approve = session.query(Application.approve).filter(Application.student_id == str(s_id)).first()
+        a_n = session.query(Admin.admin_name).filter(Admin.telegram_id == str(user_id)).first()
+        a_log = session.query(Admin.login).filter(Admin.telegram_id == str(user_id)).first()
+        a_pass = session.query(Admin.password).filter(Admin.telegram_id == str(user_id)).first()
+        adm_authorisation = [a_n, a_log, a_pass]
     except Exception as e:
         print(e)
-        approve = False
-    return approve
+        adm_authorisation = False
+    return adm_authorisation
 
 
 def change_task(t_id, column, new_val):
@@ -218,6 +235,22 @@ def change_task(t_id, column, new_val):
 
 def change_task_stud(s_id, column, new_val):
     session.query(Task).filter(Task.student_id == str(s_id)).update({f'{column}': new_val})
+    session.commit()
+
+
+def change_inform(s_id, type, column, new_val):
+    type = type[0]
+    if type == 'student':
+        session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
+    else:
+        session.query(User).filter(User.telegram_id == str(s_id)).update({f'name': new_val})
+
+        if type == 'admin':
+            session.query(Admin).filter(Admin.telegram_id == str(s_id)).update({f'admin_name': new_val})
+        elif type == 'worker':
+            session.query(Worker).filter(Worker.telegram_id == str(s_id)).update({f'worker_name': new_val})
+        elif type == 'director':
+            session.query(Director).filter(Director.telegram_id == str(s_id)).update({f'director_name': new_val})
     session.commit()
 
 
@@ -241,51 +274,17 @@ def del_task(t_id):
 
 def user_type(user_id):
     try:
-        user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
+        u_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:
         print(e)
-        user_type = False
-    return user_type
+        u_type = False
+    return u_type
 
 
-def select_employee(user_id):
+def stud_approve(s_id):
     try:
-        a_n = session.query(Admin.admin_name).filter(Admin.telegram_id == str(user_id)).first()
-        a_log = session.query(Admin.login).filter(Admin.telegram_id == str(user_id)).first()
-        a_pass = session.query(Admin.password).filter(Admin.telegram_id == str(user_id)).first()
-        adm_authorisation = [a_n, a_log, a_pass]
+        approve = session.query(Application.approve).filter(Application.student_id == str(s_id)).first()
     except Exception as e:
         print(e)
-        adm_authorisation = False
-    return adm_authorisation
-
-
-def change_inform(s_id, type, column, new_val):
-    type = type[0]
-    if type == 'student':
-        session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
-    else:
-        session.query(User).filter(User.telegram_id == str(s_id)).update({f'name': new_val})
-
-        if type == 'admin':
-            session.query(Admin).filter(Admin.telegram_id == str(s_id)).update({f'admin_name': new_val})
-        elif type == 'worker':
-            session.query(Worker).filter(Worker.telegram_id == str(s_id)).update({f'worker_name': new_val})
-        elif type == 'director':
-            session.query(Director).filter(Director.telegram_id == str(s_id)).update({f'director_name': new_val})
-    session.commit()
-
-
-def add_application(stud_id, work_id, b):
-    application = Application(
-        student_id=stud_id,
-        worker_id=work_id,
-        approve=b
-    )
-    session.add(application)
-    try:
-        session.commit()
-    except Exception as e:
-        session.rollback()  # откатываем session.add(user)
-        print(e)
-
+        approve = False
+    return approve
