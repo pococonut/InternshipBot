@@ -1,13 +1,14 @@
-import os
-from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer, Boolean, String
+from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer
 from dotenv import load_dotenv
 from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
 import datetime
+from config import settings
+
 load_dotenv()
 
-host = "localhost"
-password = "123"
-database = "bot"
+host = settings.host
+password = settings.password
+database = settings.database
 
 engine = create_engine(f"postgresql+psycopg2://postgres:{password}@{host}/{database}")
 
@@ -52,25 +53,3 @@ class Student(Base):
 
 
 Base.metadata.create_all(bind=engine)
-
-"""Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
-new_user = Student(student_id=2,
-                   student_name='TEST',
-                   university='KUB',
-                   faculty='WWW',
-                   specialties='Q',
-                   department='E',
-                   course="1",
-                   group='12',
-                   coursework='NO',
-                   knowledge="NO")
-session.add(new_user)
-session.commit()
-
-student = session.query(Student).all()
-for s in student:
-    print(s.student_id, s.student_name, s.course)"""

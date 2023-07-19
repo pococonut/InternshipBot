@@ -4,11 +4,13 @@ from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer, Bool
 from dotenv import load_dotenv
 from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker, relationship
 import datetime
+from config import settings
+
 load_dotenv()
 
-host = "localhost"
-password = "123"
-database = "bot"
+host = settings.host
+password = settings.password
+database = settings.database
 
 engine = create_engine(f"postgresql+psycopg2://postgres:{password}@{host}/{database}")
 
@@ -45,6 +47,7 @@ class Task(Base):
 
     internship = relationship("Internship", secondary='internship_task')
 
+
 class Internship(Base):
     __tablename__ = "internship"
 
@@ -55,7 +58,7 @@ class Internship(Base):
     # last update date
     end_date = Column(DATE, default=datetime.date.today())
 
-    task = relationship("Task", secondary='internship_task')
+    task = relationship("Task", secondary='internship_task', overlaps="internship")
 
 
 class InternshipTask(Base):
@@ -63,29 +66,16 @@ class InternshipTask(Base):
 
     __table_args__ = (PrimaryKeyConstraint('task_id', 'internship_id'),)
 
-    #id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-
     task_id = Column(Integer, ForeignKey('task.task_id'))
 
     internship_id = Column(Integer, ForeignKey('internship.internship_id'))
 
 
-#InternshipTask.__table__.drop(engine)
-
 Base.metadata.create_all(bind=engine)
 
 
+#InternshipTask.__table__.drop(engine)
 
 #session.query(Task).filter(Task.student_id != None).update({f'student_id': None})
 #session.commit()
 
-"""task = Task(task_name='x', task_description='x', num_people='1', materials='x')
-session.add(task)
-
-internship = Internship(beg_date='28-06-2023', end_date='28-07-2023')
-task.internship.append(internship)
-session.add(internship)"""
-
-#internship = Internship(beg_date='2023-06-28', end_date='2023-07-28')
-#session.add(internship)
-#session.commit()

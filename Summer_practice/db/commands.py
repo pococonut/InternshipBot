@@ -239,7 +239,6 @@ def change_task_stud(s_id, column, new_val):
 
 
 def change_inform(s_id, type, column, new_val):
-    type = type[0]
     if type == 'student':
         session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
     else:

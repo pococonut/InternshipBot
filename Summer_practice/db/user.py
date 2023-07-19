@@ -1,14 +1,14 @@
-import os
-from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer, Boolean, String, ForeignKey
+from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, String, ForeignKey
 from dotenv import load_dotenv
 from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
 import datetime
+from config import settings
 
 load_dotenv()
 
-host = "localhost"
-password = "123"
-database = "bot"
+host = settings.host
+password = settings.password
+database = settings.database
 
 engine = create_engine(f"postgresql+psycopg2://postgres:{password}@{host}/{database}")
 
@@ -114,71 +114,3 @@ class Director(User):
 
 Base.metadata.create_all(bind=engine)
 
-
-
-"""
-try:
-    student1 = Student_2(telegram_id='0',
-                         student_name='Золотухина Полина Викторовна',
-                         name='Золотухина Полина Викторовна',
-                         university="КУБГУ",
-                         faculty="Математика и компьютерные науки",
-                         specialties='Математика и компьютерные науки',
-                         department='ВМИ',
-                         course='2',
-                         group='23/3',
-                         coursework='1)Разработка парсера для телеграм канала',
-                         knowledge='Python, SQL')
-    worker1 = Worker(telegram_id='1',
-                     worker_name='Золотухина Полина Викторовна',
-                     name='Золотухина Полина Викторовна',
-                     login='1',
-                     password='2')
-
-    admin1 = Admin(telegram_id="1103049875",
-                   admin_name='Золотухина Полина Викторовна',
-                   name='Золотухина Полина Викторовна',
-                   login='1',
-                   password='111')
-
-    director1 = Director(telegram_id='3',
-                         director_name='Золотухина Полина Викторовна',
-                         name='Золотухина Полина Викторовна',
-                         login='1',
-                         password='4')
-    session.add(student1)
-
-    #session.add(admin1)
-    #session.add(director1)
-
-    session.commit()
-    # note that the Engineer table is not INSERTed into
-
-    # student1 = session.query(User).filter_by(telegram_id="1").one()
-    # the next line triggers an exception because it tries to lookup
-    # the Engineer row, which is missing
-    # print(student1.eng_data)
-except Exception as e:
-    print(e)"""
-
-"""Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
-new_user = Student(student_id=2,
-                   student_name='TEST',
-                   university='KUB',
-                   faculty='WWW',
-                   specialties='Q',
-                   department='E',
-                   course="1",
-                   group='12',
-                   coursework='NO',
-                   knowledge="NO")
-session.add(new_user)
-session.commit()
-
-student = session.query(Student).all()
-for s in student:
-    print(s.student_id, s.student_name, s.course)"""
