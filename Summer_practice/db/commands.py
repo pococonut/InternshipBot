@@ -1,9 +1,9 @@
 from sqlalchemy.exc import IntegrityError
 
-from db.student import session
-from db.user import User, Student_2, Worker, Admin, Director
-from db.internship import Task, InternshipTask, Internship
-from db.applications import Application
+from db.models.student import session
+from db.models.user import User, Student_2, Worker, Admin, Director
+from db.models.internship import Task, InternshipTask, Internship
+from db.models.applications import Application
 
 
 def register_student(s_id, *args):
