@@ -11,7 +11,8 @@ from create import bot
 
 # -------------------- Просмотр всех задач --------------------
 
-page = 0
+
+globalDict_pages = dict()
 
 
 def short_long_task(t, f=0):
@@ -33,8 +34,6 @@ def short_long_task(t, f=0):
 
 
 async def show_task(callback: types.CallbackQuery):
-    global page
-    # page = 0
     u_type = user_type(callback.from_user.id)[0]
 
     if u_type == 'student':
@@ -56,6 +55,10 @@ async def show_task(callback: types.CallbackQuery):
             await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
                                           reply_markup=keyboard)
     else:
+        usr_id = str(callback.from_user.id)
+        if usr_id not in globalDict_pages:
+            globalDict_pages[usr_id] = 0
+        print(globalDict_pages)
 
         keyboard = task_ikb
         if u_type == 'student':
@@ -66,24 +69,23 @@ async def show_task(callback: types.CallbackQuery):
                 keyboard = student_task_choose
         elif u_type in ('admin', 'director'):
             keyboard = task_ikb
-            if tasks[page].student_id is not None:
+            if tasks[globalDict_pages[usr_id]].student_id is not None:
                 keyboard = task_without_del
         elif u_type == 'worker':
             keyboard = task_worker_ikb
 
-        p = page
+        p = globalDict_pages[usr_id]
         count_tasks = len(tasks)
-        if page <= -1:
-            p = count_tasks + page
+        if globalDict_pages[usr_id] <= -1:
+            p = count_tasks + globalDict_pages[usr_id]
         count_tasks = len(tasks)
-        await callback.message.edit_text(f"<b>№</b> {p + 1}/{count_tasks}\n\n" + short_long_task(tasks[page]),
+        await callback.message.edit_text(f"<b>№</b> {p + 1}/{count_tasks}\n\n" + short_long_task(tasks[globalDict_pages[usr_id]]),
                                          parse_mode='HTML',
                                          reply_markup=keyboard,
                                          disable_web_page_preview=True)
 
 
 async def show_task_rl(callback: types.CallbackQuery):
-    global page
 
     u_type = user_type(callback.from_user.id)[0]
     if u_type == 'student':
@@ -99,25 +101,29 @@ async def show_task_rl(callback: types.CallbackQuery):
             keyboard = stud_is_approve
         await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
     else:
+        usr_id = str(callback.from_user.id)
+        if usr_id not in globalDict_pages:
+            globalDict_pages[usr_id] = 0
+
         count_tasks = len(tasks)
         s = ''
         if callback.data == 'right':
-            page += 1
-            if page == count_tasks:
-                page = 0
-            p_r = page
-            if page <= -1:
-                p_r = count_tasks + page
+            globalDict_pages[usr_id] += 1
+            if globalDict_pages[usr_id] == count_tasks:
+                globalDict_pages[usr_id] = 0
+            p_r = globalDict_pages[usr_id]
+            if globalDict_pages[usr_id] <= -1:
+                p_r = count_tasks + globalDict_pages[usr_id]
             s = f"<b>№</b> {p_r + 1}/{count_tasks}\n\n"
 
         if callback.data == 'left':
-            page -= 1
+            globalDict_pages[usr_id] -= 1
             p_l = 0
-            if page == (-1) * count_tasks:
-                page = 0
-            if page <= -1:
+            if globalDict_pages[usr_id] == (-1) * count_tasks:
+                globalDict_pages[usr_id] = 0
+            if globalDict_pages[usr_id] <= -1:
                 p_l = count_tasks
-            s = f"<b>№</b> {(p_l + page) + 1}/{count_tasks}\n\n"
+            s = f"<b>№</b> {(p_l + globalDict_pages[usr_id]) + 1}/{count_tasks}\n\n"
 
         keyboard = task_ikb
         if u_type == 'student':
@@ -128,12 +134,13 @@ async def show_task_rl(callback: types.CallbackQuery):
                 keyboard = student_task_choose
         elif u_type in ('admin', 'director'):
             keyboard = task_ikb
-            if tasks[page].student_id is not None:
+            if tasks[globalDict_pages[usr_id]].student_id is not None:
                 keyboard = task_without_del
         elif u_type == 'worker':
             keyboard = task_worker_ikb
 
-        await callback.message.edit_text(s + short_long_task(tasks[page]),
+        print(globalDict_pages)
+        await callback.message.edit_text(s + short_long_task(tasks[globalDict_pages[usr_id]]),
                                          parse_mode='HTML',
                                          reply_markup=keyboard,
                                          disable_web_page_preview=True)
@@ -148,7 +155,9 @@ async def show_more_task(callback: types.CallbackQuery):
         tasks = select_task_for_stud()
     else:
         tasks = select_task()
-    await callback.message.edit_text(short_long_task(tasks[page], 1), parse_mode='HTML', reply_markup=back_task_ikb,
+
+    usr_id = str(callback.from_user.id)
+    await callback.message.edit_text(short_long_task(tasks[globalDict_pages[usr_id]], 1), parse_mode='HTML', reply_markup=back_task_ikb,
                                      disable_web_page_preview=True)
 
 
@@ -175,14 +184,16 @@ ch_task_lst = list(param_task.keys())
 
 async def ch_task(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
-    print("change", page + 1)
+    usr_id = str(callback.from_user.id)
+    print("change", globalDict_pages[usr_id] + 1)
     await callback.message.answer('Выберите параметр который желаете изменить.', parse_mode='HTML', reply_markup=change_task_ikb)
     await TaskChange.param.set()
 
 
 async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
     await state.update_data(param=callback.data)
-    await state.update_data(num_task=page)
+    usr_id = str(callback.from_user.id)
+    await state.update_data(num_task=globalDict_pages[usr_id])
     await callback.message.edit_text("Введите новое значение.")
     await TaskChange.next()
 
@@ -208,16 +219,17 @@ class TaskDel(StatesGroup):
 
 async def del_t(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
-    print("delite ", page + 1)
+    usr_id = str(callback.from_user.id)
+    print("delite ", globalDict_pages[usr_id] + 1)
     await callback.message.answer('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
     await TaskDel.del_t.set()
 
 
 async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
-    global page
     await state.update_data(del_t=callback.data)
     tasks = select_task()
-    t_id = tasks[page].task_id
+    usr_id = str(callback.from_user.id)
+    t_id = tasks[globalDict_pages[usr_id]].task_id
     del_task(t_id)
     await state.finish()
     #page -= 1
@@ -228,11 +240,11 @@ async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
 
 
 async def stud_get_task(callback: types.CallbackQuery):
-    global page
     tasks = select_task_for_stud()
-    t_id = tasks[page].task_id
-    worker_id = tasks[page].from_id
-    print(page, worker_id)
+    usr_id = str(callback.from_user.id)
+    t_id = tasks[globalDict_pages[usr_id]].task_id
+    worker_id = tasks[globalDict_pages[usr_id]].from_id
+    print(globalDict_pages[usr_id], worker_id)
     change_task(t_id, 'student_id', callback.from_user.id)
     task_name = select_worker_reject(callback.from_user.id).task_name
 

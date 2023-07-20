@@ -17,7 +17,7 @@ async def set_commands(dp):
     await dp.bot.set_my_commands(commands=commands, scope=types.BotCommandScopeAllPrivateChats())
 
 
-DESCRIPTION = "Данный телеграм бот предназначен для рабты с практиками," \
+DESCRIPTION = "Данный телеграм бот предназначен для работы с практиками," \
               " с которыми можно ознакомиться после регистрации и одобрения заявки сотрудниками."
 
 

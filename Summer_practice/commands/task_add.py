@@ -103,8 +103,6 @@ async def add_task_materials(message: types.Message, state=FSMContext):
                              f'<b>Количество людей:</b> {data["num_people"]}\n\n'
                              f'<b>Материалы:</b>\n{str(data["materials"])}', parse_mode='HTML',
                              reply_markup=keyboard, disable_web_page_preview=True)
-        global page
-        page = 0
     await state.finish()
 
 

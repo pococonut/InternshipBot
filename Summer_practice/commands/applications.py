@@ -10,7 +10,8 @@ from create import bot
 
 # --------------------- Просмотр заявок студентов ---------------------
 
-page_s = 0
+
+globalDict = dict()
 
 
 def print_stud(s):
@@ -28,8 +29,10 @@ def print_stud(s):
 
 
 async def show_stud(callback: types.CallbackQuery):
-    global page_s
-    #page_s = 0
+    usr_id = str(callback.from_user.id)
+    if usr_id not in globalDict:
+        globalDict[usr_id] = 0
+    print(globalDict)
     all_students = select_students()
     applications = select_applications()
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
@@ -45,39 +48,43 @@ async def show_stud(callback: types.CallbackQuery):
                                           reply_markup=admin_ikb)
     else:
         count_students = len(all_students) - len(applications)
-        await callback.message.edit_text(f"<b>№</b> {page_s + 1}/{count_students}\n\n" + print_stud(students[page_s]),
+        await callback.message.edit_text(f"<b>№</b> {globalDict[usr_id] + 1}/{count_students}\n\n" + print_stud(students[globalDict[usr_id]]),
                                          reply_markup=stud_appl_ikb, parse_mode='HTML')
 
 
 async def std_rl(callback: types.CallbackQuery):
-    global page_s
     all_students = select_students()
     applications = select_applications()
     students = [s for s in all_students if s.telegram_id not in [i.student_id for i in applications]]
     if not students:
         await callback.message.edit_text('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
     else:
+        usr_id = str(callback.from_user.id)
+        if usr_id not in globalDict:
+            globalDict[usr_id] = 0
+
         count_students = len(all_students) - len(applications)
         s = ''
         if callback.data == 'right_stud':
-            page_s += 1
-            if page_s == count_students:
-                page_s = 0
-            p_rs = page_s
-            if page_s <= -1:
-                p_rs = count_students + page_s
+            globalDict[usr_id] += 1
+            if globalDict[usr_id] == count_students:
+                globalDict[usr_id] = 0
+            p_rs = globalDict[usr_id]
+            if globalDict[usr_id] <= -1:
+                p_rs = count_students + globalDict[usr_id]
             s = f"<b>№</b> {p_rs + 1}/{count_students}\n\n"
 
         if callback.data == 'left_stud':
-            page_s -= 1
+            globalDict[usr_id] -= 1
             p_ls = 0
-            if page_s == (-1) * count_students:
-                page_s = 0
-            if page_s <= -1:
+            if globalDict[usr_id] == (-1) * count_students:
+                globalDict[usr_id] = 0
+            if globalDict[usr_id] <= -1:
                 p_ls = count_students
-            s = f"<b>№</b> {(p_ls + page_s) + 1}/{count_students}\n\n"
+            s = f"<b>№</b> {(p_ls + globalDict[usr_id]) + 1}/{count_students}\n\n"
 
-        await callback.message.edit_text(s + print_stud(students[page_s]), reply_markup=stud_appl_ikb, parse_mode='HTML')
+        print(globalDict)
+        await callback.message.edit_text(s + print_stud(students[globalDict[usr_id]]), reply_markup=stud_appl_ikb, parse_mode='HTML')
 
 
 # ---------------------- Принятие\отклонение заявки студента ----------------------
@@ -93,7 +100,8 @@ def current_student(page_s):
 
 
 async def approve_stud(callback: types.CallbackQuery):
-    student_id = current_student(page_s)
+    usr_id = str(callback.from_user.id)
+    student_id = current_student(globalDict[usr_id])
     add_application(student_id, callback.from_user.id, 1)
     try:
         await bot.send_message(student_id, 'Ваша заявка была <b>одобрена</b>.\n\nВы можете выбрать задачу из списка '
@@ -114,7 +122,8 @@ async def reject_stud(callback: types.CallbackQuery):
 
 async def reject_stud_yes(callback: types.CallbackQuery, state=FSMContext):
     await state.update_data(del_s=callback.data)
-    student_id = current_student(page_s)
+    usr_id = str(callback.from_user.id)
+    student_id = current_student(globalDict[usr_id])
     add_application(student_id, callback.from_user.id, 0)
     await state.finish()
     try:

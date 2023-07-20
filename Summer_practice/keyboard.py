@@ -48,7 +48,7 @@ admin_ikb2.add(ib1_3).add(admin_b1).add(admin_b4).add(admin_b5)
 
 worker_ikb = InlineKeyboardMarkup(row_width=2)
 worker_b1 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
-worker_ikb.add(admin_b1).add(admin_b4).add(worker_b1).add(admin_b6)
+worker_ikb.add(admin_b1, admin_b4, worker_b1, admin_b6)
 
 
 stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)

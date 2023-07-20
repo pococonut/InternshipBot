@@ -81,7 +81,7 @@ async def get_name(message: types.Message, state=FSMContext):
             chr in string.punctuation for chr in message.text):
         await message.answer('ФИО введено в некорректом формате', parse_mode='HTML')
         return
-    await state.update_data(name=message.text)
+    await state.update_data(name=" ".join([i.capitalize() for i in message.text.split()]))
     data = await state.get_data()
     if chek_wlogin(data.get('login'), log_pass.get('admin')) and \
             chek_wpassword(data.get('password'), log_pass.get('admin')):
