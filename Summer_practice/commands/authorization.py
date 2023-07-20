@@ -1,6 +1,6 @@
 from commands.back import back_func
-from db.commands import user_type, register_admin, register_director, register_worker
-from keyboard import admin_ikb, worker_ikb, back_ikb
+from db.commands import user_type, register_admin, register_director, register_worker, stud_approve
+from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -52,6 +52,25 @@ async def authorization_command(message: types.Message):
         await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=worker_ikb)
     elif u_type[0] == 'student':
         await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
+
+
+async def authorization_command_inline(callback: types.CallbackQuery):
+    u_type = user_type(callback.from_user.id)
+    print(u_type)
+
+    if u_type is None:
+        await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=back_ikb)
+        await Authorisation.login.set()
+    elif u_type[0] in ('admin', 'director'):
+        await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
+    elif u_type[0] == 'worker':
+        await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=worker_ikb)
+    elif u_type[0] == 'student':
+        approve = stud_approve(callback.from_user.id)
+        keyboard = ikb_3
+        if approve:
+            keyboard = stud_is_approve
+        await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=keyboard)
 
 
 async def get_login(message: types.Message, state=FSMContext):
@@ -109,6 +128,7 @@ async def get_name(message: types.Message, state=FSMContext):
 
 def register_handlers_authorization(dp: Dispatcher):
     dp.register_message_handler(authorization_command, commands=['menu'])
+    dp.register_callback_query_handler(authorization_command_inline, text='menu')
     dp.register_message_handler(get_login, state=Authorisation.login)
     dp.register_message_handler(get_password, state=Authorisation.password)
     dp.register_message_handler(get_name, state=Authorisation.name)

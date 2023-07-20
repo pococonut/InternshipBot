@@ -60,7 +60,6 @@ async def registration_command(message: types.Message):
                 keyboard = stud_is_approve
                 print(user_exist[0])
                 print(approve)
-
             else:
                 keyboard = ikb_3
         print(user_exist[0])

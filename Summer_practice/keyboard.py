@@ -6,6 +6,8 @@ ib1 = InlineKeyboardButton(text="Новый пользователь", callback_
 ib3 = InlineKeyboardButton(text="Просмотреть данные", callback_data="show")
 ikb.add(ib1, ib3)
 
+menu = InlineKeyboardButton(text="Меню", callback_data="menu")
+
 ikb_2 = InlineKeyboardMarkup(row_width=2)
 # ib2_1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
 ib2_2 = InlineKeyboardButton(text="Просмотр стажировок", callback_data="intern_show")
@@ -57,13 +59,15 @@ stud_ikb.add(ib1_3)
 change_stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 change_stud_b1 = InlineKeyboardButton(text="Изменнить данные", callback_data="change")
 change_stud_ikb.add(change_stud_b1)
+change_stud_ikb.add(menu)
+
 
 stud_appl_ikb = InlineKeyboardMarkup(row_width=2)
 stud_appl_b1 = InlineKeyboardButton(text="Отклонить", callback_data="reject")
 stud_appl_b2 = InlineKeyboardButton(text="Одобрить", callback_data="approve")
 stud_appl_b4 = InlineKeyboardButton("Назад", callback_data="left_stud")
 stud_appl_b5 = InlineKeyboardButton("Вперед", callback_data="right_stud")
-stud_appl_ikb.add(stud_appl_b1, stud_appl_b2, stud_appl_b4, stud_appl_b5)
+stud_appl_ikb.add(stud_appl_b1, stud_appl_b2, stud_appl_b4, stud_appl_b5, menu)
 
 stud_appl_ikb_2 = InlineKeyboardMarkup(row_width=2)
 stud_appl_ikb_2.add(stud_appl_b4, stud_appl_b5)
@@ -96,11 +100,14 @@ task_b5 = InlineKeyboardButton("Вперед", callback_data="right")
 task_ikb.add(task_b0)
 task_ikb.add(task_b1, task_b2)
 task_ikb.add(task_b4, task_b5)
+task_ikb.add(menu)
 
 task_without_del = InlineKeyboardMarkup(row_width=2)
 task_without_del.add(task_b0)
 task_without_del.add(task_b1)
 task_without_del.add(task_b4, task_b5)
+task_without_del.add(menu)
+
 
 task_worker_more_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_more_ikb.add(task_b1, task_b2)
@@ -127,6 +134,7 @@ selected_task.add(stud_is_approve_b1)
 stud_reject_task = InlineKeyboardMarkup(row_width=2)
 stud_reject_task_b1 = InlineKeyboardButton('Отказаться от задачи', callback_data="reject_task")
 stud_reject_task.add(stud_reject_task_b1)
+stud_reject_task.add(menu)
 
 student_task_show = InlineKeyboardMarkup(row_width=2)
 student_task_show.add(admin_b4)
@@ -141,10 +149,14 @@ student_task_choose_b2 = InlineKeyboardButton("Выбрать", callback_data="s
 student_task_choose.add(task_b4, task_b5)
 student_task_choose.add(student_task_choose_b1)
 student_task_choose.add(student_task_choose_b2)
+student_task_choose.add(menu)
+
 
 student_task_already_choose = InlineKeyboardMarkup(row_width=2)
 student_task_already_choose.add(task_b4, task_b5)
 student_task_already_choose.add(student_task_choose_b1)
+student_task_already_choose.add(menu)
+
 
 student_task_choose_cont = InlineKeyboardMarkup(row_width=2)
 student_task_choose_cont.add(task_b4, task_b5)
@@ -157,6 +169,7 @@ task_worker_own_b3 = InlineKeyboardButton(text="Изменить", callback_data
 task_worker_own_b4 = InlineKeyboardButton(text="Удалить", callback_data="del_task_w")
 task_worker_own_ikb.add(task_worker_own_b0)
 task_worker_own_ikb.add(task_worker_own_b3, task_worker_own_b4, task_worker_own_b1, task_worker_own_b2)
+task_worker_own_ikb.add(menu)
 
 task_worker_more_w_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_more_w_ikb.add(task_worker_own_b3, task_worker_own_b4)
@@ -171,6 +184,7 @@ task_worker_without_del_b1 = InlineKeyboardButton("Подробнее", callback
 task_worker_without_del.add(task_worker_without_del_b1)
 task_worker_without_del.add(task_worker_own_b3)
 task_worker_without_del.add(task_worker_own_b1, task_worker_own_b2)
+task_worker_without_del.add(menu)
 
 
 task_worker_stud = InlineKeyboardMarkup(row_width=2)
@@ -178,6 +192,7 @@ task_worker_stud_b1 = InlineKeyboardButton("Назад", callback_data="tws_left
 task_worker_stud_b2 = InlineKeyboardButton("Вперед", callback_data="tws_right")
 task_worker_stud_b3 = InlineKeyboardButton("Студент", callback_data="tws_student")
 task_worker_stud.add(task_worker_stud_b1, task_worker_stud_b2, task_worker_stud_b3)
+task_worker_stud.add(menu)
 
 
 change_task_ikb = InlineKeyboardMarkup(row_width=2)
