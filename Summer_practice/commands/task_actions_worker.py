@@ -1,8 +1,9 @@
 from commands.back import back_func
-from commands.task_actions import ch_task_lst, short_long_task, param_task
+from commands.task_actions import ch_task_lst, param_task
+from create import bot
 from db.commands import user_type, change_task, del_task, select_worker_task
 from keyboard import admin_ikb, worker_ikb, change_task_ikb, del_task_ikb, task_worker_own_ikb, task_worker_without_del, \
-    back_to_tasks_w
+    back_to_tasks_w, selected_task, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
@@ -11,6 +12,24 @@ from aiogram.dispatcher import FSMContext
 # -------------------- Просмотр задач сотрудника --------------------
 
 globalDict_pagesW = dict()
+
+
+def short_long_task(t, f=0):
+    if f == 1:
+        s = f"<b>Название:</b> {t.task_name}\n\n" \
+            f"<b>Цель:</b> {t.task_goal}\n\n" \
+            f"<b>Описание:</b> {t.task_description}\n\n" \
+            f"<b>Задачи:</b>\n{t.task_tasks}\n\n" \
+            f"<b>Необходимые навыки и технологии:</b>\n{t.task_technologies}\n\n" \
+            f"<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{t.task_new_skills}\n\n" \
+            f"<b>Количество людей:</b> {t.num_people}\n\n" \
+            f"<b>Материалы:</b>\n{str(t.materials)}"
+    else:
+        s = f"<b>Название:</b> {t.task_name}\n\n" \
+            f"<b>Цель:</b> {t.task_goal}\n\n" \
+            f"<b>Описание:</b> {t.task_description}\n\n" \
+            f"<b>Необходимые навыки и технологии:</b>\n{t.task_technologies}\n\n"
+    return s
 
 
 async def show_worker_task(callback: types.CallbackQuery):
@@ -92,7 +111,11 @@ async def worker_rl(callback: types.CallbackQuery):
 async def show_more_worker_task(callback: types.CallbackQuery):
     tasks = select_worker_task(callback.from_user.id)
     usr_id = str(callback.from_user.id)
-    await callback.message.edit_text(short_long_task(tasks[globalDict_pagesW[usr_id]], 1), parse_mode='HTML', reply_markup=back_to_tasks_w,
+
+    keyboard = task_worker_more_w_ikb
+    if tasks[globalDict_pagesW[usr_id]].student_id is not None:
+        keyboard = task_worker_more_without_del_w_ikb
+    await callback.message.edit_text(short_long_task(tasks[globalDict_pagesW[usr_id]], 1), parse_mode='HTML', reply_markup=keyboard,
                                      disable_web_page_preview=True)
 
 
@@ -128,6 +151,14 @@ async def ch_w_task_val(message: types.Message, state=FSMContext):
     tasks = select_worker_task(message.from_user.id)
     t_id = tasks[data['num_task']].task_id
     change_task(t_id, data['param'][7:], data['value'])
+
+    if tasks[data['num_task']].student_id is not None:
+        s_id = tasks[data['num_task']].student_id
+        await bot.send_message(s_id, f"В задаче <b><em>{tasks[data['num_task']].task_name}</em></b> "
+                                     f"параметр <b><em>{param_task.get(data['param'])}</em></b> был изменен на новое значение:"
+                                     f"\n<b><em>{data['value']}</em></b>.",
+                               reply_markup=selected_task, parse_mode='HTML')
+
     await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=back_to_tasks_w)
     await state.finish()
 

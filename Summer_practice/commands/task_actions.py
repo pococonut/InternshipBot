@@ -3,7 +3,7 @@ from db.commands import user_type, select_task_for_stud, select_task, select_alr
     change_task, del_task, select_worker_reject
 from keyboard import admin_ikb, worker_ikb, stud_is_approve, task_ikb, student_task_already_choose, \
     student_task_choose, task_without_del, task_worker_ikb, back_task_ikb, change_task_ikb, del_task_ikb, \
-    task_is_approve
+    task_is_approve, selected_task, task_worker_more_ikb, task_worker_more_without_del_ikb
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
@@ -157,7 +157,11 @@ async def show_more_task(callback: types.CallbackQuery):
         tasks = select_task()
 
     usr_id = str(callback.from_user.id)
-    await callback.message.edit_text(short_long_task(tasks[globalDict_pages[usr_id]], 1), parse_mode='HTML', reply_markup=back_task_ikb,
+    keyboard = task_worker_more_ikb
+    if tasks[globalDict_pages[usr_id]].student_id is not None:
+        keyboard = task_worker_more_without_del_ikb
+
+    await callback.message.edit_text(short_long_task(tasks[globalDict_pages[usr_id]], 1), parse_mode='HTML', reply_markup=keyboard,
                                      disable_web_page_preview=True)
 
 
@@ -206,6 +210,13 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     tasks = select_task()
     t_id = tasks[data['num_task']].task_id
     change_task(t_id, data['param'][7:], data['value'])
+    if tasks[data['num_task']].student_id is not None:
+        s_id = tasks[data['num_task']].student_id
+        await bot.send_message(s_id, f"В задаче <b><em>{tasks[data['num_task']].task_name}</em></b> "
+                                     f"параметр <b><em>{param_task.get(data['param'])}</em></b> был изменен на новое значение:"
+                                     f"\n<b><em>{data['value']}</em></b>.",
+                               reply_markup=selected_task, parse_mode='HTML')
+
     await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=back_task_ikb)
     await state.finish()
 

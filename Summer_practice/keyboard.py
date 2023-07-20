@@ -102,6 +102,12 @@ task_without_del.add(task_b0)
 task_without_del.add(task_b1)
 task_without_del.add(task_b4, task_b5)
 
+task_worker_more_ikb = InlineKeyboardMarkup(row_width=2)
+task_worker_more_ikb.add(task_b1, task_b2)
+task_worker_more_ikb.add(back_task_b)
+
+task_worker_more_without_del_ikb = InlineKeyboardMarkup(row_width=2)
+task_worker_more_without_del_ikb.add(task_b1).add(back_task_b)
 
 task_worker_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_ikb.add(task_b0)
@@ -114,6 +120,9 @@ back_to_tasks_w.add(back_to_tasks_w_b1)
 stud_is_approve = InlineKeyboardMarkup(row_width=2)
 stud_is_approve_b1 = InlineKeyboardButton('Выбранная задача', callback_data="stud_chosen_tasks")
 stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1)
+
+selected_task = InlineKeyboardMarkup(row_width=2)
+selected_task.add(stud_is_approve_b1)
 
 stud_reject_task = InlineKeyboardMarkup(row_width=2)
 stud_reject_task_b1 = InlineKeyboardButton('Отказаться от задачи', callback_data="reject_task")
@@ -149,8 +158,17 @@ task_worker_own_b4 = InlineKeyboardButton(text="Удалить", callback_data="
 task_worker_own_ikb.add(task_worker_own_b0)
 task_worker_own_ikb.add(task_worker_own_b3, task_worker_own_b4, task_worker_own_b1, task_worker_own_b2)
 
+task_worker_more_w_ikb = InlineKeyboardMarkup(row_width=2)
+task_worker_more_w_ikb.add(task_worker_own_b3, task_worker_own_b4)
+task_worker_more_w_ikb.add(back_to_tasks_w_b1)
+
+task_worker_more_without_del_w_ikb = InlineKeyboardMarkup(row_width=2)
+task_worker_more_without_del_w_ikb.add(task_worker_own_b3).add(back_to_tasks_w_b1)
+
 task_worker_without_del = InlineKeyboardMarkup(row_width=2)
-task_worker_without_del.add(task_b0)
+task_worker_without_del_b1 = InlineKeyboardButton("Подробнее", callback_data="more_task_w")
+
+task_worker_without_del.add(task_worker_without_del_b1)
 task_worker_without_del.add(task_worker_own_b3)
 task_worker_without_del.add(task_worker_own_b1, task_worker_own_b2)
 
