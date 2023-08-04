@@ -150,11 +150,12 @@ async def ch_w_task_val(message: types.Message, state=FSMContext):
                          f"<b>Новое значение:</b> {data['value']}\n\n", parse_mode='HTML')
     tasks = select_worker_task(message.from_user.id)
     t_id = tasks[data['num_task']].task_id
+    name = tasks[data['num_task']].task_name
     change_task(t_id, data['param'][7:], data['value'])
 
     if tasks[data['num_task']].student_id is not None:
         s_id = tasks[data['num_task']].student_id
-        await bot.send_message(s_id, f"В задаче <b><em>{tasks[data['num_task']].task_name}</em></b> "
+        await bot.send_message(s_id, f"В задаче <b><em>{name}</em></b> "
                                      f"параметр <b><em>{param_task.get(data['param'])}</em></b> был изменен на новое значение:"
                                      f"\n<b><em>{data['value']}</em></b>.",
                                reply_markup=selected_task, parse_mode='HTML')

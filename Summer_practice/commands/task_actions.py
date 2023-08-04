@@ -3,7 +3,8 @@ from db.commands import user_type, select_task_for_stud, select_task, select_alr
     change_task, del_task, select_worker_reject
 from keyboard import admin_ikb, worker_ikb, stud_is_approve, task_ikb, student_task_already_choose, \
     student_task_choose, task_without_del, task_worker_ikb, back_task_ikb, change_task_ikb, del_task_ikb, \
-    task_is_approve, selected_task, task_worker_more_ikb, task_worker_more_without_del_ikb
+    task_is_approve, selected_task, task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, \
+    task_worker_more_all
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
@@ -151,15 +152,19 @@ async def show_task_rl(callback: types.CallbackQuery):
 
 async def show_more_task(callback: types.CallbackQuery):
     u_type = user_type(callback.from_user.id)[0]
+    usr_id = str(callback.from_user.id)
     if u_type == 'student':
         tasks = select_task_for_stud()
+        keyboard = task_student_more_ikb
     else:
         tasks = select_task()
 
-    usr_id = str(callback.from_user.id)
-    keyboard = task_worker_more_ikb
-    if tasks[globalDict_pages[usr_id]].student_id is not None:
-        keyboard = task_worker_more_without_del_ikb
+        if u_type == 'worker':
+            keyboard = task_worker_more_all
+        else:
+            keyboard = task_worker_more_ikb
+            if tasks[globalDict_pages[usr_id]].student_id is not None:
+                keyboard = task_worker_more_without_del_ikb
 
     await callback.message.edit_text(short_long_task(tasks[globalDict_pages[usr_id]], 1), parse_mode='HTML', reply_markup=keyboard,
                                      disable_web_page_preview=True)
@@ -209,10 +214,12 @@ async def ch_task_val(message: types.Message, state=FSMContext):
                          f"<b>Новое значение:</b>\n{data['value']}\n\n", parse_mode='HTML')
     tasks = select_task()
     t_id = tasks[data['num_task']].task_id
+    name = tasks[data['num_task']].task_name
+    print(name)
     change_task(t_id, data['param'][7:], data['value'])
     if tasks[data['num_task']].student_id is not None:
         s_id = tasks[data['num_task']].student_id
-        await bot.send_message(s_id, f"В задаче <b><em>{tasks[data['num_task']].task_name}</em></b> "
+        await bot.send_message(s_id, f"В задаче <b><em>{name}</em></b> "
                                      f"параметр <b><em>{param_task.get(data['param'])}</em></b> был изменен на новое значение:"
                                      f"\n<b><em>{data['value']}</em></b>.",
                                reply_markup=selected_task, parse_mode='HTML')

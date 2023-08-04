@@ -17,7 +17,7 @@ async def stud_chosen_task(callback: types.CallbackQuery):
         if not task:
             await callback.message.edit_text('Вы еще не выбрали задачу.', reply_markup=stud_is_approve)
         else:
-            await callback.message.edit_text(f"<b>Выбранная задача</b>\n\n" + short_long_task(task, 1),
+            await callback.message.edit_text(f"📝 <b>Выбранная задача</b>\n\n" + short_long_task(task, 1),
                                              parse_mode='HTML', reply_markup=stud_reject_task,
                                              disable_web_page_preview=True)
     except Exception as e:

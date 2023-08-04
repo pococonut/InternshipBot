@@ -106,7 +106,7 @@ async def get_name(message: types.Message, state=FSMContext):
             chek_wpassword(data.get('password'), log_pass.get('admin')):
         admin = register_admin(message.from_user.id, data)
         if admin:
-            who = 'администатор'
+            who = 'администратор'
             keyboard = admin_ikb
     elif chek_wlogin(data.get('login'), log_pass.get('director')) and \
             chek_wpassword(data.get('password'), log_pass.get('director')):

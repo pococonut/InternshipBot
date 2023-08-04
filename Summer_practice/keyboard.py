@@ -108,10 +108,15 @@ task_without_del.add(task_b1)
 task_without_del.add(task_b4, task_b5)
 task_without_del.add(menu)
 
+task_worker_more_all = InlineKeyboardMarkup(row_width=2)
+task_worker_more_all.add(back_task_b)
 
 task_worker_more_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_more_ikb.add(task_b1, task_b2)
 task_worker_more_ikb.add(back_task_b)
+
+task_student_more_ikb = InlineKeyboardMarkup(row_width=2)
+task_student_more_ikb.add(back_task_b)
 
 task_worker_more_without_del_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_more_without_del_ikb.add(task_b1).add(back_task_b)
@@ -119,6 +124,8 @@ task_worker_more_without_del_ikb.add(task_b1).add(back_task_b)
 task_worker_ikb = InlineKeyboardMarkup(row_width=2)
 task_worker_ikb.add(task_b0)
 task_worker_ikb.add(task_b4, task_b5)
+task_worker_ikb.add(menu)
+
 
 back_to_tasks_w = InlineKeyboardMarkup()
 back_to_tasks_w_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="worker_task")

@@ -3,7 +3,6 @@ from db.commands import select_chosen_tasks, select_user
 from keyboard import admin_ikb, task_worker_stud, back_to_std
 from aiogram import types, Dispatcher
 
-
 # ----------------- Просмотр выбранной студентом задачи (для сотрудника) -----------------
 
 
@@ -22,19 +21,22 @@ async def worker_chosen_t(callback: types.CallbackQuery):
 
         count_tasks = len(tasks)
         student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
-        await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n"
-                                         f"👨‍🎓<b>Студент</b>\n\n"
-                                         f"<b>ФИО:</b> {student.student_name}\n\n"
-                                         f"<b>Направление:</b> {student.specialties}\n\n"
-                                         f"<b>Курс:</b> {student.course}\n\n"
-                                         f"<b>Знания:</b> {student.knowledge}\n\n"
-                                         f"———————————————————\n\n"
-                                         f"📚<b>Выбранная задача</b>\n\n"
-                                         f"<b>Название:</b> {tasks[globalDict_pagesTws[usr_id]].task_name}\n\n"
-                                         f"<b>Описание:</b> {tasks[globalDict_pagesTws[usr_id]].task_description}\n\n",
-                                         parse_mode='HTML',
-                                         reply_markup=task_worker_stud,
-                                         disable_web_page_preview=True)
+        if not student:
+            await callback.message.edit_text('Заявки студентов не были рассмотрены.', reply_markup=admin_ikb)
+        else:
+            await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n"
+                                             f"👨‍🎓<b>Студент</b>\n\n"
+                                             f"<b>ФИО:</b> {student.student_name}\n\n"
+                                             f"<b>Направление:</b> {student.specialties}\n\n"
+                                             f"<b>Курс:</b> {student.course}\n\n"
+                                             f"<b>Знания:</b> {student.knowledge}\n\n"
+                                             f"———————————————————\n\n"
+                                             f"📚<b>Выбранная задача</b>\n\n"
+                                             f"<b>Название:</b> {tasks[globalDict_pagesTws[usr_id]].task_name}\n\n"
+                                             f"<b>Описание:</b> {tasks[globalDict_pagesTws[usr_id]].task_description}\n\n",
+                                             parse_mode='HTML',
+                                             reply_markup=task_worker_stud,
+                                             disable_web_page_preview=True)
 
 
 async def task_ws_show(callback: types.CallbackQuery):

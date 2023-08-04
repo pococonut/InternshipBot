@@ -56,7 +56,7 @@ async def registration_command(message: types.Message):
             keyboard = worker_ikb
         elif user_exist[0] == 'student':
             approve = stud_approve(message.from_user.id)
-            if approve:
+            if approve is not None and approve[0]:
                 keyboard = stud_is_approve
                 print(user_exist[0])
                 print(approve)
