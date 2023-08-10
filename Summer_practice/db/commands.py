@@ -1,24 +1,24 @@
 from sqlalchemy.exc import IntegrityError
-
-from db.models.student import session
-from db.models.user import User, Student_2, Worker, Admin, Director
+from db.models.user import User, Student, Worker, Admin, Director, session
 from db.models.internship import Task, InternshipTask, Internship
 from db.models.applications import Application
+import datetime
 
 
 def register_student(s_id, *args):
-    student = Student_2(telegram_id=str(s_id),
-                        student_name=args[0]['student_name'],
-                        name=args[0]['student_name'],
-                        university=args[0]['university'],
-                        faculty=args[0]['faculty'],
-                        specialties=args[0]['specialties'],
-                        department=args[0]['department'],
-                        course=args[0]['course'],
-                        group=args[0]['group'],
-                        coursework=args[0]['coursework'],
-                        knowledge=args[0]['knowledge']
-                        )
+    student = Student(telegram_id=str(s_id),
+                      student_name=args[0]['student_name'],
+                      name=args[0]['student_name'],
+                      phone=args[0]['phone'],
+                      university=args[0]['university'],
+                      faculty=args[0]['faculty'],
+                      specialties=args[0]['specialties'],
+                      department=args[0]['department'],
+                      course=args[0]['course'],
+                      group=args[0]['group'],
+                      coursework=args[0]['coursework'],
+                      knowledge=args[0]['knowledge']
+                      )
 
     session.add(student)
 
@@ -34,6 +34,7 @@ def register_admin(s_id, *args):
     admin = Admin(telegram_id=str(s_id),
                   admin_name=args[0]['name'],
                   name=args[0]['name'],
+                  phone=args[0]['phone'],
                   login=args[0]['login'],
                   password=args[0]['password'],
                   )
@@ -50,6 +51,7 @@ def register_director(s_id, *args):
     director = Director(telegram_id=str(s_id),
                         director_name=args[0]['name'],
                         name=args[0]['name'],
+                        phone=args[0]['phone'],
                         login=args[0]['login'],
                         password=args[0]['password'],
                         )
@@ -66,6 +68,7 @@ def register_worker(s_id, *args):
     worker = Worker(telegram_id=str(s_id),
                     worker_name=args[0]['name'],
                     name=args[0]['name'],
+                    phone=args[0]['phone'],
                     login=args[0]['login'],
                     password=args[0]['password'],
                     )
@@ -154,7 +157,7 @@ def select_task():
 def select_worker_task(f_id):
     try:
         task = session.query(Task).filter(Task.from_id == str(f_id)).order_by(Task.task_id.desc()).all()
-        #user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
+        # user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
 
     except Exception as e:
         print(e)
@@ -191,7 +194,8 @@ def select_worker_reject(s_id):
 
 def select_chosen_tasks(w_id):
     try:
-        task = session.query(Task).filter(Task.student_id != None, Task.from_id == str(w_id)).order_by(Task.task_id.desc()).all()
+        task = session.query(Task).filter(Task.student_id != None, Task.from_id == str(w_id)).order_by(
+            Task.task_id.desc()).all()
     except Exception as e:
         print(e)
         task = False
@@ -200,7 +204,7 @@ def select_chosen_tasks(w_id):
 
 def select_students():
     try:
-        students = Student_2.query.order_by(User.reg_date.desc()).all()
+        students = Student.query.order_by(User.reg_date.desc()).all()
     except Exception as e:
         print(e)
         students = False
@@ -238,18 +242,23 @@ def change_task_stud(s_id, column, new_val):
     session.commit()
 
 
-def change_inform(s_id, type, column, new_val):
-    if type == 'student':
-        session.query(Student_2).filter(Student_2.telegram_id == str(s_id)).update({f'{column}': new_val})
+def change_inform(id, type, column, new_val):
+    if column in User.__table__.columns:
+        session.query(User).filter(User.telegram_id == str(id)).update({f'{column}': new_val})
     else:
-        session.query(User).filter(User.telegram_id == str(s_id)).update({f'name': new_val})
+        if type == 'student':
+            session.query(Student).filter(Student.telegram_id == str(id)).update({f'{column}': new_val})
+        else:
+            session.query(User).filter(User.telegram_id == str(id)).update({f'name': new_val})
 
-        if type == 'admin':
-            session.query(Admin).filter(Admin.telegram_id == str(s_id)).update({f'admin_name': new_val})
-        elif type == 'worker':
-            session.query(Worker).filter(Worker.telegram_id == str(s_id)).update({f'worker_name': new_val})
-        elif type == 'director':
-            session.query(Director).filter(Director.telegram_id == str(s_id)).update({f'director_name': new_val})
+            if type == 'admin':
+                session.query(Admin).filter(Admin.telegram_id == str(id)).update({f'admin_name': new_val})
+            elif type == 'worker':
+                session.query(Worker).filter(Worker.telegram_id == str(id)).update({f'worker_name': new_val})
+            elif type == 'director':
+                session.query(Director).filter(Director.telegram_id == str(id)).update({f'director_name': new_val})
+
+    session.query(User).filter(User.telegram_id == str(id)).update({'upd_date': datetime.date.today()})
     session.commit()
 
 

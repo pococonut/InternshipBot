@@ -4,6 +4,7 @@ from keyboard import back_cont_ikb, admin_ikb, worker_ikb, stud_is_approve, ikb_
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+import phonenumbers
 import string
 import re
 
@@ -12,6 +13,7 @@ FORM = """
 Для подачи заявки необходиммо ввести следующие данные:
 
 <em>ФИО
+Номер телефона
 ВУЗ
 Факультет
 Направление
@@ -29,6 +31,7 @@ FORM = """
 
 class Student(StatesGroup):
     student_name = State()
+    phone = State()
     university = State()
     faculty = State()
     specialties = State()
@@ -42,8 +45,7 @@ class Student(StatesGroup):
 async def registration_command(message: types.Message):
     user_exist = user_type(message.from_user.id)
     if not user_exist:
-        await message.answer(FORM, parse_mode='HTML',
-                             reply_markup=back_cont_ikb)
+        await message.answer(FORM, parse_mode='HTML', reply_markup=back_cont_ikb)
     else:
         usr = {'student': 'студент',
                'admin': 'администратор',
@@ -84,8 +86,20 @@ async def get_student_name(message: types.Message, state: FSMContext):
             await message.answer('ФИО введено в некорректном формате', parse_mode='HTML')
             return
         await state.update_data(student_name=" ".join([i.capitalize() for i in message.text.split()]))
+        await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <em>+79963833254</em>", parse_mode='HTML')
+        await Student.next()
+
+
+async def get_phone(message: types.Message, state=FSMContext):
+    try:
+        phonenumbers.parse(message.text)
+        await state.update_data(phone=message.text.upper())
         await message.answer("Введите <b>ВУЗ</b> в формате: <em>КУБГУ</em>", parse_mode='HTML')
         await Student.next()
+    except:
+        await message.answer('Номер телефона введен в некорректном формате', parse_mode='HTML')
+        return
+
 
 
 async def get_university(message: types.Message, state=FSMContext):
@@ -152,6 +166,9 @@ async def get_group(message: types.Message, state=FSMContext):
 
 
 async def get_coursework(message: types.Message, state=FSMContext):
+    if len(message.text.split()) > 200:
+        await message.answer('Количество слов превышает допустимое значение - 200 слов', parse_mode='HTML')
+        return
     await state.update_data(coursework=message.text)
     await message.answer(
         "Введите <b>Ваши знания</b> (при отсутствии введите: 'Нет') в формате: <em>Python, SQL, C++, JS</em>",
@@ -160,10 +177,14 @@ async def get_coursework(message: types.Message, state=FSMContext):
 
 
 async def get_knowledge(message: types.Message, state=FSMContext):
+    if len(message.text.split()) > 200:
+        await message.answer('Количество слов превышает допустимое значение - 200 слов', parse_mode='HTML')
+        return
     await state.update_data(knowledge=message.text)
     data = await state.get_data()
     await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n"
                          f"<b>ФИО:</b> {data['student_name']}\n\n"
+                         f"<b>Номер телефона:</b> {data['phone']}\n\n"
                          f"<b>ВУЗ:</b> {data['university']}\n\n"
                          f"<b>Факультет:</b> {data['faculty']}\n\n"
                          f"<b>Специальность:</b> {data['specialties']}\n\n"
@@ -185,6 +206,7 @@ def register_handlers_registration(dp: Dispatcher):
     dp.register_message_handler(registration_command, commands=['student'])
     dp.register_callback_query_handler(cont_command, text='continue', state="*")
     dp.register_message_handler(get_student_name, state=Student.student_name)
+    dp.register_message_handler(get_phone, state=Student.phone)
     dp.register_message_handler(get_university, state=Student.university)
     dp.register_message_handler(get_faculty, state=Student.faculty)
     dp.register_message_handler(get_specialties, state=Student.specialties)

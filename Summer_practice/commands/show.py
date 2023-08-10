@@ -7,6 +7,7 @@ from keyboard import change_stud_ikb
 
 def print_stud(s):
     stud = f"<b>ФИО:</b> {s.student_name}\n\n" \
+           f"<b>Номер телефона:</b> {s.phone}\n\n" \
            f"<b>ВУЗ:</b> {s.university}\n\n" \
            f"<b>Факультет:</b> {s.faculty}\n\n" \
            f"<b>Специальность:</b> {s.specialties}\n\n" \
@@ -17,6 +18,13 @@ def print_stud(s):
            f"<b>Знания:</b> {s.knowledge}\n\n" \
            f"<b>Дата регистрации:</b> {s.reg_date}\n"
     return stud
+
+
+def print_worker(w):
+    worker = f"<b>ФИО:</b> {w.name}\n\n" \
+             f"<b>Номер телефона:</b> {w.phone}\n\n" \
+             f"<b>Дата регистрации:</b> {w.reg_date}\n"
+    return worker
 
 
 async def show_params(message: types.Message):
@@ -30,7 +38,7 @@ async def show_params(message: types.Message):
         await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_stud(user_show), parse_mode='HTML',
                              reply_markup=change_stud_ikb)
     else:
-        await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n<b>ФИО:</b> {user_show.name}\n\n", parse_mode='HTML')
+        await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_worker(user_show), parse_mode='HTML')
 
 
 async def show_params_inline(callback: types.CallbackQuery):
@@ -44,7 +52,7 @@ async def show_params_inline(callback: types.CallbackQuery):
         await callback.message.edit_text(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_stud(user_show), parse_mode='HTML',
                                          reply_markup=change_stud_ikb)
     else:
-        await callback.message.edit_text(f"🧑‍💻<b>Ваши данные</b>\n\n<b>ФИО:</b> {user_show.name}\n\n", parse_mode='HTML')
+        await callback.message.edit_text(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_worker(user_show), parse_mode='HTML')
 
 
 def register_handlers_show(dp: Dispatcher):

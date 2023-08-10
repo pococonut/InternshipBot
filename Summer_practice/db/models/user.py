@@ -20,15 +20,11 @@ Base.query = session.query_property()
 class User(Base):
     __tablename__ = "user"
 
-    # telegram user id
     telegram_id = Column(String, unique=True, nullable=False, primary_key=True, )
-    # ФИО
     type = Column(VARCHAR(50), nullable=False)
-    # ВУЗ
     name = Column(VARCHAR(50), nullable=False)
-
+    phone = Column(VARCHAR(30), nullable=False)
     reg_date = Column(DATE, default=datetime.date.today())
-    # last update date
     upd_date = Column(DATE, onupdate=datetime.date.today())
 
     __mapper_args__ = {
@@ -37,12 +33,12 @@ class User(Base):
     }
 
 
-class Student_2(User):
-    __tablename__ = "student_2"
+class Student(User):
+    __tablename__ = "student"
     telegram_id = Column(String, ForeignKey(User.telegram_id), primary_key=True)
 
     student_name = Column(VARCHAR(50), nullable=False)
-    # ВУЗ
+
     university = Column(VARCHAR(100), nullable=False)
     # факультет
     faculty = Column(VARCHAR(100), nullable=False)

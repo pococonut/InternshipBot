@@ -1,6 +1,7 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+import phonenumbers
 import string
 import re
 
@@ -18,6 +19,12 @@ def chek_param(p, v):
             return False
         else:
             return " ".join([i.capitalize() for i in v.split()])
+    elif p == 'phone':
+        try:
+            phonenumbers.parse(v)
+            return v
+        except:
+            return False
     elif p == 'university':
         if len(v.split()) != 1 or any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
             return False
@@ -49,8 +56,13 @@ def chek_param(p, v):
             return False
         else:
             return v
-    else:
-        return v
+    elif p == 'coursework' or 'knowledge':
+        if len(v) > 200:
+            return False
+        else:
+            return v
+
+    return v
 
 
 class ChangeUser(StatesGroup):
@@ -59,6 +71,7 @@ class ChangeUser(StatesGroup):
 
 
 chek_d = {'student_name': 'ФИО',
+          'phone': 'Номер телефона',
           'university': 'ВУЗ',
           'faculty': 'Факультет',
           'specialties': 'Направление',

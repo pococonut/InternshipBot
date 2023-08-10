@@ -4,6 +4,7 @@ from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+import phonenumbers
 import string
 
 
@@ -13,6 +14,7 @@ import string
 class Authorisation(StatesGroup):
     login = State()
     password = State()
+    phone = State()
     name = State()
 
 
@@ -91,8 +93,21 @@ async def get_password(message: types.Message, state=FSMContext):
         await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(password=message.text)
-    await message.answer("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>", parse_mode='HTML')
+    await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <em>+79963833254</em>",
+                         parse_mode='HTML')
     await Authorisation.next()
+
+
+async def get_phone(message: types.Message, state=FSMContext):
+    m = message.text
+    try:
+        phonenumbers.parse(m)
+        await state.update_data(phone=message.text)
+        await message.answer("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>", parse_mode='HTML')
+        await Authorisation.next()
+    except:
+        await message.answer("Введен неверный номер телефона.\nПожалуйста, повторите ввод.")
+        return
 
 
 async def get_name(message: types.Message, state=FSMContext):
@@ -120,7 +135,8 @@ async def get_name(message: types.Message, state=FSMContext):
         if worker:
             who = 'сотрудник'
             keyboard = worker_ikb
-    await message.answer(f'Вы авторизированны как <b>{who}</b>.', parse_mode='HTML')
+    await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для взаимодейтвия с сотуднтами доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
+                         disable_web_page_preview=True, parse_mode='HTML')
     await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
     await state.finish()
@@ -131,5 +147,6 @@ def register_handlers_authorization(dp: Dispatcher):
     dp.register_callback_query_handler(authorization_command_inline, text='menu')
     dp.register_message_handler(get_login, state=Authorisation.login)
     dp.register_message_handler(get_password, state=Authorisation.password)
+    dp.register_message_handler(get_phone, state=Authorisation.phone)
     dp.register_message_handler(get_name, state=Authorisation.name)
     dp.register_callback_query_handler(back_func, text='back', state="*")
