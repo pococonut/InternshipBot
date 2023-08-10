@@ -4,6 +4,8 @@ from db.models.internship import Task, InternshipTask, Internship
 from db.models.applications import Application
 import datetime
 
+from db.models.user_add import AddedUser
+
 
 def register_student(s_id, *args):
     student = Student(telegram_id=str(s_id),
@@ -82,6 +84,25 @@ def register_worker(s_id, *args):
         return False
 
 
+def add_user(*args):
+    usr = AddedUser(
+        telegram_id=None,
+        login=args[0]['login'],
+        password=args[0]['password'],
+        type=args[0]['type'],
+        phone=args[0]['phone'],
+        name=args[0]['name'],
+    )
+    session.add(usr)
+    try:
+        session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        session.rollback()
+        return False
+
+
 def add_task(f_id, *args):
     task = Task(task_name=args[0]['task_name'],
                 from_id=f_id,
@@ -134,6 +155,15 @@ def add_application(stud_id, work_id, b):
     except Exception as e:
         session.rollback()  # откатываем session.add(user)
         print(e)
+
+
+def select_added_users():
+    try:
+        users = AddedUser.query.all()
+    except Exception as e:
+        print(e)
+        users = False
+    return users
 
 
 def select_user(user_id):

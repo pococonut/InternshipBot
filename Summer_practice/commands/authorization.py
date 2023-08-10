@@ -1,6 +1,6 @@
 from commands.back import back_func
-from db.commands import user_type, register_admin, register_director, register_worker, stud_approve
-from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3
+from db.commands import user_type, register_admin, register_director, register_worker, stud_approve, select_added_users
+from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3, chat_ikb
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -19,16 +19,22 @@ class Authorisation(StatesGroup):
 
 
 authorisation_lst = []
+log_pass = select_added_users()
 
-log_pass = {'admin': [['1', '111'], ['0', '000']],
-            'director': [['2', '222'], ],
-            'worker': [['3', '333'], ['4', '444']],}
+for u in log_pass:
+    inf = {'type': u.type,
+           'login': u.login,
+           'password': u.password,
+           'phone': u.phone,
+           'name': u.name
+           }
+    authorisation_lst.append(inf)
 
 
 def chek_wlogin(l, *args):
     f = False
     for i in args[0]:
-        if i[0] == l:
+        if i.get('login') == l:
             f = True
     return f
 
@@ -36,7 +42,7 @@ def chek_wlogin(l, *args):
 def chek_wpassword(p, *args):
     f = False
     for i in args[0]:
-        if i[1] == p:
+        if i.get('password') == p:
             f = True
     return f
 
@@ -77,8 +83,7 @@ async def authorization_command_inline(callback: types.CallbackQuery):
 
 async def get_login(message: types.Message, state=FSMContext):
     m = message.text
-    if not chek_wlogin(m, log_pass.get('admin')) and not chek_wlogin(m, log_pass.get('director')) \
-            and not chek_wlogin(m, log_pass.get('worker')):
+    if not chek_wlogin(m, authorisation_lst):
         await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(login=message.text)
@@ -88,8 +93,7 @@ async def get_login(message: types.Message, state=FSMContext):
 
 async def get_password(message: types.Message, state=FSMContext):
     m = message.text
-    if not chek_wpassword(m, log_pass.get('admin')) and not chek_wpassword(m, log_pass.get(
-            'director')) and not chek_wpassword(m, log_pass.get('worker')):
+    if not chek_wpassword(m, authorisation_lst):
         await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
         return
     await state.update_data(password=message.text)
@@ -135,16 +139,22 @@ async def get_name(message: types.Message, state=FSMContext):
         if worker:
             who = 'сотрудник'
             keyboard = worker_ikb
-    await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для взаимодейтвия с сотуднтами доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
+    await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
                          disable_web_page_preview=True, parse_mode='HTML')
     await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
     await state.finish()
 
 
+async def chat_command(callback: types.CallbackQuery):
+    await callback.message.edit_text("Чат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky.",
+                                      disable_web_page_preview=True, reply_markup=chat_ikb)
+
+
 def register_handlers_authorization(dp: Dispatcher):
     dp.register_message_handler(authorization_command, commands=['menu'])
     dp.register_callback_query_handler(authorization_command_inline, text='menu')
+    dp.register_callback_query_handler(chat_command, text='chat')
     dp.register_message_handler(get_login, state=Authorisation.login)
     dp.register_message_handler(get_password, state=Authorisation.password)
     dp.register_message_handler(get_phone, state=Authorisation.phone)

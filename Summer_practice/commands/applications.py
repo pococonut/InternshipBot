@@ -104,8 +104,8 @@ async def approve_stud(callback: types.CallbackQuery):
     student_id = current_student(globalDict[usr_id])
     add_application(student_id, callback.from_user.id, 1)
     try:
-        await bot.send_message(student_id, 'Ваша заявка была <b>одобрена</b>.\n\nВы можете выбрать задачу из списка '
-                               'доступных задач.\n\nЧат для взаимодействия с сотрудниками доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
+        await bot.send_message(student_id, 'Ваша заявка была <b>одобрена</b>.\nВы можете выбрать задачу из списка '
+                               'доступных задач.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
                                reply_markup=student_task_show, parse_mode='HTML', disable_web_page_preview=True)
         await callback.message.edit_text('Заявка одобрена.', reply_markup=stud_appl_back_ikb)
     except Exception as e:

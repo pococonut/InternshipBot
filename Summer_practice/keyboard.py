@@ -2,21 +2,22 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 ikb = InlineKeyboardMarkup(row_width=2)
 ib1 = InlineKeyboardButton(text="Новый пользователь", callback_data="new")
-# ib2 = InlineKeyboardButton(text="Изменнить данные", callback_data="change")
 ib3 = InlineKeyboardButton(text="Просмотреть данные", callback_data="show")
 ikb.add(ib1, ib3)
 
 menu = InlineKeyboardButton(text="Меню", callback_data="menu")
+chat = InlineKeyboardButton(text="Чат", callback_data="chat")
+
+chat_ikb = ikb_2 = InlineKeyboardMarkup(row_width=2)
+chat_ikb.add(menu)
 
 ikb_2 = InlineKeyboardMarkup(row_width=2)
-# ib2_1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
 ib2_2 = InlineKeyboardButton(text="Просмотр стажировок", callback_data="intern_show")
 ikb_2.add(ib2_2)
 
 ikb_3 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 ib1_3 = InlineKeyboardButton(text="Просмотреть данные", callback_data="show")
 ib2_3 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
-
 ikb_3.add(ib1_3).add(ib2_3)
 
 back_ikb = InlineKeyboardMarkup(row_width=2)
@@ -31,15 +32,17 @@ back_cont_task_ikb = InlineKeyboardMarkup(row_width=2)
 back_cont_task_b = InlineKeyboardButton(text="Добавить задачу", callback_data="continue_task")
 back_cont_task_ikb.add(back_b, back_cont_task_b)
 
-
+# Клавиатура администратора
 admin_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_data="add_task")
 admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
 admin_b5 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
 admin_b6 = InlineKeyboardButton('Выбранные задачи', callback_data="worker_chosen_tasks")
 admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
+admin_b8 = InlineKeyboardButton(text="Добавить пользователя", callback_data="add_user")
 
-admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7)
+admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7, admin_b8, chat)
+
 
 back_to_std = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 back_to_std_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="worker_chosen_tasks")
@@ -48,9 +51,10 @@ back_to_std.add(back_to_std_b1)
 admin_ikb2 = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_ikb2.add(ib1_3).add(admin_b1).add(admin_b4).add(admin_b5)
 
+# Клавиатура сотрудника
 worker_ikb = InlineKeyboardMarkup(row_width=2)
 worker_b1 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
-worker_ikb.add(admin_b1, admin_b4, worker_b1, admin_b6)
+worker_ikb.add(admin_b1, admin_b4, worker_b1, admin_b6, chat)
 
 
 stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
@@ -60,7 +64,6 @@ change_stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 change_stud_b1 = InlineKeyboardButton(text="Изменнить данные", callback_data="change")
 change_stud_ikb.add(change_stud_b1)
 change_stud_ikb.add(menu)
-
 
 stud_appl_ikb = InlineKeyboardMarkup(row_width=2)
 stud_appl_b1 = InlineKeyboardButton(text="Отклонить", callback_data="reject")
@@ -89,7 +92,6 @@ task_rlw_ikb = InlineKeyboardMarkup(row_width=2)
 task_rlw_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_rlw_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
 task_rlw_ikb.add(task_rlw_b1, task_rlw_b2)
-
 
 task_ikb = InlineKeyboardMarkup(row_width=2)
 task_b0 = InlineKeyboardButton("Подробнее", callback_data="more_task")
@@ -126,14 +128,14 @@ task_worker_ikb.add(task_b0)
 task_worker_ikb.add(task_b4, task_b5)
 task_worker_ikb.add(menu)
 
-
 back_to_tasks_w = InlineKeyboardMarkup()
 back_to_tasks_w_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="worker_task")
 back_to_tasks_w.add(back_to_tasks_w_b1)
 
+# Клавиатура одобренного студента
 stud_is_approve = InlineKeyboardMarkup(row_width=2)
 stud_is_approve_b1 = InlineKeyboardButton('Выбранная задача', callback_data="stud_chosen_tasks")
-stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1)
+stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1, chat)
 
 selected_task = InlineKeyboardMarkup(row_width=2)
 selected_task.add(stud_is_approve_b1)
@@ -158,12 +160,10 @@ student_task_choose.add(student_task_choose_b1)
 student_task_choose.add(student_task_choose_b2)
 student_task_choose.add(menu)
 
-
 student_task_already_choose = InlineKeyboardMarkup(row_width=2)
 student_task_already_choose.add(task_b4, task_b5)
 student_task_already_choose.add(student_task_choose_b1)
 student_task_already_choose.add(menu)
-
 
 student_task_choose_cont = InlineKeyboardMarkup(row_width=2)
 student_task_choose_cont.add(task_b4, task_b5)
@@ -193,14 +193,12 @@ task_worker_without_del.add(task_worker_own_b3)
 task_worker_without_del.add(task_worker_own_b1, task_worker_own_b2)
 task_worker_without_del.add(menu)
 
-
 task_worker_stud = InlineKeyboardMarkup(row_width=2)
 task_worker_stud_b1 = InlineKeyboardButton("Назад", callback_data="tws_left")
 task_worker_stud_b2 = InlineKeyboardButton("Вперед", callback_data="tws_right")
 task_worker_stud_b3 = InlineKeyboardButton("Студент", callback_data="tws_student")
 task_worker_stud.add(task_worker_stud_b1, task_worker_stud_b2, task_worker_stud_b3)
 task_worker_stud.add(menu)
-
 
 change_task_ikb = InlineKeyboardMarkup(row_width=2)
 change_task_b1 = InlineKeyboardButton(text="Название", callback_data="change_task_name")
@@ -246,3 +244,19 @@ change_worker_ikb.add(change_ib1, change_ib10)
 change_ikb_2 = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
 change_ikb_2.add(change_ib1)
+
+# Пропустить шаг
+skip_p = InlineKeyboardMarkup(row_width=2)
+skip_ib1 = InlineKeyboardButton(text="Пропустить", callback_data="skip_phone")
+skip_p.add(skip_ib1)
+
+skip_n = InlineKeyboardMarkup(row_width=2)
+skip_ib2 = InlineKeyboardButton(text="Пропустить", callback_data="skip_name")
+skip_n.add(skip_ib2)
+
+# Выбор типа пользователя
+types_users = InlineKeyboardMarkup(row_width=2)
+types_users_b1 = InlineKeyboardButton(text="Директор", callback_data="director")
+types_users_b2 = InlineKeyboardButton(text="Администратор", callback_data="admin")
+types_users_b3 = InlineKeyboardButton(text="Сотрудник", callback_data="worker")
+types_users.add(types_users_b1).add(types_users_b2).add(types_users_b3)

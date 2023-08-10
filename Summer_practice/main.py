@@ -2,7 +2,7 @@ from aiogram.utils import executor
 from create import dp
 from aiogram import types
 from commands import registration, change, show, authorization, task_add, task_actions, task_actions_worker,\
-    applications, task_selected_student, task_selected_worker, back
+    applications, task_selected_student, task_selected_worker, back, user_add
 
 
 commands = [
@@ -50,6 +50,7 @@ task_actions_worker.register_handlers_task_actions_worker(dp)
 applications.register_handlers_applications(dp)
 task_selected_student.register_handlers_task_selected_student(dp)
 task_selected_worker.register_handlers_task_selected_worker(dp)
+user_add.register_handlers_add_user(dp)
 back.register_handlers_back(dp)
 
 if __name__ == "__main__":
