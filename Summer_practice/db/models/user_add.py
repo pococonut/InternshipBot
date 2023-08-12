@@ -20,12 +20,9 @@ class AddedUser(Base):
     __tablename__ = "added_user"
 
     id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-    telegram_id = Column(String, nullable=True)
     login = Column(VARCHAR(50), unique=True, nullable=False)
     password = Column(VARCHAR(50), unique=True, nullable=False)
     type = Column(VARCHAR(50), nullable=False)
-    phone = Column(VARCHAR(30), nullable=True)
-    name = Column(VARCHAR(50), nullable=True)
 
 
 Base.metadata.create_all(bind=engine)

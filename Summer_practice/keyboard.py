@@ -40,8 +40,19 @@ admin_b5 = InlineKeyboardButton(text="Свои задачи", callback_data="wor
 admin_b6 = InlineKeyboardButton('Выбранные задачи', callback_data="worker_chosen_tasks")
 admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
 admin_b8 = InlineKeyboardButton(text="Добавить пользователя", callback_data="add_user")
+admin_b9 = InlineKeyboardButton(text="Экспорт данных", callback_data="export")
 
-admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7, admin_b8, chat)
+admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7, admin_b8, admin_b9, chat)
+
+# Экспорт данных
+exp_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+exp_b1 = InlineKeyboardButton(text="Задачи", callback_data="exp_task")
+exp_b2 = InlineKeyboardButton(text="Заявки", callback_data="exp_appl")
+exp_b3 = InlineKeyboardButton(text="Сотрудники", callback_data="exp_worker")
+exp_b4 = InlineKeyboardButton(text="Принятые студенты", callback_data="exp_approved")
+exp_b5 = InlineKeyboardButton(text="Добавленные аккаунты", callback_data="exp_added")
+
+exp_ikb.add(exp_b1, exp_b2, exp_b3, exp_b4, exp_b5).add(menu)
 
 
 back_to_std = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
@@ -260,3 +271,12 @@ types_users_b1 = InlineKeyboardButton(text="Директор", callback_data="di
 types_users_b2 = InlineKeyboardButton(text="Администратор", callback_data="admin")
 types_users_b3 = InlineKeyboardButton(text="Сотрудник", callback_data="worker")
 types_users.add(types_users_b1).add(types_users_b2).add(types_users_b3)
+
+# Повторить авторизацию
+login_rep = InlineKeyboardMarkup(row_width=2)
+lr_b1 = InlineKeyboardButton(text="Повторить авторизацию", callback_data="menu")
+login_rep.add(lr_b1)
+
+# Добавить пользователя
+add_usr = InlineKeyboardMarkup(row_width=2)
+add_usr.add(admin_b8).add(menu)

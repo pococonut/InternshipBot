@@ -1,6 +1,6 @@
 from commands.show import print_stud
-from db.commands import select_chosen_tasks, select_user
-from keyboard import admin_ikb, task_worker_stud, back_to_std
+from db.commands import select_chosen_tasks, select_user, user_type
+from keyboard import admin_ikb, task_worker_stud, back_to_std, worker_ikb
 from aiogram import types, Dispatcher
 
 
@@ -12,8 +12,16 @@ globalDict_pagesTws = dict()
 
 async def worker_chosen_t(callback: types.CallbackQuery):
     tasks = select_chosen_tasks(callback.from_user.id)
+    u_type = user_type(callback.from_user.id)
+    print(u_type)
+
+    if u_type[0] in ('admin', 'director'):
+        keyboard = admin_ikb
+    elif u_type[0] == 'worker':
+        keyboard = worker_ikb
+
     if not tasks:
-        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=admin_ikb)
+        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=keyboard)
     else:
         usr_id = str(callback.from_user.id)
         if usr_id not in globalDict_pagesTws:
@@ -23,7 +31,7 @@ async def worker_chosen_t(callback: types.CallbackQuery):
         count_tasks = len(tasks)
         student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
         if not student:
-            await callback.message.edit_text('Заявки студентов не были рассмотрены.', reply_markup=admin_ikb)
+            await callback.message.edit_text('Заявки студентов не были рассмотрены.', reply_markup=keyboard)
         else:
             await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n"
                                              f"👨‍🎓<b>Студент</b>\n\n"
@@ -42,8 +50,16 @@ async def worker_chosen_t(callback: types.CallbackQuery):
 
 async def task_ws_show(callback: types.CallbackQuery):
     tasks = select_chosen_tasks(callback.from_user.id)
+    u_type = user_type(callback.from_user.id)
+    print(u_type)
+
+    if u_type[0] in ('admin', 'director'):
+        keyboard = admin_ikb
+    elif u_type[0] == 'worker':
+        keyboard = worker_ikb
+
     if not tasks:
-        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=admin_ikb)
+        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=keyboard)
     else:
         usr_id = str(callback.from_user.id)
         if usr_id not in globalDict_pagesTws:

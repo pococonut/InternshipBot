@@ -2,7 +2,7 @@ from aiogram.utils import executor
 from create import dp
 from aiogram import types
 from commands import registration, change, show, authorization, task_add, task_actions, task_actions_worker,\
-    applications, task_selected_student, task_selected_worker, back, user_add
+    applications, task_selected_student, task_selected_worker, back, user_add, export_data
 
 
 commands = [
@@ -52,6 +52,7 @@ task_selected_student.register_handlers_task_selected_student(dp)
 task_selected_worker.register_handlers_task_selected_worker(dp)
 user_add.register_handlers_add_user(dp)
 back.register_handlers_back(dp)
+export_data.register_handlers_export(dp)
 
 if __name__ == "__main__":
     executor.start_polling(dp, on_startup=set_commands, skip_updates=True)

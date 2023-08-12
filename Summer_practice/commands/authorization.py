@@ -1,6 +1,6 @@
 from commands.back import back_func
 from db.commands import user_type, register_admin, register_director, register_worker, stud_approve, select_added_users
-from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3, chat_ikb
+from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3, chat_ikb, login_rep
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -18,32 +18,20 @@ class Authorisation(StatesGroup):
     name = State()
 
 
-authorisation_lst = []
-log_pass = select_added_users()
+def check(l, p):
+    authorisation_lst = {}
 
-for u in log_pass:
-    inf = {'type': u.type,
-           'login': u.login,
-           'password': u.password,
-           'phone': u.phone,
-           'name': u.name
-           }
-    authorisation_lst.append(inf)
+    for u in select_added_users():
+        inf = {'type': u.type,
+               'login': u.login,
+               'password': u.password,
+               }
+        authorisation_lst[u.id] = inf
 
-
-def chek_wlogin(l, *args):
     f = False
-    for i in args[0]:
-        if i.get('login') == l:
-            f = True
-    return f
-
-
-def chek_wpassword(p, *args):
-    f = False
-    for i in args[0]:
-        if i.get('password') == p:
-            f = True
+    for key, inf in authorisation_lst.items():
+        if inf.get('login') == l and inf.get('password') == p:
+            f = inf
     return f
 
 
@@ -82,66 +70,79 @@ async def authorization_command_inline(callback: types.CallbackQuery):
 
 
 async def get_login(message: types.Message, state=FSMContext):
-    m = message.text
-    if not chek_wlogin(m, authorisation_lst):
-        await message.answer("Введен неверный логин.\nПожалуйста, повторите ввод.")
-        return
     await state.update_data(login=message.text)
     await message.answer('Введите <b>пароль.</b>', parse_mode='HTML')
     await Authorisation.next()
 
 
 async def get_password(message: types.Message, state=FSMContext):
-    m = message.text
-    if not chek_wpassword(m, authorisation_lst):
-        await message.answer("Введен неверный пароль.\nПожалуйста, повторите ввод.")
+    data = await state.get_data()
+    info = check(data['login'], message.text)
+    if not info:
+        await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
+        await state.finish()
         return
+
     await state.update_data(password=message.text)
     await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <em>+79963833254</em>",
-                         parse_mode='HTML')
+                             parse_mode='HTML')
     await Authorisation.next()
 
 
 async def get_phone(message: types.Message, state=FSMContext):
+    print('fffffffff')
+
     m = message.text
     try:
         phonenumbers.parse(m)
-        await state.update_data(phone=message.text)
+        await state.update_data(phone=m)
         await message.answer("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>", parse_mode='HTML')
-        await Authorisation.next()
     except:
-        await message.answer("Введен неверный номер телефона.\nПожалуйста, повторите ввод.")
+        await message.answer("Введен неверный формат.\nПожалуйста, повторите ввод.")
         return
+
+    await Authorisation.next()
 
 
 async def get_name(message: types.Message, state=FSMContext):
-    if len(message.text.split()) != 3 or any(chr.isdigit() for chr in message.text) or any(
-            chr in string.punctuation for chr in message.text):
-        await message.answer('ФИО введено в некорректом формате', parse_mode='HTML')
-        return
-    await state.update_data(name=" ".join([i.capitalize() for i in message.text.split()]))
+    print('nnnnnnnn')
+
     data = await state.get_data()
-    if chek_wlogin(data.get('login'), log_pass.get('admin')) and \
-            chek_wpassword(data.get('password'), log_pass.get('admin')):
+    info = check(data['login'], data['password'])
+    m = message.text
+    if len(m.split()) != 3 or any(chr.isdigit() for chr in m) or any(chr in string.punctuation for chr in m):
+        await message.answer('ФИО введено в некорректном формате', parse_mode='HTML')
+        return
+    await state.update_data(name=" ".join([i.capitalize() for i in m.split()]))
+    data = await state.get_data()
+
+    who = False
+    if info['type'] == 'admin':
+        print('admin')
         admin = register_admin(message.from_user.id, data)
         if admin:
             who = 'администратор'
             keyboard = admin_ikb
-    elif chek_wlogin(data.get('login'), log_pass.get('director')) and \
-            chek_wpassword(data.get('password'), log_pass.get('director')):
+        else:
+            await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
+    elif info['type'] == 'director':
         director = register_director(message.from_user.id, data)
         if director:
             who = 'директор'
             keyboard = admin_ikb
-    elif chek_wlogin(data.get('login'), log_pass.get('worker')) and \
-            chek_wpassword(data.get('password'), log_pass.get('worker')):
+        else:
+            await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
+    elif info['type'] == 'worker':
         worker = register_worker(message.from_user.id, data)
         if worker:
             who = 'сотрудник'
             keyboard = worker_ikb
-    await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
-                         disable_web_page_preview=True, parse_mode='HTML')
-    await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
+        else:
+            await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
+    if who:
+        await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
+                             disable_web_page_preview=True, parse_mode='HTML')
+        await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
     await state.finish()
 

@@ -86,19 +86,15 @@ def register_worker(s_id, *args):
 
 def add_user(*args):
     usr = AddedUser(
-        telegram_id=None,
         login=args[0]['login'],
         password=args[0]['password'],
         type=args[0]['type'],
-        phone=args[0]['phone'],
-        name=args[0]['name'],
     )
-    session.add(usr)
     try:
+        session.add(usr)
         session.commit()
         return True
-    except Exception as e:
-        print(e)
+    except:
         session.rollback()
         return False
 
@@ -164,6 +160,15 @@ def select_added_users():
         print(e)
         users = False
     return users
+
+
+def select_all_users():
+    try:
+        user = User.query.all()
+    except Exception as e:
+        print(e)
+        user = False
+    return user
 
 
 def select_user(user_id):
@@ -326,3 +331,4 @@ def stud_approve(s_id):
         print(e)
         approve = False
     return approve
+
