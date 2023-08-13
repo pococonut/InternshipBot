@@ -39,10 +39,17 @@ admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_dat
 admin_b5 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
 admin_b6 = InlineKeyboardButton('Выбранные задачи', callback_data="worker_chosen_tasks")
 admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
-admin_b8 = InlineKeyboardButton(text="Добавить пользователя", callback_data="add_user")
-admin_b9 = InlineKeyboardButton(text="Экспорт данных", callback_data="export")
+admin_b8 = InlineKeyboardButton(text="Добавить аккаунт", callback_data="add_user")
+admin_b9 = InlineKeyboardButton(text="Просмотр аккаунтов", callback_data="show_add_user")
+admin_b10 = InlineKeyboardButton(text="Экспорт данных", callback_data="export")
+admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7, admin_b8, admin_b9, admin_b10, chat)
 
-admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7, admin_b8, admin_b9, chat)
+# Навигация по добавленным аккаунтам
+added_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+added_b1 = InlineKeyboardButton("Назад", callback_data="left_added")
+added_b2 = InlineKeyboardButton("Вперед", callback_data="right_added")
+added_b3 = InlineKeyboardButton("Удалить", callback_data="del_added")
+added_ikb.add(added_b1,added_b2,added_b3).add(menu)
 
 # Экспорт данных
 exp_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
