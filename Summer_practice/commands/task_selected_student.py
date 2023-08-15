@@ -1,6 +1,6 @@
 from commands.back import back_func
 from commands.task_actions import short_long_task
-from db.commands import select_already_get_stud, select_worker_reject, change_task_stud
+from db.commands import select_already_get_stud, select_worker_reject, change_task_stud, select_user
 from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -33,7 +33,7 @@ class RejectTaskStud(StatesGroup):
 
 async def stud_reject_t(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
-    await callback.message.answer('Отказаться от задачи?', parse_mode='HTML', reply_markup=reject_task_ikb)
+    await callback.message.edit_text('Отказаться от задачи?', parse_mode='HTML', reply_markup=reject_task_ikb)
     await RejectTaskStud.reject_ts.set()
 
 
@@ -43,8 +43,9 @@ async def reject_task_yes(callback: types.CallbackQuery, state=FSMContext):
     worker_id = select_worker_reject(callback.from_user.id).from_id
     task_name = select_worker_reject(callback.from_user.id).task_name
     change_task_stud(callback.from_user.id, 'student_id', None)
-
-    await bot.send_message(worker_id, f'Студент <b>отказался</b> от задачи <em>{task_name}</em>.',
+    student_name = select_user(callback.from_user.id).name
+    await bot.send_message(worker_id, f'Студент\ка <a href="tg://user?id={callback.from_user.id}">{student_name}</a> '
+                                      f'<b>отказался\ась</b> от задачи <em>{task_name}</em>.',
                            reply_markup=task_is_approve, parse_mode='HTML')
 
     await callback.message.edit_text('Вы отказалить от выбранной задачи.', reply_markup=stud_is_approve)

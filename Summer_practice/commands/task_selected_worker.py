@@ -35,7 +35,7 @@ async def worker_chosen_t(callback: types.CallbackQuery):
         else:
             await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n"
                                              f"👨‍🎓<b>Студент</b>\n\n"
-                                             f"<b>ФИО:</b> {student.student_name}\n\n"
+                                             f"<b>ФИО:</b> <a href='tg://user?id={student.telegram_id}'>{student.student_name}</a>\n\n"
                                              f"<b>Направление:</b> {student.specialties}\n\n"
                                              f"<b>Курс:</b> {student.course}\n\n"
                                              f"<b>Знания:</b> {student.knowledge}\n\n"
@@ -90,7 +90,7 @@ async def task_ws_show(callback: types.CallbackQuery):
         student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
         print(globalDict_pagesTws)
         await callback.message.edit_text(s + f"👨‍🎓<b>Студент</b>\n\n"
-                                             f"<b>ФИО:</b> {student.student_name}\n\n"
+                                             f"<b>ФИО:</b> <a href='tg://user?id={student.telegram_id}'>{student.student_name}</a>\n\n"
                                              f"<b>Направление:</b> {student.specialties}\n\n"
                                              f"<b>Курс:</b> {student.course}\n\n"
                                              f"<b>Знания:</b> {student.knowledge}\n\n"

@@ -52,21 +52,20 @@ async def registration_command(message: types.Message):
                'director': 'директор',
                'worker': 'сотрудник'}
 
-        if user_exist[0] in ('admin', 'director'):
-            keyboard = admin_ikb
-        elif user_exist[0] == 'worker':
-            keyboard = worker_ikb
-        elif user_exist[0] == 'student':
+        if user_exist[0] == 'student':
             approve = stud_approve(message.from_user.id)
             if approve is not None and approve[0]:
                 keyboard = stud_is_approve
-                print(user_exist[0])
-                print(approve)
             else:
                 keyboard = ikb_3
-        print(user_exist[0])
-        await message.answer(f'Вы зарегестрированы как <b>{usr.get(user_exist[0])}</b>.', parse_mode='HTML',
-                             reply_markup=keyboard)
+            await message.answer(f'Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
+        else:
+            if user_exist[0] in ('admin', 'director'):
+                keyboard = admin_ikb
+            elif user_exist[0] == 'worker':
+                keyboard = worker_ikb
+            await message.answer(f'Вы зарегистрированы как <b>{usr.get(user_exist[0])}</b>.', parse_mode='HTML',
+                                 reply_markup=keyboard)
 
 
 async def cont_command(callback: types.CallbackQuery, state: FSMContext):

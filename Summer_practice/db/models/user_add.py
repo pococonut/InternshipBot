@@ -23,6 +23,7 @@ class AddedUser(Base):
     login = Column(VARCHAR(50), unique=True, nullable=False)
     password = Column(VARCHAR(50), unique=True, nullable=False)
     type = Column(VARCHAR(50), nullable=False)
+    name_usr = Column(VARCHAR(100))
 
 
 Base.metadata.create_all(bind=engine)

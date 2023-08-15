@@ -15,7 +15,7 @@ globalDict = dict()
 
 
 def print_stud(s):
-    stud = f"<b>ФИО:</b> {s.student_name}\n\n" \
+    stud = f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n" \
            f"<b>ВУЗ:</b> {s.university}\n\n" \
            f"<b>Факультет:</b> {s.faculty}\n\n" \
            f"<b>Специальность:</b> {s.specialties}\n\n" \

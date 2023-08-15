@@ -277,6 +277,11 @@ def change_task_stud(s_id, column, new_val):
     session.commit()
 
 
+def change_name_added(login, new_val):
+    session.query(AddedUser).filter(AddedUser.login == str(login)).update({f'name_usr': new_val})
+    session.commit()
+
+
 def change_inform(id, type, column, new_val):
     if column in User.__table__.columns:
         session.query(User).filter(User.telegram_id == str(id)).update({f'{column}': new_val})
@@ -311,6 +316,15 @@ def del_task(t_id):
         session.delete(x3)
         session.commit()
 
+    except Exception as e:
+        print(e)
+
+
+def del_added(a_id):
+    try:
+        x1 = session.query(AddedUser).filter(AddedUser.id == a_id).one()
+        session.delete(x1)
+        session.commit()
     except Exception as e:
         print(e)
 

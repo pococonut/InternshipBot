@@ -1,6 +1,6 @@
 from commands.back import back_func
 from db.commands import user_type, select_task_for_stud, select_task, select_already_get_stud, \
-    change_task, del_task, select_worker_reject
+    change_task, del_task, select_worker_reject, select_user
 from keyboard import admin_ikb, worker_ikb, stud_is_approve, task_ikb, student_task_already_choose, \
     student_task_choose, task_without_del, task_worker_ikb, back_task_ikb, change_task_ikb, del_task_ikb, \
     task_is_approve, selected_task, task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, \
@@ -25,12 +25,16 @@ def short_long_task(t, f=0):
             f"<b>Необходимые навыки и технологии:</b>\n{t.task_technologies}\n\n" \
             f"<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{t.task_new_skills}\n\n" \
             f"<b>Количество людей:</b> {t.num_people}\n\n" \
-            f"<b>Материалы:</b>\n{str(t.materials)}"
+            f"<b>Материалы:</b>\n{str(t.materials)}\n\n"
     else:
         s = f"<b>Название:</b> {t.task_name}\n\n" \
             f"<b>Цель:</b> {t.task_goal}\n\n" \
             f"<b>Описание:</b> {t.task_description}\n\n" \
             f"<b>Необходимые навыки и технологии:</b>\n{t.task_technologies}\n\n"
+
+    if select_user(t.from_id):
+        s += f"<b>Сотрудник:</b> <a href='tg://user?id={t.from_id}'>{select_user(t.from_id).name}</a>"
+
     return s
 
 
@@ -239,7 +243,7 @@ async def del_t(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     usr_id = str(callback.from_user.id)
     print("delite ", globalDict_pages[usr_id] + 1)
-    await callback.message.answer('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
+    await callback.message.edit_text('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
     await TaskDel.del_t.set()
 
 
@@ -265,11 +269,12 @@ async def stud_get_task(callback: types.CallbackQuery):
     print(globalDict_pages[usr_id], worker_id)
     change_task(t_id, 'student_id', callback.from_user.id)
     task_name = select_worker_reject(callback.from_user.id).task_name
-
-    await bot.send_message(worker_id, f'Задача <em>{task_name}</em> была <b>выбранна</b> студентом.\n\n',
+    student_name = select_user(callback.from_user.id).name
+    await bot.send_message(worker_id, f'Студент\ка <a href="tg://user?id={callback.from_user.id}">{student_name}</a> '
+                                      f'<b>выбрал\а</b> задачу <em>{task_name}</em>.',
                            reply_markup=task_is_approve, parse_mode='HTML')
-    await callback.message.edit_text('Задача выбрана.\nВы можете отказаться от задачи,'
-                                     ' нажав в меню <em>Выбранная задача</em>.',
+    await callback.message.edit_text(f'Задача <em>{task_name}</em> выбрана.\nВы можете отказаться от задачи,'
+                                     f' нажав в меню <em>Выбранная задача</em>.',
                                      parse_mode='HTML', reply_markup=back_task_ikb)
 
 

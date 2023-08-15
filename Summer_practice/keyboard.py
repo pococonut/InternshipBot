@@ -51,6 +51,21 @@ added_b2 = InlineKeyboardButton("Вперед", callback_data="right_added")
 added_b3 = InlineKeyboardButton("Удалить", callback_data="del_added")
 added_ikb.add(added_b1,added_b2,added_b3).add(menu)
 
+login_added_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+login_added_ikb.add(added_b1,added_b2).add(menu)
+
+del_added_ikb = InlineKeyboardMarkup(row_width=2)
+del_added_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_a_yes")
+del_added_ikb.add(del_added_ib1, back_b)
+
+back_added_ikb = InlineKeyboardMarkup(row_width=2)
+back_added_b = InlineKeyboardButton("Вернуться", callback_data="show_add_user")
+back_added_ikb.add(back_added_b)
+
+# Добавить пользователя
+add_usr = InlineKeyboardMarkup(row_width=2)
+add_usr.add(admin_b8).add(menu)
+
 # Экспорт данных
 exp_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 exp_b1 = InlineKeyboardButton(text="Задачи", callback_data="exp_task")
@@ -79,7 +94,7 @@ stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 stud_ikb.add(ib1_3)
 
 change_stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
-change_stud_b1 = InlineKeyboardButton(text="Изменнить данные", callback_data="change")
+change_stud_b1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
 change_stud_ikb.add(change_stud_b1)
 change_stud_ikb.add(menu)
 
@@ -102,9 +117,17 @@ task_rl_b1 = InlineKeyboardButton("Назад", callback_data="left")
 task_rl_b2 = InlineKeyboardButton("Вперед", callback_data="right")
 task_rl_ikb.add(task_rl_b1, task_rl_b2)
 
+# Клавиатура одобренного студента
+stud_is_approve = InlineKeyboardMarkup(row_width=2)
+stud_is_approve_b1 = InlineKeyboardButton('Выбранная задача', callback_data="stud_chosen_tasks")
+stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1, chat)
+
+selected_task = InlineKeyboardMarkup(row_width=2)
+selected_task.add(stud_is_approve_b1)
+
 back_task_ikb = InlineKeyboardMarkup(row_width=2)
-back_task_b = InlineKeyboardButton("Вернуться", callback_data="show_task")
-back_task_ikb.add(back_task_b)
+back_task_b = InlineKeyboardButton("Вернуться к просмотру", callback_data="show_task")
+back_task_ikb.add(stud_is_approve_b1).add(back_task_b).add(menu)
 
 task_rlw_ikb = InlineKeyboardMarkup(row_width=2)
 task_rlw_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
@@ -149,14 +172,6 @@ task_worker_ikb.add(menu)
 back_to_tasks_w = InlineKeyboardMarkup()
 back_to_tasks_w_b1 = InlineKeyboardButton(text='Вернуться',  callback_data="worker_task")
 back_to_tasks_w.add(back_to_tasks_w_b1)
-
-# Клавиатура одобренного студента
-stud_is_approve = InlineKeyboardMarkup(row_width=2)
-stud_is_approve_b1 = InlineKeyboardButton('Выбранная задача', callback_data="stud_chosen_tasks")
-stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1, chat)
-
-selected_task = InlineKeyboardMarkup(row_width=2)
-selected_task.add(stud_is_approve_b1)
 
 stud_reject_task = InlineKeyboardMarkup(row_width=2)
 stud_reject_task_b1 = InlineKeyboardButton('Отказаться от задачи', callback_data="reject_task")
@@ -257,7 +272,7 @@ change_ikb.add(change_ib1, change_ib10, change_ib2, change_ib3, change_ib4, chan
 change_ikb.add(back_b)
 
 change_worker_ikb = InlineKeyboardMarkup(row_width=2)
-change_worker_ikb.add(change_ib1, change_ib10)
+change_worker_ikb.add(change_ib1, change_ib10, back_b)
 
 change_ikb_2 = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="Изменить данные", callback_data="change")
@@ -284,6 +299,3 @@ login_rep = InlineKeyboardMarkup(row_width=2)
 lr_b1 = InlineKeyboardButton(text="Повторить авторизацию", callback_data="menu")
 login_rep.add(lr_b1)
 
-# Добавить пользователя
-add_usr = InlineKeyboardMarkup(row_width=2)
-add_usr.add(admin_b8).add(menu)

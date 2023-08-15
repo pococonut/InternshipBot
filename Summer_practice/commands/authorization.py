@@ -1,5 +1,6 @@
 from commands.back import back_func
-from db.commands import user_type, register_admin, register_director, register_worker, stud_approve, select_added_users
+from db.commands import user_type, register_admin, register_director, register_worker, stud_approve, select_added_users, \
+    change_name_added
 from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3, chat_ikb, login_rep
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -139,7 +140,10 @@ async def get_name(message: types.Message, state=FSMContext):
             keyboard = worker_ikb
         else:
             await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
+
     if who:
+        print(data.get('login'), data.get('name'))
+        change_name_added(data.get('login'), data.get('name'))
         await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
                              disable_web_page_preview=True, parse_mode='HTML')
         await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
