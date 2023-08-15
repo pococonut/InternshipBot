@@ -20,11 +20,27 @@ Base.query = session.query_property()
 
 
 class Task(Base):
+    """Модель таблицы задач.
+
+        :task_id: Уникальный идентификатор таблицы.
+
+        :from_id: Идентификатор сотрудника, опубликовавшего задачу.
+        :student_id: Идентификатор студента, выбравшего задачу.
+
+        :task_name: Название задачи.
+        :task_goal: Цель задачи.
+        :task_description: Описание задачи.
+        :task_tasks: Поставленные подзадачи.
+        :task_technologies: Необходимые навыки и технологии для реализации задачи.
+        :task_new_skills: Навыки, приобретаемые в процессе прохождения практики.
+        :num_people: Количество людей.
+        :materials: Материалы.
+    """
+
     __tablename__ = "task"
 
-    # telegram user id
     task_id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-    # ФИО
+
     from_id = Column(String, nullable=True)
 
     student_id = Column(String, nullable=True)
@@ -49,6 +65,13 @@ class Task(Base):
 
 
 class Internship(Base):
+    """Модель таблицы стажировок.
+
+        :internship_id: Уникальный идентификатор стажировки.
+
+        :beg_date: Дата начала стажировки.
+        :end_date: Дата окончания стажировки.
+    """
     __tablename__ = "internship"
 
     # telegram user id
@@ -62,6 +85,12 @@ class Internship(Base):
 
 
 class InternshipTask(Base):
+    """Модель промежуточной таблицы стажировок и задач.
+
+        :task_id: Уникальный идентификатор задачи.
+        :internship_id: Уникальный идентификатор стажировки.
+    """
+
     __tablename__ = "internship_task"
 
     __table_args__ = (PrimaryKeyConstraint('task_id', 'internship_id'),)

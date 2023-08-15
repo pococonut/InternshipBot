@@ -17,6 +17,17 @@ Base.query = session.query_property()
 
 
 class AddedUser(Base):
+    """Модель таблицы добавленных аккаунтов.
+
+        :id: Уникальный идентификатор аккаунта.
+
+        :login: Логин аккаунта.
+        :password: Пароль аккаунта.
+
+        :type: Тип аккаунта (student, admin, director, worker).
+        :name_usr: ФИО пользователя (В случае, если пользователь авторизовался).
+    """
+
     __tablename__ = "added_user"
 
     id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)

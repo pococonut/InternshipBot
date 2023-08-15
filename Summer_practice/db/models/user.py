@@ -18,13 +18,29 @@ Base.query = session.query_property()
 
 
 class User(Base):
+    """Модель таблицы пользователей.
+
+        :telegram_id: Уникальный идентификатор пользователя в телеграм.
+
+        :type: Тип пользователя (student, admin, director, worker).
+        :name: ФИО пользователя.
+        :phone: Номер телефона пользователя, привязанного к телеграм.
+
+        :reg_date: Дата регистрации.
+        :upd_date: Дата последнего изменения личных параметров.
+    """
     __tablename__ = "user"
 
     telegram_id = Column(String, unique=True, nullable=False, primary_key=True, )
+
     type = Column(VARCHAR(50), nullable=False)
+
     name = Column(VARCHAR(50), nullable=False)
+
     phone = Column(VARCHAR(30), nullable=False)
+
     reg_date = Column(DATE, default=datetime.date.today())
+
     upd_date = Column(DATE, onupdate=datetime.date.today())
 
     __mapper_args__ = {
@@ -34,25 +50,41 @@ class User(Base):
 
 
 class Student(User):
+    """Модель таблицы студентов.
+
+        :telegram_id: Уникальный идентификатор пользователя в телеграм.
+
+        :student_name: ФИО студента.
+        :university: Название университета.
+        :faculty: Название факультета.
+        :specialties: Название специальности.
+        :department: Название кафедры.
+        :course: Номер курса.
+        :group: Номер группы.
+        :coursework: Название и описание курсовых работ.
+        :knowledge: Описание знаний студента.
+    """
+
     __tablename__ = "student"
+
     telegram_id = Column(String, ForeignKey(User.telegram_id), primary_key=True)
 
     student_name = Column(VARCHAR(50), nullable=False)
 
     university = Column(VARCHAR(100), nullable=False)
-    # факультет
+
     faculty = Column(VARCHAR(100), nullable=False)
-    # направление
+
     specialties = Column(VARCHAR(100), nullable=False)
-    # кафедра
+
     department = Column(VARCHAR(100), nullable=True)
-    # курс
+
     course = Column(VARCHAR(10), nullable=False)
-    # группа
+
     group = Column(VARCHAR(10), nullable=False)
-    # темы курсовых работ
+
     coursework = Column(TEXT, nullable=True)
-    # знания
+
     knowledge = Column(TEXT, nullable=True)
 
     __mapper_args__ = {
@@ -61,6 +93,15 @@ class Student(User):
 
 
 class Worker(User):
+    """Модель таблицы сотрудников.
+
+        :telegram_id: Уникальный идентификатор пользователя в телеграм.
+
+        :worker_name: ФИО сотрудника.
+        :login: Логин пользователя.
+        :password: Пароль пользователя.
+    """
+
     __tablename__ = "worker"
 
     telegram_id = Column(String, ForeignKey("user.telegram_id"), primary_key=True)
@@ -77,6 +118,15 @@ class Worker(User):
 
 
 class Admin(User):
+    """Модель таблицы администраторов.
+
+        :telegram_id: Уникальный идентификатор пользователя в телеграм.
+
+        :worker_name: ФИО пользователя.
+        :login: Логин пользователя.
+        :password: Пароль пользователя.
+    """
+
     __tablename__ = "admin"
 
     telegram_id = Column(String, ForeignKey("user.telegram_id"), primary_key=True)
@@ -93,6 +143,15 @@ class Admin(User):
 
 
 class Director(User):
+    """Модель таблицы директоров.
+
+        :telegram_id: Уникальный идентификатор пользователя в телеграм.
+
+        :worker_name: ФИО пользователя.
+        :login: Логин пользователя.
+        :password: Пароль пользователя.
+    """
+
     __tablename__ = "director"
 
     telegram_id = Column(String, ForeignKey("user.telegram_id"), primary_key=True)
