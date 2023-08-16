@@ -1,6 +1,6 @@
 from db.commands import user_type, select_user
 from aiogram import types, Dispatcher
-from keyboard import change_stud_ikb
+from keyboard import change_user_ikb
 
 # ----------------- Отображение информации студента\работника -----------------
 
@@ -27,32 +27,34 @@ def print_worker(w):
     return worker
 
 
-async def show_params(message: types.Message):
-    s_id = int(message.from_user.id)
+def show_inf(t_id):
+    s_id = int(t_id)
     user_show = select_user(s_id)
     u_type = user_type(s_id)
     if u_type is None:
-        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
-                             parse_mode='HTML')
-    elif u_type[0] == 'student':
-        await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_stud(user_show), parse_mode='HTML',
-                             reply_markup=change_stud_ikb)
+        inf = None
     else:
-        await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_worker(user_show), parse_mode='HTML')
+        if u_type[0] == 'student':
+            inf = print_stud(user_show)
+        else:
+            inf = print_worker(user_show)
+    return inf
+
+
+async def show_params(message: types.Message):
+    inf = show_inf(message.from_user.id)
+    if inf is None:
+        await message.answer('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.')
+    else:
+        await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n" + inf, parse_mode='HTML', reply_markup=change_user_ikb)
 
 
 async def show_params_inline(callback: types.CallbackQuery):
-    s_id = int(callback.from_user.id)
-    user_show = select_user(s_id)
-    u_type = user_type(s_id)
-    if u_type is None:
-        await callback.message.edit_text('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
-                                         parse_mode='HTML')
-    elif u_type[0] == 'student':
-        await callback.message.edit_text(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_stud(user_show), parse_mode='HTML',
-                                         reply_markup=change_stud_ikb)
+    inf = show_inf(callback.from_user.id)
+    if inf is None:
+        await callback.message.edit_text('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.')
     else:
-        await callback.message.edit_text(f"🧑‍💻<b>Ваши данные</b>\n\n" + print_worker(user_show), parse_mode='HTML')
+        await callback.message.edit_text(f"🧑‍💻<b>Ваши данные</b>\n\n" + inf, parse_mode='HTML', reply_markup=change_user_ikb)
 
 
 def register_handlers_show(dp: Dispatcher):

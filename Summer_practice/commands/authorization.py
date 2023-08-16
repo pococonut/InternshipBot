@@ -36,37 +36,40 @@ def check(l, p):
     return f
 
 
-async def authorization_command(message: types.Message):
-    u_type = user_type(message.from_user.id)
+def authorization_keyboard(t_id):
+    u_type = user_type(t_id)
     print(u_type)
 
     if u_type is None:
-        await message.answer(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=back_ikb)
+        k = back_ikb
+    else:
+        if u_type[0] in ('admin', 'director'):
+            k = admin_ikb
+        elif u_type[0] == 'worker':
+            k = worker_ikb
+        elif u_type[0] == 'student':
+            approve = stud_approve(t_id)
+            k = ikb_3
+            if approve:
+                k = stud_is_approve
+    return k
+
+
+async def authorization_command(message: types.Message):
+    keyboard = authorization_keyboard(message.from_user.id)
+    if keyboard is back_ikb:
+        await message.answer(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
         await Authorisation.login.set()
-    elif u_type[0] in ('admin', 'director'):
-        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
-    elif u_type[0] == 'worker':
-        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=worker_ikb)
-    elif u_type[0] == 'student':
-        await message.answer("Вы не являетесь сотрудником.", parse_mode='HTML')
+    else:
+        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=keyboard)
 
 
 async def authorization_command_inline(callback: types.CallbackQuery):
-    u_type = user_type(callback.from_user.id)
-    print(u_type)
-
-    if u_type is None:
-        await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=back_ikb)
+    keyboard = authorization_keyboard(callback.from_user.id)
+    if keyboard is back_ikb:
+        await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
         await Authorisation.login.set()
-    elif u_type[0] in ('admin', 'director'):
-        await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=admin_ikb)
-    elif u_type[0] == 'worker':
-        await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=worker_ikb)
-    elif u_type[0] == 'student':
-        approve = stud_approve(callback.from_user.id)
-        keyboard = ikb_3
-        if approve:
-            keyboard = stud_is_approve
+    else:
         await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=keyboard)
 
 
@@ -91,8 +94,6 @@ async def get_password(message: types.Message, state=FSMContext):
 
 
 async def get_phone(message: types.Message, state=FSMContext):
-    print('fffffffff')
-
     m = message.text
     try:
         phonenumbers.parse(m)
@@ -101,13 +102,10 @@ async def get_phone(message: types.Message, state=FSMContext):
     except:
         await message.answer("Введен неверный формат.\nПожалуйста, повторите ввод.")
         return
-
     await Authorisation.next()
 
 
 async def get_name(message: types.Message, state=FSMContext):
-    print('nnnnnnnn')
-
     data = await state.get_data()
     info = check(data['login'], data['password'])
     m = message.text
@@ -119,7 +117,6 @@ async def get_name(message: types.Message, state=FSMContext):
 
     who = False
     if info['type'] == 'admin':
-        print('admin')
         admin = register_admin(message.from_user.id, data)
         if admin:
             who = 'администратор'
@@ -140,7 +137,8 @@ async def get_name(message: types.Message, state=FSMContext):
             keyboard = worker_ikb
         else:
             await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
-
+    else:
+        await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
     if who:
         print(data.get('login'), data.get('name'))
         change_name_added(data.get('login'), data.get('name'))

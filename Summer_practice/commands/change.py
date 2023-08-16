@@ -85,29 +85,34 @@ chek_d = {'student_name': 'ФИО',
 stud_params, s_p = list(chek_d.keys()), []
 
 
-async def change(message: types.Message):
-    user_exist = select_user(message.from_user.id)
+def change_keyboard(t_id):
+    user_exist = select_user(t_id)
     if not user_exist:
-        await message.answer('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
-
+        k = None
     else:
-        u_type = user_type(message.from_user.id)
+        u_type = user_type(t_id)
         if u_type[0] == 'student':
-            keyboard = change_ikb
+            k = change_ikb
         else:
-            keyboard = change_worker_ikb
+            k = change_worker_ikb
+    return k
 
+
+async def change(message: types.Message):
+    keyboard = change_keyboard(message.from_user.id)
+    if keyboard is None:
+        await message.answer('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+    else:
         await message.answer(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
         await ChangeUser.par.set()
 
 
 async def change_inline(callback: types.CallbackQuery):
-    user_exist = select_user(callback.message.chat.id)
-    if not user_exist:
-        await callback.message.edit_text('Вы еще не зарегестрированы.\nПожалуйста, пройдите этап регистрации.',
-                                         parse_mode='HTML')
+    keyboard = change_keyboard(callback.from_user.id)
+    if keyboard is None:
+        await callback.message.edit_text('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
     else:
-        await callback.message.edit_text(f'Выберите параметр, который желаете изменить.', reply_markup=change_ikb)
+        await callback.message.edit_text(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
         await ChangeUser.par.set()
 
 

@@ -1,22 +1,7 @@
-import os
-from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, Integer, Boolean, String, ForeignKey, \
-    PrimaryKeyConstraint
-from dotenv import load_dotenv
-from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker, relationship
+from sqlalchemy import Column, VARCHAR, TEXT, DATE, Integer, String, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.orm import relationship
 import datetime
-from config import settings
-
-load_dotenv()
-
-host = settings.host
-password = settings.password
-database = settings.database
-
-engine = create_engine(f"postgresql+psycopg2://postgres:{password}@{host}/{database}")
-
-session = scoped_session(sessionmaker(bind=engine))
-Base = declarative_base()
-Base.query = session.query_property()
+from db.models.user import Base
 
 
 class Task(Base):
@@ -74,11 +59,10 @@ class Internship(Base):
     """
     __tablename__ = "internship"
 
-    # telegram user id
     internship_id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-    # ФИО
+
     beg_date = Column(DATE, default=datetime.date.today())
-    # last update date
+
     end_date = Column(DATE, default=datetime.date.today())
 
     task = relationship("Task", secondary='internship_task', overlaps="internship")
@@ -100,7 +84,7 @@ class InternshipTask(Base):
     internship_id = Column(Integer, ForeignKey('internship.internship_id'))
 
 
-Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=engine)
 
 
 #InternshipTask.__table__.drop(engine)

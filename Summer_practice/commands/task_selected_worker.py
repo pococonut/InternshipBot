@@ -7,6 +7,19 @@ from aiogram import types, Dispatcher
 # ----------------- Просмотр выбранной студентом задачи (для сотрудника) -----------------
 
 
+def show_stud_task(s, t):
+    v = f"👨‍🎓<b>Студент\ка</b>\n\n" \
+        f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n" \
+        f"<b>Направление:</b> {s.specialties}\n\n" \
+        f"<b>Курс:</b> {s.course}\n\n" \
+        f"<b>Знания:</b> {s.knowledge}\n\n" \
+        f"———————————————————\n\n" \
+        f"📚<b>Выбранная задача</b>\n\n" \
+        f"<b>Название:</b> {t.task_name}\n\n" \
+        f"<b>Описание:</b> {t.task_description}\n\n"
+    return v
+
+
 globalDict_pagesTws = dict()
 
 
@@ -26,23 +39,14 @@ async def worker_chosen_t(callback: types.CallbackQuery):
         usr_id = str(callback.from_user.id)
         if usr_id not in globalDict_pagesTws:
             globalDict_pagesTws[usr_id] = 0
-        print(globalDict_pagesTws)
 
         count_tasks = len(tasks)
         student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
         if not student:
             await callback.message.edit_text('Заявки студентов не были рассмотрены.', reply_markup=keyboard)
         else:
-            await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n"
-                                             f"👨‍🎓<b>Студент</b>\n\n"
-                                             f"<b>ФИО:</b> <a href='tg://user?id={student.telegram_id}'>{student.student_name}</a>\n\n"
-                                             f"<b>Направление:</b> {student.specialties}\n\n"
-                                             f"<b>Курс:</b> {student.course}\n\n"
-                                             f"<b>Знания:</b> {student.knowledge}\n\n"
-                                             f"———————————————————\n\n"
-                                             f"📚<b>Выбранная задача</b>\n\n"
-                                             f"<b>Название:</b> {tasks[globalDict_pagesTws[usr_id]].task_name}\n\n"
-                                             f"<b>Описание:</b> {tasks[globalDict_pagesTws[usr_id]].task_description}\n\n",
+            await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n" +
+                                             show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
                                              parse_mode='HTML',
                                              reply_markup=task_worker_stud,
                                              disable_web_page_preview=True)
@@ -89,15 +93,7 @@ async def task_ws_show(callback: types.CallbackQuery):
 
         student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
         print(globalDict_pagesTws)
-        await callback.message.edit_text(s + f"👨‍🎓<b>Студент</b>\n\n"
-                                             f"<b>ФИО:</b> <a href='tg://user?id={student.telegram_id}'>{student.student_name}</a>\n\n"
-                                             f"<b>Направление:</b> {student.specialties}\n\n"
-                                             f"<b>Курс:</b> {student.course}\n\n"
-                                             f"<b>Знания:</b> {student.knowledge}\n\n"
-                                             f"——————————————————\n\n"
-                                             f"📚<b>Выбранная задача</b>\n\n"
-                                             f"<b>Название:</b> {tasks[globalDict_pagesTws[usr_id]].task_name}\n\n"
-                                             f"<b>Описание:</b> {tasks[globalDict_pagesTws[usr_id]].task_description}\n\n",
+        await callback.message.edit_text(s + show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
                                          parse_mode='HTML',
                                          reply_markup=task_worker_stud,
                                          disable_web_page_preview=True)

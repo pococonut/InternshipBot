@@ -1,5 +1,5 @@
 from commands.back import back_func
-from commands.task_actions import ch_task_lst, param_task
+from commands.task_actions import ch_task_lst, param_task, short_long_task
 from create import bot
 from db.commands import user_type, change_task, del_task, select_worker_task
 from keyboard import admin_ikb, worker_ikb, change_task_ikb, del_task_ikb, task_worker_own_ikb, task_worker_without_del, \
@@ -11,25 +11,8 @@ from aiogram.dispatcher import FSMContext
 
 # -------------------- Просмотр задач сотрудника --------------------
 
+
 globalDict_pagesW = dict()
-
-
-def short_long_task(t, f=0):
-    if f == 1:
-        s = f"<b>Название:</b> {t.task_name}\n\n" \
-            f"<b>Цель:</b> {t.task_goal}\n\n" \
-            f"<b>Описание:</b> {t.task_description}\n\n" \
-            f"<b>Задачи:</b>\n{t.task_tasks}\n\n" \
-            f"<b>Необходимые навыки и технологии:</b>\n{t.task_technologies}\n\n" \
-            f"<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{t.task_new_skills}\n\n" \
-            f"<b>Количество людей:</b> {t.num_people}\n\n" \
-            f"<b>Материалы:</b>\n{str(t.materials)}"
-    else:
-        s = f"<b>Название:</b> {t.task_name}\n\n" \
-            f"<b>Цель:</b> {t.task_goal}\n\n" \
-            f"<b>Описание:</b> {t.task_description}\n\n" \
-            f"<b>Необходимые навыки и технологии:</b>\n{t.task_technologies}\n\n"
-    return s
 
 
 async def show_worker_task(callback: types.CallbackQuery):

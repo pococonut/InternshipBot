@@ -6,6 +6,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
+
 # ------------------- Добавление сотрудников -------------------
 
 
@@ -16,10 +17,10 @@ class AddUser(StatesGroup):
 
 
 types_w = {
-           'admin': 'Администратор',
-           'director': 'Директор',
-           'worker': 'Сотрудник'
-           }
+    'admin': 'Администратор',
+    'director': 'Директор',
+    'worker': 'Сотрудник'
+}
 
 
 async def add_user_command(callback: types.CallbackQuery):
@@ -46,14 +47,22 @@ async def add_type(callback: types.CallbackQuery, state=FSMContext):
 
     if added_user:
         await callback.message.edit_text(f'👨‍💼 *Добавлен пользователь\\ *\n\n'
-                             f'*Логин\\:* ||{data["login"]}||\n\n'
-                             f'*Пароль\\:* ||{data["password"]}||\n\n'
-                             f'*Тип пользователя\\:* {types_w.get(data["type"])}\n\n',
-                             parse_mode='MarkdownV2', reply_markup=add_usr)
+                                         f'*Логин\\:* ||{data["login"]}||\n\n'
+                                         f'*Пароль\\:* ||{data["password"]}||\n\n'
+                                         f'*Тип пользователя\\:* {types_w.get(data["type"])}\n\n',
+                                         parse_mode='MarkdownV2', reply_markup=add_usr)
         await state.finish()
     else:
         await callback.message.edit_text(f'Введенный логин или пароль уже существует.', reply_markup=add_usr)
         await state.finish()
+
+
+def show_inf_added(a):
+    v = f"*Пользователь\\:* {a.name_usr if a.name_usr is not None else 'Отсутствует'}\n\n" \
+        f"*Тип\\:* {a.type}\n\n" \
+        f"*Логин\\:* ||{a.login}||\n\n" \
+        f"*Пароль\\:* ||{a.password}||\n\n"
+    return v
 
 
 globalDict_added = dict()
@@ -81,15 +90,10 @@ async def show_added(callback: types.CallbackQuery):
         else:
             keyboard = added_ikb
 
-        await callback.message.edit_text(
-            f"*№\\ *{a + 1}/{count_added}\n\n"
-            f"*Пользователь\\:* {added_users[a].name_usr if added_users[a].name_usr is not None else 'Отсутствует'}\n\n"
-            f"*Тип\\:* {added_users[a].type}\n\n"
-            f"*Логин\\:* ||{added_users[a].login}||\n\n"
-            f"*Пароль\\:* ||{added_users[a].password}||\n\n",
-            parse_mode='MarkdownV2',
-            reply_markup=keyboard,
-            disable_web_page_preview=True)
+        await callback.message.edit_text(f"*№\\ *{a + 1}/{count_added}\n\n" + show_inf_added(added_users[a]),
+                                         parse_mode='MarkdownV2',
+                                         reply_markup=keyboard,
+                                         disable_web_page_preview=True)
 
 
 async def show_added_rl(callback: types.CallbackQuery):
@@ -128,13 +132,10 @@ async def show_added_rl(callback: types.CallbackQuery):
             keyboard = login_added_ikb
         else:
             keyboard = added_ikb
-        await callback.message.edit_text(s + f"*Пользователь\\:* {added_users[globalDict_added[usr_id]].name_usr if added_users[globalDict_added[usr_id]].name_usr is not None else 'Отсутствует'}\n\n"
-                                             f"*Тип\\:* {added_users[globalDict_added[usr_id]].type}\n\n"
-                                             f"*Логин\\:* ||{added_users[globalDict_added[usr_id]].login}||\n\n"
-                                             f"*Пароль\\:* ||{added_users[globalDict_added[usr_id]].password}||\n\n",
-                                             parse_mode='MarkdownV2',
-                                             reply_markup=keyboard,
-                                             disable_web_page_preview=True)
+        await callback.message.edit_text(s + show_inf_added(added_users[globalDict_added[usr_id]]),
+                                         parse_mode='MarkdownV2',
+                                         reply_markup=keyboard,
+                                         disable_web_page_preview=True)
 
 
 class AddedDel(StatesGroup):

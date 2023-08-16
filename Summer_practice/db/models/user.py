@@ -29,6 +29,7 @@ class User(Base):
         :reg_date: Дата регистрации.
         :upd_date: Дата последнего изменения личных параметров.
     """
+
     __tablename__ = "user"
 
     telegram_id = Column(String, unique=True, nullable=False, primary_key=True, )

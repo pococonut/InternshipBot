@@ -58,14 +58,12 @@ async def registration_command(message: types.Message):
                 keyboard = stud_is_approve
             else:
                 keyboard = ikb_3
-            await message.answer(f'Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
-        else:
-            if user_exist[0] in ('admin', 'director'):
+        elif user_exist[0] in ('admin', 'director'):
                 keyboard = admin_ikb
-            elif user_exist[0] == 'worker':
+        elif user_exist[0] == 'worker':
                 keyboard = worker_ikb
-            await message.answer(f'Вы зарегистрированы как <b>{usr.get(user_exist[0])}</b>.', parse_mode='HTML',
-                                 reply_markup=keyboard)
+
+        await message.answer(f'Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
 
 async def cont_command(callback: types.CallbackQuery, state: FSMContext):
@@ -98,7 +96,6 @@ async def get_phone(message: types.Message, state=FSMContext):
     except:
         await message.answer('Номер телефона введен в некорректном формате', parse_mode='HTML')
         return
-
 
 
 async def get_university(message: types.Message, state=FSMContext):

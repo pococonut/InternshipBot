@@ -1,5 +1,3 @@
-import requests
-
 from db.commands import stud_approve, select_added_users, select_task, select_user, select_all_users
 from keyboard import exp_ikb
 from aiogram import types, Dispatcher

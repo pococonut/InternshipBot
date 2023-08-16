@@ -57,8 +57,7 @@ async def show_task(callback: types.CallbackQuery):
         except:
             await callback.message.edit_reply_markup()
             await callback.message.delete()
-            await callback.message.answer('В данный момент задач нет.\nЗагляните позже.',
-                                          reply_markup=keyboard)
+            await callback.message.answer('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
     else:
         usr_id = str(callback.from_user.id)
         if usr_id not in globalDict_pages:
@@ -170,8 +169,8 @@ async def show_more_task(callback: types.CallbackQuery):
             if tasks[globalDict_pages[usr_id]].student_id is not None:
                 keyboard = task_worker_more_without_del_ikb
 
-    await callback.message.edit_text(short_long_task(tasks[globalDict_pages[usr_id]], 1), parse_mode='HTML', reply_markup=keyboard,
-                                     disable_web_page_preview=True)
+    await callback.message.edit_text(short_long_task(tasks[globalDict_pages[usr_id]], 1), parse_mode='HTML',
+                                     reply_markup=keyboard, disable_web_page_preview=True)
 
 
 # -------------------- Изменение параметров задачи --------------------
@@ -199,7 +198,7 @@ async def ch_task(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
     usr_id = str(callback.from_user.id)
     print("change", globalDict_pages[usr_id] + 1)
-    await callback.message.answer('Выберите параметр который желаете изменить.', parse_mode='HTML', reply_markup=change_task_ikb)
+    await callback.message.answer('Выберите параметр который желаете изменить.', reply_markup=change_task_ikb)
     await TaskChange.param.set()
 
 
@@ -219,7 +218,6 @@ async def ch_task_val(message: types.Message, state=FSMContext):
     tasks = select_task()
     t_id = tasks[data['num_task']].task_id
     name = tasks[data['num_task']].task_name
-    print(name)
     change_task(t_id, data['param'][7:], data['value'])
     if tasks[data['num_task']].student_id is not None:
         s_id = tasks[data['num_task']].student_id
@@ -241,8 +239,6 @@ class TaskDel(StatesGroup):
 
 async def del_t(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup()
-    usr_id = str(callback.from_user.id)
-    print("delite ", globalDict_pages[usr_id] + 1)
     await callback.message.edit_text('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_ikb)
     await TaskDel.del_t.set()
 
@@ -254,7 +250,6 @@ async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
     t_id = tasks[globalDict_pages[usr_id]].task_id
     del_task(t_id)
     await state.finish()
-    #page -= 1
     await callback.message.edit_text('Задача удалена', parse_mode='HTML', reply_markup=back_task_ikb)
 
 
@@ -266,7 +261,6 @@ async def stud_get_task(callback: types.CallbackQuery):
     usr_id = str(callback.from_user.id)
     t_id = tasks[globalDict_pages[usr_id]].task_id
     worker_id = tasks[globalDict_pages[usr_id]].from_id
-    print(globalDict_pages[usr_id], worker_id)
     change_task(t_id, 'student_id', callback.from_user.id)
     task_name = select_worker_reject(callback.from_user.id).task_name
     student_name = select_user(callback.from_user.id).name
