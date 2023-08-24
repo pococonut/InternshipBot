@@ -1,5 +1,10 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+new_user_ikb = InlineKeyboardMarkup(row_width=2)
+new_user_ib1 = InlineKeyboardButton(text="Регистрация", callback_data="student")
+new_user_ib2 = InlineKeyboardButton(text="Авторизация", callback_data="authorization")
+new_user_ikb.add(new_user_ib1, new_user_ib2)
+
 ikb = InlineKeyboardMarkup(row_width=2)
 ib1 = InlineKeyboardButton(text="Новый пользователь", callback_data="new")
 ib3 = InlineKeyboardButton(text="Просмотреть данные", callback_data="show")
@@ -8,8 +13,9 @@ ikb.add(ib1, ib3)
 menu = InlineKeyboardButton(text="Меню", callback_data="menu")
 chat = InlineKeyboardButton(text="Чат", callback_data="chat")
 
-chat_ikb = ikb_2 = InlineKeyboardMarkup(row_width=2)
+chat_ikb = InlineKeyboardMarkup(row_width=2)
 chat_ikb.add(menu)
+
 
 ikb_2 = InlineKeyboardMarkup(row_width=2)
 ib2_2 = InlineKeyboardButton(text="Просмотр стажировок", callback_data="intern_show")
@@ -125,9 +131,19 @@ stud_is_approve.add(ib1_3, ib2_3, admin_b4, stud_is_approve_b1, chat)
 selected_task = InlineKeyboardMarkup(row_width=2)
 selected_task.add(stud_is_approve_b1)
 
+# студент
 back_task_ikb = InlineKeyboardMarkup(row_width=2)
 back_task_b = InlineKeyboardButton("Вернуться к просмотру", callback_data="show_task")
 back_task_ikb.add(stud_is_approve_b1).add(back_task_b).add(menu)
+
+# работник
+back_task_w_ikb = InlineKeyboardMarkup(row_width=2)
+back_task_w_ikb.add(back_task_b).add(menu)
+
+# работник - свои задачи
+back_task_own_ikb = InlineKeyboardMarkup(row_width=2)
+back_task_own_b = InlineKeyboardButton("Вернуться к просмотру", callback_data="worker_task")
+back_task_own_ikb.add(back_task_own_b).add(menu)
 
 task_rlw_ikb = InlineKeyboardMarkup(row_width=2)
 task_rlw_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
@@ -177,6 +193,10 @@ stud_reject_task = InlineKeyboardMarkup(row_width=2)
 stud_reject_task_b1 = InlineKeyboardButton('Отказаться от задачи', callback_data="reject_task")
 stud_reject_task.add(stud_reject_task_b1)
 stud_reject_task.add(menu)
+
+reject_task_ikb = InlineKeyboardMarkup(row_width=2)
+reject_task_b1 = InlineKeyboardButton(text="Отказаться", callback_data="reject_task_yes")
+reject_task_ikb.add(reject_task_b1, back_b)
 
 student_task_show = InlineKeyboardMarkup(row_width=2)
 student_task_show.add(admin_b4)
@@ -249,13 +269,15 @@ del_task_ikb = InlineKeyboardMarkup(row_width=2)
 del_task_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_yes")
 del_task_ikb.add(del_task_ib1, back_b)
 
+del_task_worker_ikb = InlineKeyboardMarkup(row_width=2)
+del_task_worker_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_w_yes")
+del_task_worker_ikb.add(del_task_worker_ib1, back_b)
+
 del_stud_ikb = InlineKeyboardMarkup(row_width=2)
 del_stud_ib1 = InlineKeyboardButton(text="Отклонить", callback_data="reject_yes")
 del_stud_ikb.add(del_stud_ib1, back_b)
 
-reject_task_ikb = InlineKeyboardMarkup(row_width=2)
-reject_task_b1 = InlineKeyboardButton(text="Отказаться", callback_data="reg_task_yes")
-reject_task_ikb.add(reject_task_b1, back_b)
+
 
 change_ikb = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="ФИО", callback_data="student_name")

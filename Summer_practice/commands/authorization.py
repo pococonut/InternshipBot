@@ -1,15 +1,12 @@
-from commands.back import back_func
-from db.commands import user_type, register_admin, register_director, register_worker, stud_approve, select_added_users, \
-    change_name_added
-from keyboard import admin_ikb, worker_ikb, back_ikb, stud_is_approve, ikb_3, chat_ikb, login_rep
-from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import StatesGroup, State
-import phonenumbers
 import string
-
-
-# ------------------- Регистрация сотрудников -------------------
+import phonenumbers
+from create import dp
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+from commands.general import get_keyboard
+from keyboard import admin_ikb, worker_ikb, login_rep
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from db.commands import select_added_users, change_name_added, registration_user
 
 
 class Authorisation(StatesGroup):
@@ -20,6 +17,13 @@ class Authorisation(StatesGroup):
 
 
 def check(l, p):
+    """
+    Функция проверки логина и пароля на соответствие.
+
+    :param l: Введенный пользователем Логин.
+    :param p: Введенный пользователем Пароль.
+    :return: Флаг, (f = False - логин или пароль неверный, f = словарь хранящий логин, пароль и тип пользователя).
+    """
     authorisation_lst = {}
 
     for u in select_added_users():
@@ -36,50 +40,31 @@ def check(l, p):
     return f
 
 
-def authorization_keyboard(t_id):
-    u_type = user_type(t_id)
-    print(u_type)
-
-    if u_type is None:
-        k = back_ikb
-    else:
-        if u_type[0] in ('admin', 'director'):
-            k = admin_ikb
-        elif u_type[0] == 'worker':
-            k = worker_ikb
-        elif u_type[0] == 'student':
-            approve = stud_approve(t_id)
-            k = ikb_3
-            if approve:
-                k = stud_is_approve
-    return k
+@dp.callback_query_handler(text='authorization')
+async def authorization_command(callback: types.CallbackQuery):
+    """
+    Функция начала процесса авторизации.
+    """
+    keyboard = get_keyboard(callback.from_user.id)
+    await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
+    await Authorisation.login.set()
 
 
-async def authorization_command(message: types.Message):
-    keyboard = authorization_keyboard(message.from_user.id)
-    if keyboard is back_ikb:
-        await message.answer(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
-        await Authorisation.login.set()
-    else:
-        await message.answer("Выберите команду.", parse_mode='HTML', reply_markup=keyboard)
-
-
-async def authorization_command_inline(callback: types.CallbackQuery):
-    keyboard = authorization_keyboard(callback.from_user.id)
-    if keyboard is back_ikb:
-        await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
-        await Authorisation.login.set()
-    else:
-        await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=keyboard)
-
-
+@dp.message_handler(state=Authorisation.login)
 async def get_login(message: types.Message, state=FSMContext):
+    """
+    Функция получения логина от пользователя.
+    """
     await state.update_data(login=message.text)
     await message.answer('Введите <b>пароль.</b>', parse_mode='HTML')
     await Authorisation.next()
 
 
+@dp.message_handler(state=Authorisation.password)
 async def get_password(message: types.Message, state=FSMContext):
+    """
+    Функция получения пароля от пользователя.
+    """
     data = await state.get_data()
     info = check(data['login'], message.text)
     if not info:
@@ -88,12 +73,16 @@ async def get_password(message: types.Message, state=FSMContext):
         return
 
     await state.update_data(password=message.text)
-    await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <em>+79963833254</em>",
-                             parse_mode='HTML')
+    await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <code><em>+79999999999</em></code>",
+                         parse_mode='HTML')
     await Authorisation.next()
 
 
+@dp.message_handler(state=Authorisation.phone)
 async def get_phone(message: types.Message, state=FSMContext):
+    """
+    Функция получения номера телефона от пользователя.
+    """
     m = message.text
     try:
         phonenumbers.parse(m)
@@ -105,7 +94,11 @@ async def get_phone(message: types.Message, state=FSMContext):
     await Authorisation.next()
 
 
+@dp.message_handler(state=Authorisation.name)
 async def get_name(message: types.Message, state=FSMContext):
+    """
+    Функция получения ФИО от пользователя.
+    """
     data = await state.get_data()
     info = check(data['login'], data['password'])
     m = message.text
@@ -115,51 +108,19 @@ async def get_name(message: types.Message, state=FSMContext):
     await state.update_data(name=" ".join([i.capitalize() for i in m.split()]))
     data = await state.get_data()
 
-    who = False
-    if info['type'] == 'admin':
-        admin = register_admin(message.from_user.id, data)
-        if admin:
-            who = 'администратор'
-            keyboard = admin_ikb
-        else:
-            await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
-    elif info['type'] == 'director':
-        director = register_director(message.from_user.id, data)
-        if director:
-            who = 'директор'
-            keyboard = admin_ikb
-        else:
-            await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
-    elif info['type'] == 'worker':
-        worker = register_worker(message.from_user.id, data)
-        if worker:
-            who = 'сотрудник'
-            keyboard = worker_ikb
-        else:
-            await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
-    else:
+    who = registration_user(message.from_user.id, info['type'], data)
+
+    if not who:
         await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
-    if who:
-        print(data.get('login'), data.get('name'))
+    else:
+        keyboard = admin_ikb
+        if who == 'сотрудник':
+            keyboard = worker_ikb
+
         change_name_added(data.get('login'), data.get('name'))
-        await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
-                             disable_web_page_preview=True, parse_mode='HTML')
+        await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - '
+                             f'https://t.me/+FShhqiWUDJRjODky', disable_web_page_preview=True, parse_mode='HTML')
         await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
     await state.finish()
 
-
-async def chat_command(callback: types.CallbackQuery):
-    await callback.message.edit_text("Чат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky.",
-                                      disable_web_page_preview=True, reply_markup=chat_ikb)
-
-
-def register_handlers_authorization(dp: Dispatcher):
-    dp.register_message_handler(authorization_command, commands=['menu'])
-    dp.register_callback_query_handler(authorization_command_inline, text='menu')
-    dp.register_callback_query_handler(chat_command, text='chat')
-    dp.register_message_handler(get_login, state=Authorisation.login)
-    dp.register_message_handler(get_password, state=Authorisation.password)
-    dp.register_message_handler(get_phone, state=Authorisation.phone)
-    dp.register_message_handler(get_name, state=Authorisation.name)
-    dp.register_callback_query_handler(back_func, text='back', state="*")

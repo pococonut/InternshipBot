@@ -26,5 +26,3 @@ class AddedUser(Base):
     
     name_usr = Column(VARCHAR(100))
 
-
-#Base.metadata.create_all(bind=engine)

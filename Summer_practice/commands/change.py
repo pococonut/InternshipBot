@@ -1,19 +1,42 @@
-from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import StatesGroup, State
-import phonenumbers
-import string
 import re
-
-from commands.back import back_func
+import string
+import phonenumbers
+from create import dp
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+from commands.general import get_keyboard
+from keyboard import change_ikb, change_worker_ikb, back_ikb
 from db.commands import select_user, user_type, change_inform
-from keyboard import change_ikb, change_worker_ikb, admin_ikb, worker_ikb, ikb_3, back_ikb
+from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
-# -------------------- Изменение данных --------------------
+check_d = {'student_name': 'ФИО',
+           'phone': 'Номер телефона',
+           'university': 'ВУЗ',
+           'faculty': 'Факультет',
+           'specialties': 'Направление',
+           'department': 'Кафедра',
+           'course': 'Курс',
+           'group': 'Группа',
+           'coursework': 'Курсовые работы',
+           'knowledge': 'Знания',
+           }
+
+stud_params, s_p = list(check_d.keys()), []
 
 
-def chek_param(p, v):
+class ChangeUser(StatesGroup):
+    par = State()
+    new_val = State()
+
+
+def check_param(p, v):
+    """
+    Функция проверки параметра заявки на корректность.
+    :param p: Название параметра, который пользователь хочет изменить.
+    :param v: Введенное пользователем новое значение параметра.
+    :return: Возвращает введенное значение, если оно прошло проверку, иначе возвращает False.
+    """
     if p == 'student_name':
         if len(v.split()) != 3 or any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
             return False
@@ -65,27 +88,12 @@ def chek_param(p, v):
     return v
 
 
-class ChangeUser(StatesGroup):
-    par = State()
-    new_val = State()
-
-
-chek_d = {'student_name': 'ФИО',
-          'phone': 'Номер телефона',
-          'university': 'ВУЗ',
-          'faculty': 'Факультет',
-          'specialties': 'Направление',
-          'department': 'Кафедра',
-          'course': 'Курс',
-          'group': 'Группа',
-          'coursework': 'Курсовые работы',
-          'knowledge': 'Знания',
-          }
-
-stud_params, s_p = list(chek_d.keys()), []
-
-
 def change_keyboard(t_id):
+    """
+    Функция возвращающая клавиатуру с параметрами доступными для изменения в зависимости от типа пользователя.
+    :param t_id: Уникальный идентификатор пользователя в телеграм.
+    :return k: Inline-клавиатура.
+    """
     user_exist = select_user(t_id)
     if not user_exist:
         k = None
@@ -98,7 +106,11 @@ def change_keyboard(t_id):
     return k
 
 
+@dp.message_handler(commands=['change'])
 async def change(message: types.Message):
+    """
+    Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
+    """
     keyboard = change_keyboard(message.from_user.id)
     if keyboard is None:
         await message.answer('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
@@ -107,46 +119,47 @@ async def change(message: types.Message):
         await ChangeUser.par.set()
 
 
+@dp.callback_query_handler(text='change')
 async def change_inline(callback: types.CallbackQuery):
+    """
+    Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
+    """
     keyboard = change_keyboard(callback.from_user.id)
     if keyboard is None:
-        await callback.message.edit_text('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+        await callback.message.edit_text('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.',
+                                         parse_mode='HTML')
     else:
         await callback.message.edit_text(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
         await ChangeUser.par.set()
 
 
+@dp.callback_query_handler(text=stud_params, state=ChangeUser.par)
 async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
+    """
+    Функция получения нового значения параметра, выбранного для изменения.
+    """
     await state.update_data(par=callback.data)
     s_p.append(callback.data)
     await callback.message.edit_text("Введите новое значение.", reply_markup=back_ikb)
     await ChangeUser.next()
 
 
+@dp.message_handler(state=ChangeUser.new_val)
 async def get_val_student(message: types.Message, state: FSMContext):
-    x = chek_param(s_p[0], message.text)
+    """
+    Функция проверки и установки нового значения параметра, выбранного для изменения.
+    """
+    x = check_param(s_p[0], message.text)
     if not x:
         await message.answer("Значение введено в некорректном формате. Повторите ввод.")
         return
     s_p.clear()
     await state.update_data(new_val=x)
     data = await state.get_data()
-    await message.answer(f"<b>Параметр:</b> {chek_d.get(data['par'])}\n\n"
+    await message.answer(f"<b>Параметр:</b> {check_d.get(data['par'])}\n\n"
                          f"<b>Новое значение:</b> {data['new_val']}", parse_mode='HTML')
     u_type = user_type(message.from_user.id)[0]
     change_inform(message.from_user.id, u_type, data['par'], data['new_val'])
-    keyboard = admin_ikb
-    if u_type == 'worker':
-        keyboard = worker_ikb
-    elif u_type == 'student':
-        keyboard = ikb_3
+    keyboard = get_keyboard(message.from_user.id)
     await message.answer('Параметр изменен.', parse_mode='HTML', reply_markup=keyboard)
     await state.finish()
-
-
-def register_handlers_change(dp: Dispatcher):
-    dp.register_message_handler(change, commands=['change'])
-    dp.register_callback_query_handler(change_inline, text='change')
-    dp.register_callback_query_handler(get_param_student, text=stud_params, state=ChangeUser.par)
-    dp.register_message_handler(get_val_student, state=ChangeUser.new_val)
-    dp.register_callback_query_handler(back_func, text='back', state="*")

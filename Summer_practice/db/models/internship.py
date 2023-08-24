@@ -16,7 +16,7 @@ class Task(Base):
         :task_goal: Цель задачи.
         :task_description: Описание задачи.
         :task_tasks: Поставленные подзадачи.
-        :task_technologies: Необходимые навыки и технологии для реализации задачи.
+        :task_technologies: Навыки и технологии, необходимые для реализации задачи.
         :task_new_skills: Навыки, приобретаемые в процессе прохождения практики.
         :num_people: Количество людей.
         :materials: Материалы.
@@ -57,6 +57,7 @@ class Internship(Base):
         :beg_date: Дата начала стажировки.
         :end_date: Дата окончания стажировки.
     """
+
     __tablename__ = "internship"
 
     internship_id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
@@ -69,7 +70,7 @@ class Internship(Base):
 
 
 class InternshipTask(Base):
-    """Модель промежуточной таблицы стажировок и задач.
+    """Модель промежуточной таблицы, связывающей стажировки и задачи.
 
         :task_id: Уникальный идентификатор задачи.
         :internship_id: Уникальный идентификатор стажировки.
@@ -82,13 +83,4 @@ class InternshipTask(Base):
     task_id = Column(Integer, ForeignKey('task.task_id'))
 
     internship_id = Column(Integer, ForeignKey('internship.internship_id'))
-
-
-#Base.metadata.create_all(bind=engine)
-
-
-#InternshipTask.__table__.drop(engine)
-
-#session.query(Task).filter(Task.student_id != None).update({f'student_id': None})
-#session.commit()
 

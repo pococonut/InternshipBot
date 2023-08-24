@@ -5,4 +5,4 @@ from config import settings
 
 
 bot = Bot(settings.api)
-dp = Dispatcher(bot, storage=MemoryStorage())  # инициализация входящих данных
+dp = Dispatcher(bot, storage=MemoryStorage())

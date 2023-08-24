@@ -1,13 +1,20 @@
-from commands.show import print_stud
-from db.commands import select_chosen_tasks, select_user, user_type
-from keyboard import admin_ikb, task_worker_stud, back_to_std, worker_ikb
-from aiogram import types, Dispatcher
+from create import dp
+from aiogram import types
+from commands.general import print_stud, get_keyboard
+from keyboard import task_worker_stud, back_to_std
+from db.commands import select_chosen_tasks, select_user
 
 
-# ----------------- Просмотр выбранной студентом задачи (для сотрудника) -----------------
+globalDict_pagesTws = dict()
 
 
 def show_stud_task(s, t):
+    """
+    Функция вывода краткой информации о Задаче и Студенте, выбравшем ее.
+    :param s: Строка модели БД, относящаяся к конкретному студенту, с информацией о нем.
+    :param t: Строка модели БД, относящаяся к конкретной задаче, с информацией о ней.
+    :return:
+    """
     v = f"👨‍🎓<b>Студент\ка</b>\n\n" \
         f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n" \
         f"<b>Направление:</b> {s.specialties}\n\n" \
@@ -20,94 +27,69 @@ def show_stud_task(s, t):
     return v
 
 
-globalDict_pagesTws = dict()
-
-
+@dp.callback_query_handler(text=['worker_chosen_tasks', 'tws_right', 'tws_left'])
 async def worker_chosen_t(callback: types.CallbackQuery):
+    """
+    Функция просмотра выбранных студентами задач для сотрудника.
+    """
     tasks = select_chosen_tasks(callback.from_user.id)
-    u_type = user_type(callback.from_user.id)
-    print(u_type)
-
-    if u_type[0] in ('admin', 'director'):
-        keyboard = admin_ikb
-    elif u_type[0] == 'worker':
-        keyboard = worker_ikb
-
+    keyboard = get_keyboard(callback.from_user.id)
     if not tasks:
         await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=keyboard)
+        await callback.answer()
     else:
         usr_id = str(callback.from_user.id)
+        count_tasks = len(tasks)
+
         if usr_id not in globalDict_pagesTws:
             globalDict_pagesTws[usr_id] = 0
 
-        count_tasks = len(tasks)
-        student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
-        if not student:
-            await callback.message.edit_text('Заявки студентов не были рассмотрены.', reply_markup=keyboard)
+        if callback.data == 'worker_chosen_tasks':
+            student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
+            if not student:
+                await callback.message.edit_text('Заявки студентов не были рассмотрены.', reply_markup=keyboard)
+                await callback.answer()
+            else:
+                await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n" +
+                                                 show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
+                                                 parse_mode='HTML',
+                                                 reply_markup=task_worker_stud,
+                                                 disable_web_page_preview=True)
         else:
-            await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n" +
-                                             show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
+            if callback.data == 'tws_right':
+                globalDict_pagesTws[usr_id] += 1
+                if globalDict_pagesTws[usr_id] == count_tasks:
+                    globalDict_pagesTws[usr_id] = 0
+                p_tws = globalDict_pagesTws[usr_id]
+                if globalDict_pagesTws[usr_id] <= -1:
+                    p_tws = count_tasks + globalDict_pagesTws[usr_id]
+                s = f"<b>№</b> {p_tws + 1}/{count_tasks}\n\n"
+
+            if callback.data == 'tws_left':
+                globalDict_pagesTws[usr_id] -= 1
+                p_tws = 0
+                if globalDict_pagesTws[usr_id] == (-1) * count_tasks:
+                    globalDict_pagesTws[usr_id] = 0
+                print(globalDict_pagesTws[usr_id])
+                if globalDict_pagesTws[usr_id] <= -1:
+                    p_tws = count_tasks
+                s = f"<b>№</b> {(p_tws + globalDict_pagesTws[usr_id]) + 1}/{count_tasks}\n\n"
+
+            student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
+            print(globalDict_pagesTws)
+            await callback.message.edit_text(s + show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
                                              parse_mode='HTML',
                                              reply_markup=task_worker_stud,
                                              disable_web_page_preview=True)
 
 
-async def task_ws_show(callback: types.CallbackQuery):
-    tasks = select_chosen_tasks(callback.from_user.id)
-    u_type = user_type(callback.from_user.id)
-    print(u_type)
-
-    if u_type[0] in ('admin', 'director'):
-        keyboard = admin_ikb
-    elif u_type[0] == 'worker':
-        keyboard = worker_ikb
-
-    if not tasks:
-        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=keyboard)
-    else:
-        usr_id = str(callback.from_user.id)
-        if usr_id not in globalDict_pagesTws:
-            globalDict_pagesTws[usr_id] = 0
-
-        count_tasks = len(tasks)
-        s = ''
-        if callback.data == 'tws_right':
-            globalDict_pagesTws[usr_id] += 1
-            if globalDict_pagesTws[usr_id] == count_tasks:
-                globalDict_pagesTws[usr_id] = 0
-            p_tws = globalDict_pagesTws[usr_id]
-            if globalDict_pagesTws[usr_id] <= -1:
-                p_tws = count_tasks + globalDict_pagesTws[usr_id]
-            s = f"<b>№</b> {p_tws + 1}/{count_tasks}\n\n"
-
-        if callback.data == 'tws_left':
-            globalDict_pagesTws[usr_id] -= 1
-            p_tws = 0
-            if globalDict_pagesTws[usr_id] == (-1) * count_tasks:
-                globalDict_pagesTws[usr_id] = 0
-            print(globalDict_pagesTws[usr_id])
-            if globalDict_pagesTws[usr_id] <= -1:
-                p_tws = count_tasks
-
-            s = f"<b>№</b> {(p_tws + globalDict_pagesTws[usr_id]) + 1}/{count_tasks}\n\n"
-
-        student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
-        print(globalDict_pagesTws)
-        await callback.message.edit_text(s + show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
-                                         parse_mode='HTML',
-                                         reply_markup=task_worker_stud,
-                                         disable_web_page_preview=True)
-
-
+@dp.callback_query_handler(text='tws_student')
 async def show_more_stud(callback: types.CallbackQuery):
+    """
+    Функция просмотра подробной информации о студенте.
+    """
     tasks = select_chosen_tasks(callback.from_user.id)
-    usr_id = str(callback.from_user.id)
+    usr_id = callback.from_user.id
     student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
     await callback.message.edit_text(f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student), parse_mode='HTML',
                                      reply_markup=back_to_std)
-
-
-def register_handlers_task_selected_worker(dp: Dispatcher):
-    dp.register_callback_query_handler(worker_chosen_t, text='worker_chosen_tasks')
-    dp.register_callback_query_handler(task_ws_show, text=['tws_right', 'tws_left'])
-    dp.register_callback_query_handler(show_more_stud, text='tws_student')

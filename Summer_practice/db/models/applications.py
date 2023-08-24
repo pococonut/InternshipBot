@@ -1,7 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, Boolean, String
-from dotenv import load_dotenv
-from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
-from config import settings
+from sqlalchemy import Column, Integer, Boolean, String
 from db.models.user import Base
 
 
@@ -25,6 +22,4 @@ class Application(Base):
 
     approve = Column(Boolean)
 
-
-#Base.metadata.create_all(bind=engine)
 

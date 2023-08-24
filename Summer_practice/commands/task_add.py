@@ -1,11 +1,10 @@
-from commands.back import back_func
-from db.commands import user_type, add_task
-from keyboard import admin_ikb, worker_ikb, back_ikb, back_cont_task_ikb
-from aiogram import types, Dispatcher
+from create import dp
+from aiogram import types
 from aiogram.dispatcher import FSMContext
+from db.commands import user_type, add_task
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from keyboard import admin_ikb, worker_ikb, back_ikb, back_cont_task_ikb
 
-# ------------------------- Добавление задачи -------------------------
 
 FORM_task = """Для добавления новой задачи необходимо ввести:
 
@@ -33,58 +32,130 @@ class Task(StatesGroup):
     materials = State()
 
 
+@dp.callback_query_handler(text='add_task')
 async def add_t(callback: types.CallbackQuery):
     await callback.message.edit_text(FORM_task, parse_mode='HTML', reply_markup=back_cont_task_ikb)
 
 
-async def cont_task_command(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Введите назание задачи.", parse_mode='HTML', reply_markup=back_ikb)
+@dp.callback_query_handler(text='continue_task', state="*")
+async def cont_task_command(callback: types.CallbackQuery):
+    """
+    Функция начала ввода параметров задачи.
+    """
+
+    await callback.message.edit_text("Введите название задачи.", parse_mode='HTML', reply_markup=back_ikb)
     await Task.task_name.set()
 
 
+@dp.message_handler(state=Task.task_name)
 async def add_task_name(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Название.
+    """
+    if len(message.text.split()) > 20:
+        await message.answer('Количество слов параметра <em>Название</em> превышает максимальное значение'
+                             ' - 20 слов', parse_mode='HTML')
+        return
     await state.update_data(task_name=message.text)
     await message.answer('Введите цель работы.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.task_goal)
 async def add_task_goal(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Цель задачи.
+    """
+    if len(message.text.split()) > 50:
+        await message.answer('Количество слов параметра <em>Цель задачи</em> превышает максимальное значение'
+                             ' - 50 слов', parse_mode='HTML')
+        return
     await state.update_data(task_goal=message.text)
     await message.answer('Введите описание работы.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.task_description)
 async def add_task_description(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Описание задачи.
+    """
+    if len(message.text.split()) > 200:
+        await message.answer('Количество слов параметра <em>Описание задачи</em> превышает максимальное значение'
+                             ' - 200 слов', parse_mode='HTML')
+        return
     await state.update_data(task_description=message.text)
     await message.answer('Введите задачи работы.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.task_tasks)
 async def add_task_tasks(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Подзадачи.
+    """
+    if len(message.text.split()) > 500:
+        await message.answer('Количество слов параметра <em>Описание задачи</em> превышает максимальное значение'
+                             ' - 500 слов', parse_mode='HTML')
+        return
     await state.update_data(task_tasks=message.text)
     await message.answer('Введите необходимые навыки и технологии.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.task_technologies)
 async def add_task_technologies(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Необходимые навыки и технологии.
+    """
+    if len(message.text.split()) > 200:
+        await message.answer('Количество слов параметра <em>Необходимые навыки и технологии</em> превышает максимальное'
+                             ' значение - 200 слов', parse_mode='HTML')
+        return
     await state.update_data(task_technologies=message.text)
-    await message.answer('Введите навыки, получаемые в процессе проходения практики.')
+    await message.answer('Введите навыки, получаемые в процессе прохождения практики.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.task_new_skills)
 async def add_task_new_skills(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Навыки, получаемые в процессе прохождения практики.
+    """
+    if len(message.text.split()) > 200:
+        await message.answer('Количество слов параметра <em>Навыки, получаемые в процессе прохождения практики</em>'
+                             ' превышает максимальное значение - 200 слов', parse_mode='HTML')
+        return
     await state.update_data(task_new_skills=message.text)
     await message.answer('Введите количество человек.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.num_people)
 async def add_task_num_people(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Количество человек.
+    """
+    if len(message.text.split()) > 1 or any(chr.isalpha() for chr in message.text):
+        await message.answer('Параметр введен в некорректном формате. Повторите ввод')
+        return
+    if int(message.text) > 5:
+        await message.answer('Количество человек превышает максимальное значение - 5 человек.')
+        return
     await state.update_data(num_people=message.text)
     await message.answer('Введите материалы.')
     await Task.next()
 
 
+@dp.message_handler(state=Task.materials)
 async def add_task_materials(message: types.Message, state=FSMContext):
+    """
+    Функция получения параметра задачи - Материалы.
+    """
+    if len(message.text.split()) > 200:
+        await message.answer('Количество слов параметра <em>Материалы</em> превышает максимальное значение - 200 слов',
+                             parse_mode='HTML')
+        return
     await state.update_data(materials=str(message.text))
     data = await state.get_data()
     task = add_task(message.from_id, data)
@@ -104,17 +175,3 @@ async def add_task_materials(message: types.Message, state=FSMContext):
                              f'<b>Материалы:</b>\n{str(data["materials"])}', parse_mode='HTML',
                              reply_markup=keyboard, disable_web_page_preview=True)
     await state.finish()
-
-
-def register_handlers_task_add(dp: Dispatcher):
-    dp.register_callback_query_handler(add_t, text='add_task')
-    dp.register_callback_query_handler(cont_task_command, text='continue_task', state="*")
-    dp.register_message_handler(add_task_name, state=Task.task_name)
-    dp.register_message_handler(add_task_goal, state=Task.task_goal)
-    dp.register_message_handler(add_task_description, state=Task.task_description)
-    dp.register_message_handler(add_task_tasks, state=Task.task_tasks)
-    dp.register_message_handler(add_task_technologies, state=Task.task_technologies)
-    dp.register_message_handler(add_task_new_skills, state=Task.task_new_skills)
-    dp.register_message_handler(add_task_num_people, state=Task.num_people)
-    dp.register_message_handler(add_task_materials, state=Task.materials)
-    dp.register_callback_query_handler(back_func, text='back', state="*")

@@ -1,16 +1,16 @@
-from commands.back import back_func
-from db.commands import user_type, stud_approve, select_user, register_student
-from keyboard import back_cont_ikb, admin_ikb, worker_ikb, stud_is_approve, ikb_3, back_ikb
-from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import StatesGroup, State
-import phonenumbers
-import string
 import re
+import string
+import phonenumbers
+from create import dp
+from aiogram import types
+from aiogram.dispatcher import FSMContext
+from keyboard import back_cont_ikb, ikb_3, back_ikb
+from db.commands import select_user, registration_user
+from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
 FORM = """
-Для подачи заявки необходиммо ввести следующие данные:
+Для подачи заявки необходимо ввести следующие данные:
 
 <em>ФИО
 Номер телефона
@@ -26,8 +26,6 @@ FORM = """
 <b>отдельными сообщениями</b>.
 """
 
-# ---------------- Регистрация\подача заявки для студента ----------------
-
 
 class Student(StatesGroup):
     student_name = State()
@@ -42,37 +40,29 @@ class Student(StatesGroup):
     knowledge = State()
 
 
-async def registration_command(message: types.Message):
-    user_exist = user_type(message.from_user.id)
-    if not user_exist:
-        await message.answer(FORM, parse_mode='HTML', reply_markup=back_cont_ikb)
-    else:
-        usr = {'student': 'студент',
-               'admin': 'администратор',
-               'director': 'директор',
-               'worker': 'сотрудник'}
-
-        if user_exist[0] == 'student':
-            approve = stud_approve(message.from_user.id)
-            if approve is not None and approve[0]:
-                keyboard = stud_is_approve
-            else:
-                keyboard = ikb_3
-        elif user_exist[0] in ('admin', 'director'):
-                keyboard = admin_ikb
-        elif user_exist[0] == 'worker':
-                keyboard = worker_ikb
-
-        await message.answer(f'Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
+@dp.callback_query_handler(text='student')
+async def registration_command(callback: types.CallbackQuery):
+    """
+    Функция вывода сообщения для ознакомления с необходимыми для подачи заявки параметрами.
+    """
+    await callback.message.edit_text(FORM, parse_mode='HTML', reply_markup=back_cont_ikb)
 
 
-async def cont_command(callback: types.CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(text='continue', state="*")
+async def cont_command(callback: types.CallbackQuery):
+    """
+    Функция начала ввода параметров заявки.
+    """
     await callback.message.edit_text("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>",
                                      parse_mode='HTML', reply_markup=back_ikb)
     await Student.student_name.set()
 
 
+@dp.message_handler(state=Student.student_name)
 async def get_student_name(message: types.Message, state: FSMContext):
+    """
+    Функция получения и проверки параметра заявки - ФИО.
+    """
     student_exist = select_user(message.from_user.id)
     if student_exist:
         await state.finish()
@@ -83,11 +73,15 @@ async def get_student_name(message: types.Message, state: FSMContext):
             await message.answer('ФИО введено в некорректном формате', parse_mode='HTML')
             return
         await state.update_data(student_name=" ".join([i.capitalize() for i in message.text.split()]))
-        await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <em>+79963833254</em>", parse_mode='HTML')
+        await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <code><em>+79999999999</em></code>", parse_mode='HTML')
         await Student.next()
 
 
+@dp.message_handler(state=Student.phone)
 async def get_phone(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Номер телефона.
+    """
     try:
         phonenumbers.parse(message.text)
         await state.update_data(phone=message.text.upper())
@@ -98,7 +92,11 @@ async def get_phone(message: types.Message, state=FSMContext):
         return
 
 
+@dp.message_handler(state=Student.university)
 async def get_university(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Университет.
+    """
     if len(message.text.split()) != 1 or any(chr.isdigit() for chr in message.text) or any(
             chr in string.punctuation for chr in message.text):
         await message.answer('ВУЗ введен в некорректном формате', parse_mode='HTML')
@@ -109,7 +107,11 @@ async def get_university(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.faculty)
 async def get_faculty(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Факультет.
+    """
     if any(chr.isdigit() for chr in message.text) or any(chr in string.punctuation for chr in message.text):
         await message.answer('Факультет введен в некорректном формате', parse_mode='HTML')
         return
@@ -119,7 +121,11 @@ async def get_faculty(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.specialties)
 async def get_specialties(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Специальность.
+    """
     if any(chr.isdigit() for chr in message.text) or any(chr in string.punctuation for chr in message.text):
         await message.answer('Направление введено в некорректном формате', parse_mode='HTML')
         return
@@ -129,7 +135,11 @@ async def get_specialties(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.department)
 async def get_department(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Кафедра.
+    """
     if any(chr.isdigit() for chr in message.text) or any(chr in string.punctuation for chr in message.text):
         await message.answer('Кафедра введена в некорректном формате', parse_mode='HTML')
         return
@@ -138,7 +148,11 @@ async def get_department(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.course)
 async def get_course(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Курс.
+    """
     if len(message.text) != 1 or any(chr.isalpha() for chr in message.text) or any(
             chr in string.punctuation for chr in message.text):
         await message.answer('Курс введен в некорректном формате', parse_mode='HTML')
@@ -148,7 +162,11 @@ async def get_course(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.group)
 async def get_group(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Группа.
+    """
     if (re.fullmatch('\d{,3}\D\d', message.text) is None) or any(chr.isalpha() for chr in message.text) or any(
             chr in string.punctuation.replace('/', '') for chr in message.text) or ' ' in message.text:
         await message.answer('Группа введена в некорректном формате', parse_mode='HTML')
@@ -161,7 +179,11 @@ async def get_group(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.coursework)
 async def get_coursework(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Курсовые.
+    """
     if len(message.text.split()) > 200:
         await message.answer('Количество слов превышает допустимое значение - 200 слов', parse_mode='HTML')
         return
@@ -172,7 +194,11 @@ async def get_coursework(message: types.Message, state=FSMContext):
     await Student.next()
 
 
+@dp.message_handler(state=Student.knowledge)
 async def get_knowledge(message: types.Message, state=FSMContext):
+    """
+    Функция получения и проверки параметра заявки - Знания.
+    """
     if len(message.text.split()) > 200:
         await message.answer('Количество слов превышает допустимое значение - 200 слов', parse_mode='HTML')
         return
@@ -180,7 +206,7 @@ async def get_knowledge(message: types.Message, state=FSMContext):
     data = await state.get_data()
     await message.answer(f"🧑‍💻<b>Ваши данные</b>\n\n"
                          f"<b>ФИО:</b> {data['student_name']}\n\n"
-                         f"<b>Номер телефона:</b> {data['phone']}\n\n"
+                         f"<b>Номер телефона:</b> <code>{data['phone']}</code>\n\n"
                          f"<b>ВУЗ:</b> {data['university']}\n\n"
                          f"<b>Факультет:</b> {data['faculty']}\n\n"
                          f"<b>Специальность:</b> {data['specialties']}\n\n"
@@ -189,26 +215,10 @@ async def get_knowledge(message: types.Message, state=FSMContext):
                          f"<b>Группа:</b> {data['group']}\n\n"
                          f"<b>Курсовые:</b> {data['coursework']}\n\n"
                          f"<b>Знания:</b> {data['knowledge']}\n\n", parse_mode='HTML')
-    student = register_student(message.from_user.id, data)
+    student = registration_user(message.from_user.id, 'student', data)
     if student:
         await message.answer(f'Регистрация окончена.\n\n'
                              f'После рассмотрения заявки сотрудниками, вам придет уведомление.', parse_mode='HTML',
                              reply_markup=ikb_3)
     await state.finish()
 
-
-
-def register_handlers_registration(dp: Dispatcher):
-    dp.register_message_handler(registration_command, commands=['student'])
-    dp.register_callback_query_handler(cont_command, text='continue', state="*")
-    dp.register_message_handler(get_student_name, state=Student.student_name)
-    dp.register_message_handler(get_phone, state=Student.phone)
-    dp.register_message_handler(get_university, state=Student.university)
-    dp.register_message_handler(get_faculty, state=Student.faculty)
-    dp.register_message_handler(get_specialties, state=Student.specialties)
-    dp.register_message_handler(get_department, state=Student.department)
-    dp.register_message_handler(get_course, state=Student.course)
-    dp.register_message_handler(get_group, state=Student.group)
-    dp.register_message_handler(get_coursework, state=Student.coursework)
-    dp.register_message_handler(get_knowledge, state=Student.knowledge)
-    dp.register_callback_query_handler(back_func, text='back', state="*")

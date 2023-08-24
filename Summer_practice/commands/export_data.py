@@ -1,19 +1,25 @@
-from db.commands import stud_approve, select_added_users, select_task, select_user, select_all_users
-from keyboard import exp_ikb
-from aiogram import types, Dispatcher
 import openpyxl
+from create import dp
+from aiogram import types
+from keyboard import exp_ikb
+from db.commands import stud_approve, select_added_users, select_task, select_user, select_all_users
 
 
-# ------------------- Экспорт данных -------------------
-
+@dp.callback_query_handler(text='export')
 async def export(callback: types.CallbackQuery):
+    """
+    Функция возвращающая клавиатуру со списком данных, доступных для получения в виде excel-файла.
+    """
     await callback.message.edit_text("Выберите команду.", parse_mode='HTML', reply_markup=exp_ikb)
 
 
+@dp.callback_query_handler(text='exp_task')
 async def export_task(callback: types.CallbackQuery):
+    """
+    Функция возвращающая excel-файл с параметрами добавленных задач.
+    """
     tasks = select_task()
     wb = openpyxl.Workbook()
-
     sheet = wb.active
     sheet.title = "Задачи"
 
@@ -78,10 +84,13 @@ async def export_task(callback: types.CallbackQuery):
     await callback.message.answer_document(doc)
 
 
+@dp.callback_query_handler(text='exp_worker')
 async def export_worker(callback: types.CallbackQuery):
-
+    """
+    Функция возвращающая excel-файл с авторизированными сотрудниками.
+    """
+    workers = select_all_users()
     wb = openpyxl.Workbook()
-
     sheet = wb.active
     sheet.title = "Сотрудники"
 
@@ -99,8 +108,6 @@ async def export_worker(callback: types.CallbackQuery):
     c6.value = "Логин"
     c7 = sheet.cell(row=1, column=7)
     c7.value = "Пароль"
-
-    workers = select_all_users()
 
     i = 2
     for w in range(2, len(workers) + 2):
@@ -138,10 +145,13 @@ async def export_worker(callback: types.CallbackQuery):
     await callback.message.answer_document(doc)
 
 
+@dp.callback_query_handler(text='exp_appl')
 async def export_applications(callback: types.CallbackQuery):
-
+    """
+    Функция возвращающая excel-файл с параметрами заявок студентов.
+    """
+    students = select_all_users()
     wb = openpyxl.Workbook()
-
     sheet = wb.active
     sheet.title = "Заявки"
 
@@ -165,8 +175,6 @@ async def export_applications(callback: types.CallbackQuery):
     c9.value = "Курсовые"
     c10 = sheet.cell(row=1, column=10)
     c10.value = "Знания"
-
-    students = select_all_users()
 
     i = 2
     for a in range(2, len(students) + 2):
@@ -213,10 +221,13 @@ async def export_applications(callback: types.CallbackQuery):
     await callback.message.answer_document(doc)
 
 
+@dp.callback_query_handler(text='exp_approved')
 async def export_approved(callback: types.CallbackQuery):
-
+    """
+    Функция возвращающая excel-файл с параметрами одобренных заявок студентов.
+    """
+    students = select_all_users()
     wb = openpyxl.Workbook()
-
     sheet = wb.active
     sheet.title = "Заявки"
 
@@ -240,8 +251,6 @@ async def export_approved(callback: types.CallbackQuery):
     c9.value = "Курсовые"
     c10 = sheet.cell(row=1, column=10)
     c10.value = "Знания"
-
-    students = select_all_users()
 
     i = 2
     for s in range(2, len(students) + 2):
@@ -288,10 +297,13 @@ async def export_approved(callback: types.CallbackQuery):
     await callback.message.answer_document(doc)
 
 
+@dp.callback_query_handler(text='exp_added')
 async def export_added(callback: types.CallbackQuery):
-
+    """
+    Функция возвращающая excel-файл с добавленными аккаунтами.
+    """
+    added_users = select_added_users()
     wb = openpyxl.Workbook()
-
     sheet = wb.active
     sheet.title = "Добавленные аккаунты"
 
@@ -301,9 +313,9 @@ async def export_added(callback: types.CallbackQuery):
     c2.value = "Пароль"
     c3 = sheet.cell(row=1, column=3)
     c3.value = "Тип"
+    c4 = sheet.cell(row=1, column=4)
+    c4.value = "ФИО"
 
-    added_users = select_added_users()
-    print(len(added_users))
     for i in range(2, len(added_users) + 2):
         index = i - 2
         print(added_users[index].type)
@@ -316,17 +328,11 @@ async def export_added(callback: types.CallbackQuery):
         s3 = sheet.cell(row=i, column=3)
         s3.value = added_users[index].type
 
+        s4 = sheet.cell(row=i, column=4)
+        s4.value = added_users[index].name_usr
+
     wb.save(r"files\Добавленные аккаунты.xlsx")
     doc = open(r"files\Добавленные аккаунты.xlsx", 'rb')
 
     await callback.answer()
     await callback.message.answer_document(doc)
-
-
-def register_handlers_export(dp: Dispatcher):
-    dp.register_callback_query_handler(export, text='export')
-    dp.register_callback_query_handler(export_task, text='exp_task')
-    dp.register_callback_query_handler(export_worker, text='exp_worker')
-    dp.register_callback_query_handler(export_applications, text='exp_appl')
-    dp.register_callback_query_handler(export_approved, text='exp_approved')
-    dp.register_callback_query_handler(export_added, text='exp_added')

@@ -1,83 +1,63 @@
-from sqlalchemy.exc import IntegrityError
-from db.models.user import User, Student, Worker, Admin, Director, session
-from db.models.internship import Task, InternshipTask, Internship
-from db.models.applications import Application
 import datetime
-
 from db.models.user_add import AddedUser
+from sqlalchemy.exc import IntegrityError
+from db.models.applications import Application
+from db.models.internship import Task, InternshipTask, Internship
+from db.models.user import User, Student, Worker, Admin, Director, session
 
 
-def register_student(s_id, *args):
-    student = Student(telegram_id=str(s_id),
-                      student_name=args[0]['student_name'],
-                      name=args[0]['student_name'],
-                      phone=args[0]['phone'],
-                      university=args[0]['university'],
-                      faculty=args[0]['faculty'],
-                      specialties=args[0]['specialties'],
-                      department=args[0]['department'],
-                      course=args[0]['course'],
-                      group=args[0]['group'],
-                      coursework=args[0]['coursework'],
-                      knowledge=args[0]['knowledge']
-                      )
+def registration_user(s_id, u_type='student', *args):
+    user = None
+    who = False
+    if u_type == 'student':
+        user = Student(telegram_id=str(s_id),
+                       student_name=args[0]['student_name'],
+                       name=args[0]['student_name'],
+                       phone=args[0]['phone'],
+                       university=args[0]['university'],
+                       faculty=args[0]['faculty'],
+                       specialties=args[0]['specialties'],
+                       department=args[0]['department'],
+                       course=args[0]['course'],
+                       group=args[0]['group'],
+                       coursework=args[0]['coursework'],
+                       knowledge=args[0]['knowledge']
+                       )
+        who = True
+    elif u_type == 'admin':
+        user = Admin(telegram_id=str(s_id),
+                     admin_name=args[0]['name'],
+                     name=args[0]['name'],
+                     phone=args[0]['phone'],
+                     login=args[0]['login'],
+                     password=args[0]['password'],
+                     )
+        who = 'администратор'
 
-    session.add(student)
-
-    try:
-        session.commit()
-        return True
-    except IntegrityError:
-        session.rollback()  # откатываем session.add(user)
-        return False
-
-
-def register_admin(s_id, *args):
-    admin = Admin(telegram_id=str(s_id),
-                  admin_name=args[0]['name'],
-                  name=args[0]['name'],
-                  phone=args[0]['phone'],
-                  login=args[0]['login'],
-                  password=args[0]['password'],
-                  )
-    session.add(admin)
-    try:
-        session.commit()
-        return True
-    except IntegrityError:
-        session.rollback()  # откатываем session.add(user)
-        return False
-
-
-def register_director(s_id, *args):
-    director = Director(telegram_id=str(s_id),
+    elif u_type == 'director':
+        user = Director(telegram_id=str(s_id),
                         director_name=args[0]['name'],
                         name=args[0]['name'],
                         phone=args[0]['phone'],
                         login=args[0]['login'],
                         password=args[0]['password'],
                         )
-    session.add(director)
+        who = 'директор'
+
+    elif u_type == 'worker':
+        user = Worker(telegram_id=str(s_id),
+                      worker_name=args[0]['name'],
+                      name=args[0]['name'],
+                      phone=args[0]['phone'],
+                      login=args[0]['login'],
+                      password=args[0]['password'],
+                      )
+        who = 'сотрудник'
+
+    session.add(user)
     try:
         session.commit()
-        return True
-    except IntegrityError:
-        session.rollback()
-        return False
-
-
-def register_worker(s_id, *args):
-    worker = Worker(telegram_id=str(s_id),
-                    worker_name=args[0]['name'],
-                    name=args[0]['name'],
-                    phone=args[0]['phone'],
-                    login=args[0]['login'],
-                    password=args[0]['password'],
-                    )
-    session.add(worker)
-    try:
-        session.commit()
-        return True
+        return who
     except Exception as e:
         print(e)
         session.rollback()
@@ -282,37 +262,37 @@ def change_name_added(login, new_val):
     session.commit()
 
 
-def change_inform(id, type, column, new_val):
+def change_inform(t_id, u_type, column, new_val):
     if column in User.__table__.columns:
-        session.query(User).filter(User.telegram_id == str(id)).update({f'{column}': new_val})
+        session.query(User).filter(User.telegram_id == str(t_id)).update({f'{column}': new_val})
     else:
-        if type == 'student':
-            session.query(Student).filter(Student.telegram_id == str(id)).update({f'{column}': new_val})
+        if u_type == 'student':
+            session.query(Student).filter(Student.telegram_id == str(t_id)).update({f'{column}': new_val})
         else:
-            session.query(User).filter(User.telegram_id == str(id)).update({f'name': new_val})
+            session.query(User).filter(User.telegram_id == str(t_id)).update({f'name': new_val})
 
-            if type == 'admin':
-                session.query(Admin).filter(Admin.telegram_id == str(id)).update({f'admin_name': new_val})
-            elif type == 'worker':
-                session.query(Worker).filter(Worker.telegram_id == str(id)).update({f'worker_name': new_val})
-            elif type == 'director':
-                session.query(Director).filter(Director.telegram_id == str(id)).update({f'director_name': new_val})
+            if u_type == 'admin':
+                session.query(Admin).filter(Admin.telegram_id == str(t_id)).update({f'admin_name': new_val})
+            elif u_type == 'worker':
+                session.query(Worker).filter(Worker.telegram_id == str(t_id)).update({f'worker_name': new_val})
+            elif u_type == 'director':
+                session.query(Director).filter(Director.telegram_id == str(t_id)).update({f'director_name': new_val})
 
-    session.query(User).filter(User.telegram_id == str(id)).update({'upd_date': datetime.date.today()})
+    session.query(User).filter(User.telegram_id == str(t_id)).update({'upd_date': datetime.date.today()})
     session.commit()
 
 
 def del_task(t_id):
     try:
-        x1 = session.query(InternshipTask).filter(InternshipTask.task_id == t_id).one()
+        x1 = session.query(InternshipTask).filter(InternshipTask.task_id == str(t_id)).one()
         session.delete(x1)
         session.commit()
 
-        x2 = session.query(Task).filter(Task.task_id == t_id).one()
+        x2 = session.query(Task).filter(Task.task_id == str(t_id)).one()
         session.delete(x2)
         session.commit()
 
-        x3 = session.query(Internship).filter(Internship.internship_id == t_id).one()
+        x3 = session.query(Internship).filter(Internship.internship_id == str(t_id)).one()
         session.delete(x3)
         session.commit()
 
@@ -322,7 +302,7 @@ def del_task(t_id):
 
 def del_added(a_id):
     try:
-        x1 = session.query(AddedUser).filter(AddedUser.id == a_id).one()
+        x1 = session.query(AddedUser).filter(AddedUser.id == str(a_id)).one()
         session.delete(x1)
         session.commit()
     except Exception as e:
