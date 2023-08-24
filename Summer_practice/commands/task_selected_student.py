@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from commands.general import ConfirmDeletion
 from commands.task_actions import short_long_task
 from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve
-from db.commands import select_already_get_stud, select_worker_reject, change_task_stud, select_user
+from db.commands import select_already_get_stud, change_task_stud, select_user
 
 
 @dp.callback_query_handler(text='stud_chosen_tasks')
@@ -42,8 +42,8 @@ async def stud_reject_t_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     print('!!!!!!!!')
     await state.update_data(delete=callback.data)
-    worker_id = select_worker_reject(callback.from_user.id).from_id
-    task_name = select_worker_reject(callback.from_user.id).task_name
+    worker_id = select_already_get_stud(callback.from_user.id).from_id
+    task_name = select_already_get_stud(callback.from_user.id).task_name
     change_task_stud(callback.from_user.id, 'student_id', None)
     student_name = select_user(callback.from_user.id).name
     await bot.send_message(worker_id, f'Студент\ка <a href="tg://user?id={callback.from_user.id}">{student_name}</a> '

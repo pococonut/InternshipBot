@@ -6,7 +6,14 @@ from db.models.internship import Task, InternshipTask, Internship
 from db.models.user import User, Student, Worker, Admin, Director, session
 
 
-def registration_user(s_id, u_type='student', *args):
+def registration_user(s_id, u_type, *args):
+    """
+    Функция записи данных нового пользователя в модель базы данных.
+    :param s_id: Уникальный идентификатор пользователя в телеграм.
+    :param u_type: Тип пользователя (Администратор, Директор, Сотрудник, Студент)
+    :param args: Словарь с данными о пользователе.
+    :return: Строка соответствующая с типом пользователя, при успешной записи. False при исключении.
+    """
     user = None
     who = False
     if u_type == 'student':
@@ -23,7 +30,7 @@ def registration_user(s_id, u_type='student', *args):
                        coursework=args[0]['coursework'],
                        knowledge=args[0]['knowledge']
                        )
-        who = True
+        who = 'student'
     elif u_type == 'admin':
         user = Admin(telegram_id=str(s_id),
                      admin_name=args[0]['name'],
@@ -65,6 +72,11 @@ def registration_user(s_id, u_type='student', *args):
 
 
 def add_user(*args):
+    """
+    Функция добавления данных нового аккаунта в модель базы данных.
+    :param args: Словарь с параметрами аккаунта.
+    :return: True - при успешной записи, False - при исключении.
+    """
     usr = AddedUser(
         login=args[0]['login'],
         password=args[0]['password'],
@@ -80,6 +92,12 @@ def add_user(*args):
 
 
 def add_task(f_id, *args):
+    """
+    Функция добавления данных задачи в модель базы данных.
+    :param f_id: Уникальный идентификатор пользователя в телеграм, добавившего задачу.
+    :param args: Словарь с параметрами задачи.
+    :return: True - при успешной записи, False - при исключении.
+    """
     task = Task(task_name=args[0]['task_name'],
                 from_id=f_id,
                 task_goal=args[0]['task_goal'],
@@ -98,28 +116,17 @@ def add_task(f_id, *args):
         session.commit()
         return True
     except IntegrityError:
-        session.rollback()  # откатываем session.add(user)
-        return False
-
-
-def add_internship_task(*args):
-    internship_task = InternshipTask(
-        task_name=args[0]['task_name'],
-        task_description=args[0]['task_description'],
-        num_people=args[0]['num_people'],
-        materials=args[0]['materials'],
-    )
-    session.add(internship_task)
-
-    try:
-        session.commit()
-        return True
-    except IntegrityError:
-        session.rollback()  # откатываем session.add(user)
+        session.rollback()
         return False
 
 
 def add_application(stud_id, work_id, b):
+    """
+    Функция добавления результата рассмотрения заявки.
+    :param stud_id: Уникальный идентификатор студента в телеграм.
+    :param work_id: Уникальный идентификатор сотрудника в телеграм, принявшего решение.
+    :param b: Булево значение, True - заявка одобрена, False - заявка отклонена.
+    """
     application = Application(
         student_id=stud_id,
         worker_id=work_id,
@@ -134,6 +141,10 @@ def add_application(stud_id, work_id, b):
 
 
 def select_added_users():
+    """
+    Функция возвращающая все Добавленные аккаунты.
+    :return: Список добавленных аккаунтов.
+    """
     try:
         users = AddedUser.query.all()
     except Exception as e:
@@ -143,6 +154,10 @@ def select_added_users():
 
 
 def select_all_users():
+    """
+    Функция возвращающая всех Пользователей.
+    :return: Список пользователей телеграм бота.
+    """
     try:
         user = User.query.all()
     except Exception as e:
@@ -152,6 +167,11 @@ def select_all_users():
 
 
 def select_user(user_id):
+    """
+    Функция возвращающая информацию о пользователе с соответствующим id.
+    :param user_id: Уникальный идентификатор пользователя в телеграм.
+    :return: Информацию о пользователе.
+    """
     try:
         user = session.query(User).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:
@@ -161,6 +181,10 @@ def select_user(user_id):
 
 
 def select_task():
+    """
+    Функция возвращающая все добавленные задачи.
+    :return: Список задач.
+    """
     try:
         task = Task.query.order_by(Task.task_id.desc()).all()
     except Exception as e:
@@ -170,10 +194,13 @@ def select_task():
 
 
 def select_worker_task(f_id):
+    """
+    Функция возвращающая информацию о задачах, опубликованных пользователем с соответствующим id.
+    :param f_id: Уникальный идентификатор пользователя в телеграм.
+    :return: Список добавленных задач пользователя.
+    """
     try:
         task = session.query(Task).filter(Task.from_id == str(f_id)).order_by(Task.task_id.desc()).all()
-        # user_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
-
     except Exception as e:
         print(e)
         task = False
@@ -181,6 +208,10 @@ def select_worker_task(f_id):
 
 
 def select_task_for_stud():
+    """
+    Функция возвращающая невыбранные студентами задачи.
+    :return: Список невыбранных задач.
+    """
     try:
         task = session.query(Task).filter(Task.student_id == None).order_by(Task.task_id.desc()).all()
     except Exception as e:
@@ -190,17 +221,14 @@ def select_task_for_stud():
 
 
 def select_already_get_stud(s_id):
+    """
+    Функция возвращающая задачу, выбранную студентом.
+    :param s_id: Уникальный идентификатор студента в телеграм.
+    :return: Задача, выбранная пользователем.
+    """
     try:
         task = session.query(Task).filter(Task.student_id == str(s_id)).order_by(Task.task_id.desc()).first()
-    except Exception as e:
-        print(e)
-        task = False
-    return task
 
-
-def select_worker_reject(s_id):
-    try:
-        task = session.query(Task).filter(Task.student_id == str(s_id)).order_by(Task.task_id.desc()).first()
     except Exception as e:
         print(e)
         task = False
@@ -208,6 +236,11 @@ def select_worker_reject(s_id):
 
 
 def select_chosen_tasks(w_id):
+    """
+    Функция возвращающая задачи, которые были выбраны студентами.
+    :param w_id: Уникальный идентификатор сотрудника в телеграм.
+    :return: Список задач, которые были выбраны студентами.
+    """
     try:
         task = session.query(Task).filter(Task.student_id != None, Task.from_id == str(w_id)).order_by(
             Task.task_id.desc()).all()
@@ -218,6 +251,10 @@ def select_chosen_tasks(w_id):
 
 
 def select_students():
+    """
+    Функция выбора всех студентов, оставивших заявки.
+    :return: Список студентов.
+    """
     try:
         students = Student.query.order_by(User.reg_date.desc()).all()
     except Exception as e:
@@ -227,6 +264,10 @@ def select_students():
 
 
 def select_applications():
+    """
+    Функция возвращающая результаты рассмотрения заявок.
+    :return: Список результатов рассмотрения заявок.
+    """
     try:
         applications = Application.query.all()
     except Exception as e:
@@ -235,34 +276,46 @@ def select_applications():
     return applications
 
 
-def select_employee(user_id):
-    try:
-        a_n = session.query(Admin.admin_name).filter(Admin.telegram_id == str(user_id)).first()
-        a_log = session.query(Admin.login).filter(Admin.telegram_id == str(user_id)).first()
-        a_pass = session.query(Admin.password).filter(Admin.telegram_id == str(user_id)).first()
-        adm_authorisation = [a_n, a_log, a_pass]
-    except Exception as e:
-        print(e)
-        adm_authorisation = False
-    return adm_authorisation
-
-
 def change_task(t_id, column, new_val):
+    """
+    Функция изменения параметра задачи на новое значение.
+    :param t_id: Уникальный идентификатор пользователя в телеграм.
+    :param column: Название столбца модели базы данных.
+    :param new_val: Новое значение.
+    """
     session.query(Task).filter(Task.task_id == str(t_id)).update({f'{column}': new_val})
     session.commit()
 
 
 def change_task_stud(s_id, column, new_val):
+    """
+    Функция отказа студента от задачи.
+    :param s_id: Уникальный идентификатор пользователя в телеграм.
+    :param column: Столбец модели базы данных, отвечающий за сохранение id пользователя, выбравшего задачу.
+    :param new_val: Новое значение - None.
+    """
     session.query(Task).filter(Task.student_id == str(s_id)).update({f'{column}': new_val})
     session.commit()
 
 
 def change_name_added(login, new_val):
+    """
+    Функция записи ФИО пользователя при верной авторизации, в соответствующем аккаунте.
+    :param login: Логин аккаунта.
+    :param new_val: Пароль аккаунта.
+    """
     session.query(AddedUser).filter(AddedUser.login == str(login)).update({f'name_usr': new_val})
     session.commit()
 
 
 def change_inform(t_id, u_type, column, new_val):
+    """
+    Функция изменения данных пользователя.
+    :param t_id: Уникальный идентификатор пользователя в телеграм.
+    :param u_type: Тип пользователя (Администратор, Директор, Сотрудник, Студент)
+    :param column: Название столбца.
+    :param new_val: Новое значение.
+    """
     if column in User.__table__.columns:
         session.query(User).filter(User.telegram_id == str(t_id)).update({f'{column}': new_val})
     else:
@@ -283,6 +336,10 @@ def change_inform(t_id, u_type, column, new_val):
 
 
 def del_task(t_id):
+    """
+    Функция удаления задачи
+    :param t_id: Уникальный идентификатор задачи.
+    """
     try:
         x1 = session.query(InternshipTask).filter(InternshipTask.task_id == str(t_id)).one()
         session.delete(x1)
@@ -301,6 +358,11 @@ def del_task(t_id):
 
 
 def del_added(a_id):
+    """
+    Функция удаления добавленного аккаунта.
+    :param a_id: Уникальный идентификатор аккаунта.
+    :return:
+    """
     try:
         x1 = session.query(AddedUser).filter(AddedUser.id == str(a_id)).one()
         session.delete(x1)
@@ -310,6 +372,11 @@ def del_added(a_id):
 
 
 def user_type(user_id):
+    """
+    Функция возвращающая тип пользователя (Администратор, Директор, Сотрудник, Студент).
+    :param user_id: Уникальный идентификатор пользователя.
+    :return: Тип пользователя.
+    """
     try:
         u_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:
@@ -319,6 +386,11 @@ def user_type(user_id):
 
 
 def stud_approve(s_id):
+    """
+    Функция возвращающая результат рассмотрения заявки студента.
+    :param s_id: Уникальный идентификатор студента.
+    :return: Результат рассмотрения заявки.
+    """
     try:
         approve = session.query(Application.approve).filter(Application.student_id == str(s_id)).first()
     except Exception as e:

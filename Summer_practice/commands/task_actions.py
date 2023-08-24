@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from commands.general import ConfirmDeletion, get_keyboard
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import user_type, select_task_for_stud, select_task, select_already_get_stud,  change_task, \
-    del_task, select_worker_reject, select_user
+    del_task, select_user
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
     back_task_ikb, change_task_ikb, del_task_ikb, task_is_approve, selected_task, task_worker_more_ikb, \
     task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all, back_task_w_ikb
@@ -248,7 +248,7 @@ async def stud_get_task(callback: types.CallbackQuery):
     t_id = tasks[globalDict_pages[usr_id]].task_id
     worker_id = tasks[globalDict_pages[usr_id]].from_id
     change_task(t_id, 'student_id', callback.from_user.id)
-    task_name = select_worker_reject(callback.from_user.id).task_name
+    task_name = select_already_get_stud(callback.from_user.id).task_name
     student_name = select_user(callback.from_user.id).name
     await bot.send_message(worker_id, f'Студент\ка <a href="tg://user?id={callback.from_user.id}">{student_name}</a> '
                                       f'<b>выбрал\а</b> задачу <em>{task_name}</em>.',

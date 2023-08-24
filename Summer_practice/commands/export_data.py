@@ -251,50 +251,54 @@ async def export_approved(callback: types.CallbackQuery):
     c9.value = "Курсовые"
     c10 = sheet.cell(row=1, column=10)
     c10.value = "Знания"
-
+    f = 1
     i = 2
     for s in range(2, len(students) + 2):
         index = s - 2
 
-        if stud_approve(students[index].telegram_id):
+        result = stud_approve(students[index].telegram_id)
+        if result is None:
+            await callback.message.edit_text("Данные отсутствуют.", parse_mode='HTML', reply_markup=exp_ikb)
+            f = 0
+        else:
+            if result[0]:
+                s1 = sheet.cell(row=i, column=1)
+                s1.value = students[index].student_name
 
-            s1 = sheet.cell(row=i, column=1)
-            s1.value = students[index].student_name
+                s2 = sheet.cell(row=i, column=2)
+                s2.value = students[index].phone
 
-            s2 = sheet.cell(row=i, column=2)
-            s2.value = students[index].phone
+                s3 = sheet.cell(row=i, column=3)
+                s3.value = students[index].university
 
-            s3 = sheet.cell(row=i, column=3)
-            s3.value = students[index].university
+                s4 = sheet.cell(row=i, column=4)
+                s4.value = students[index].faculty
 
-            s4 = sheet.cell(row=i, column=4)
-            s4.value = students[index].faculty
+                s5 = sheet.cell(row=i, column=5)
+                s5.value = students[index].specialties
 
-            s5 = sheet.cell(row=i, column=5)
-            s5.value = students[index].specialties
+                s6 = sheet.cell(row=i, column=6)
+                s6.value = students[index].department
 
-            s6 = sheet.cell(row=i, column=6)
-            s6.value = students[index].department
+                s7 = sheet.cell(row=i, column=7)
+                s7.value = students[index].course
 
-            s7 = sheet.cell(row=i, column=7)
-            s7.value = students[index].course
+                s8 = sheet.cell(row=i, column=8)
+                s8.value = students[index].group
 
-            s8 = sheet.cell(row=i, column=8)
-            s8.value = students[index].group
+                s9 = sheet.cell(row=i, column=9)
+                s9.value = students[index].coursework
 
-            s9 = sheet.cell(row=i, column=9)
-            s9.value = students[index].coursework
+                s10 = sheet.cell(row=i, column=10)
+                s10.value = students[index].knowledge
 
-            s10 = sheet.cell(row=i, column=10)
-            s10.value = students[index].knowledge
+                i += 1
+    if f:
+        wb.save(r"files\Принятые студенты.xlsx")
+        doc = open(r"files\Принятые студенты.xlsx", 'rb')
+        await callback.answer()
+        await callback.message.answer_document(doc)
 
-            i += 1
-
-    wb.save(r"files\Принятые студенты.xlsx")
-    doc = open(r"files\Принятые студенты.xlsx", 'rb')
-
-    await callback.answer()
-    await callback.message.answer_document(doc)
 
 
 @dp.callback_query_handler(text='exp_added')

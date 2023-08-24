@@ -277,8 +277,6 @@ del_stud_ikb = InlineKeyboardMarkup(row_width=2)
 del_stud_ib1 = InlineKeyboardButton(text="Отклонить", callback_data="reject_yes")
 del_stud_ikb.add(del_stud_ib1, back_b)
 
-
-
 change_ikb = InlineKeyboardMarkup(row_width=2)
 change_ib1 = InlineKeyboardButton(text="ФИО", callback_data="student_name")
 change_ib10 = InlineKeyboardButton(text="Номер телефона", callback_data="phone")
