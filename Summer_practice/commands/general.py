@@ -1,6 +1,6 @@
 from db.commands import user_type, stud_approve
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from keyboard import back_ikb, admin_ikb, worker_ikb, ikb_3, stud_is_approve
+from keyboard import back_ikb, admin_ikb, worker_ikb, student_not_approved, stud_is_approve
 
 
 class ConfirmDeletion(StatesGroup):
@@ -24,7 +24,7 @@ def get_keyboard(t_id):
             k = worker_ikb
         elif u_type[0] == 'student':
             approve = stud_approve(t_id)
-            k = ikb_3
+            k = student_not_approved
             if approve:
                 k = stud_is_approve
     return k
@@ -52,3 +52,35 @@ def print_stud(s, c=None):
             f"<b>Знания:</b> {s.knowledge}\n\n" \
             f"<b>Дата регистрации:</b> {s.reg_date}\n"
     return stud
+
+
+def navigation(direction, page, count):
+    """
+    Функция для навигации по списку объектов.
+    :param direction: Направление (Вперед, Назад).
+    :param page: Текущая номер объекта.
+    :param count: Количество объектов.
+    :return: Строка, Номер объекта.
+    """
+    if 'right' in direction:
+        page += 1
+        if page == count:
+            page = 0
+        num = page
+        if page <= -1:
+            num = count + page
+        s = f"<b>№</b> {num + 1}/{count}\n\n"
+        if 'added' in direction:
+            s = f"*№\\ *{num + 1}/{count}\n\n"
+
+    elif 'left' in direction:
+        page -= 1
+        num = 0
+        if page == (-1) * count:
+            page = 0
+        if page <= -1:
+            num = count
+        s = f"<b>№</b> {(num + page) + 1}/{count}\n\n"
+        if 'added' in direction:
+            s = f"*№\\ *{(num + page) + 1}/{count}\n\n"
+    return s, page

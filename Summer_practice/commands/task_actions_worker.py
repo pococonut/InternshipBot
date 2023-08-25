@@ -1,7 +1,7 @@
 from aiogram import types
 from create import bot, dp
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion
+from commands.general import ConfirmDeletion, navigation
 from commands.general import get_keyboard
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import change_task, del_task, select_worker_task
@@ -25,6 +25,7 @@ async def show_worker_task(callback: types.CallbackQuery):
     """
     usr_id = str(callback.from_user.id)
     tasks = select_worker_task(usr_id)
+
     if not tasks:
         keyboard = get_keyboard(usr_id)
         await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
@@ -47,24 +48,7 @@ async def show_worker_task(callback: types.CallbackQuery):
             await callback.message.edit_text(f"<b>№</b> {pw + 1}/{count_tasks}\n\n" + short_long_task(tasks[globalDict_pagesW[usr_id]]),
                                              parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
         else:
-            if callback.data == 'worker_right':
-                globalDict_pagesW[usr_id] += 1
-                if globalDict_pagesW[usr_id] == count_tasks:
-                    globalDict_pagesW[usr_id] = 0
-                p_rw = globalDict_pagesW[usr_id]
-                if globalDict_pagesW[usr_id] <= -1:
-                    p_rw = count_tasks + globalDict_pagesW[usr_id]
-                s = f"<b>№</b> {p_rw + 1}/{count_tasks}\n\n"
-
-            elif callback.data == 'worker_left':
-                globalDict_pagesW[usr_id] -= 1
-                p_lw = 0
-                if globalDict_pagesW[usr_id] == (-1) * count_tasks:
-                    globalDict_pagesW[usr_id] = 0
-                if globalDict_pagesW[usr_id] <= -1:
-                    p_lw = count_tasks
-                s = f"<b>№</b> {(p_lw + globalDict_pagesW[usr_id]) + 1}/{count_tasks}\n\n"
-
+            s, globalDict_pagesW[usr_id] = navigation(callback.data, globalDict_pagesW[usr_id], count_tasks)
             await callback.message.edit_text(s + short_long_task(tasks[globalDict_pagesW[usr_id]]), parse_mode='HTML',
                                              reply_markup=keyboard, disable_web_page_preview=True)
 
@@ -151,7 +135,12 @@ async def del_worker_t_yes(callback: types.CallbackQuery, state=FSMContext):
     tasks = select_worker_task(callback.from_user.id)
     usr_id = str(callback.from_user.id)
     t_id = tasks[globalDict_pagesW[usr_id]].task_id
+    count_tasks = len(tasks)
     del_task(t_id)
+
+    if count_tasks is not None and (globalDict_pagesW[usr_id] >= count_tasks or globalDict_pagesW[usr_id] < count_tasks):
+        globalDict_pagesW[usr_id] = 0
+
     await state.finish()
     await callback.message.edit_text('Задача удалена', parse_mode='HTML', reply_markup=back_task_own_ikb)
 

@@ -1,7 +1,7 @@
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion
+from commands.general import ConfirmDeletion, navigation
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import add_user, select_added_users, del_added
 from keyboard import back_ikb, types_users, add_usr, added_ikb, del_added_ikb, back_added_ikb, login_added_ikb
@@ -41,7 +41,7 @@ async def add_user_command(callback: types.CallbackQuery):
     await AddUser.login.set()
 
 
-@dp.callback_query_handler(state=AddUser.login)
+@dp.message_handler(state=AddUser.login)
 async def add_login(message: types.Message, state=FSMContext):
     """
     Функция получения параметра аккаунта - Пароль.
@@ -51,7 +51,7 @@ async def add_login(message: types.Message, state=FSMContext):
     await AddUser.next()
 
 
-@dp.callback_query_handler(state=AddUser.password)
+@dp.message_handler(state=AddUser.password)
 async def add_password(message: types.Message, state=FSMContext):
     """
     Функция получения параметра аккаунта - Логин.
@@ -82,7 +82,7 @@ async def add_type(callback: types.CallbackQuery, state=FSMContext):
         await state.finish()
 
 
-@dp.callback_query_handler(text=["show_add_user", "left_added", "right_added"])
+@dp.callback_query_handler(text=["show_added_users", "left_added", "right_added"])
 async def show_added(callback: types.CallbackQuery):
     """
     Функция просмотра добавленных аккаунтов.
@@ -99,11 +99,10 @@ async def show_added(callback: types.CallbackQuery):
         if usr_id not in globalDict_added:
             globalDict_added[usr_id] = 0
 
-        if callback.data == 'show_add_user':
+        if callback.data == 'show_added_users':
             a = globalDict_added[usr_id]
             if globalDict_added[usr_id] <= -1:
                 a = count_added + globalDict_added[usr_id]
-            count_added = len(added_users)
 
             if added_users[a].name_usr is not None:
                 keyboard = login_added_ikb
@@ -115,23 +114,7 @@ async def show_added(callback: types.CallbackQuery):
                                              reply_markup=keyboard,
                                              disable_web_page_preview=True)
         else:
-            if callback.data == 'right_added':
-                globalDict_added[usr_id] += 1
-                if globalDict_added[usr_id] == count_added:
-                    globalDict_added[usr_id] = 0
-                a_r = globalDict_added[usr_id]
-                if globalDict_added[usr_id] <= -1:
-                    a_r = count_added + globalDict_added[usr_id]
-                s = f"*№\\ *{a_r + 1}/{count_added}\n\n"
-
-            if callback.data == 'left_added':
-                globalDict_added[usr_id] -= 1
-                a_l = 0
-                if globalDict_added[usr_id] == (-1) * count_added:
-                    globalDict_added[usr_id] = 0
-                if globalDict_added[usr_id] <= -1:
-                    a_l = count_added
-                s = f"*№\\ *{(a_l + globalDict_added[usr_id]) + 1}/{count_added}\n\n"
+            s, globalDict_added[usr_id] = navigation(callback.data, globalDict_added[usr_id], count_added)
 
             if added_users[globalDict_added[usr_id]].name_usr is not None:
                 keyboard = login_added_ikb
@@ -149,9 +132,7 @@ async def del_a(callback: types.CallbackQuery):
     Функция подтверждения удаления аккаунта.
     """
     await callback.message.edit_reply_markup()
-    usr_id = str(callback.from_user.id)
-    print("delete ", globalDict_added[usr_id] + 1)
-    await callback.message.answer('Удалить данные?', parse_mode='HTML', reply_markup=del_added_ikb)
+    await callback.message.edit_text('Удалить данные?', parse_mode='HTML', reply_markup=del_added_ikb)
     await ConfirmDeletion.delete.set()
 
 
@@ -165,5 +146,10 @@ async def del_a_yes(callback: types.CallbackQuery, state=FSMContext):
     usr_id = str(callback.from_user.id)
     a_id = added[globalDict_added[usr_id]].id
     del_added(a_id)
+    count_added = len(added)
+
+    if count_added is not None and (globalDict_added[usr_id] >= count_added or globalDict_added[usr_id] < count_added):
+        globalDict_added[usr_id] = 0
+
     await state.finish()
     await callback.message.edit_text('Данные удалены', parse_mode='HTML', reply_markup=back_added_ikb)

@@ -1,7 +1,7 @@
 from create import dp
 from aiogram import types
-from commands.general import print_stud, get_keyboard
 from keyboard import task_worker_stud, back_to_std
+from commands.general import print_stud, get_keyboard, navigation
 from db.commands import select_chosen_tasks, select_user
 
 
@@ -56,27 +56,8 @@ async def worker_chosen_t(callback: types.CallbackQuery):
                                                  reply_markup=task_worker_stud,
                                                  disable_web_page_preview=True)
         else:
-            if callback.data == 'tws_right':
-                globalDict_pagesTws[usr_id] += 1
-                if globalDict_pagesTws[usr_id] == count_tasks:
-                    globalDict_pagesTws[usr_id] = 0
-                p_tws = globalDict_pagesTws[usr_id]
-                if globalDict_pagesTws[usr_id] <= -1:
-                    p_tws = count_tasks + globalDict_pagesTws[usr_id]
-                s = f"<b>№</b> {p_tws + 1}/{count_tasks}\n\n"
-
-            if callback.data == 'tws_left':
-                globalDict_pagesTws[usr_id] -= 1
-                p_tws = 0
-                if globalDict_pagesTws[usr_id] == (-1) * count_tasks:
-                    globalDict_pagesTws[usr_id] = 0
-                print(globalDict_pagesTws[usr_id])
-                if globalDict_pagesTws[usr_id] <= -1:
-                    p_tws = count_tasks
-                s = f"<b>№</b> {(p_tws + globalDict_pagesTws[usr_id]) + 1}/{count_tasks}\n\n"
-
+            s, globalDict_pagesTws[usr_id] = navigation(callback.data, globalDict_pagesTws[usr_id], count_tasks)
             student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
-            print(globalDict_pagesTws)
             await callback.message.edit_text(s + show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
                                              parse_mode='HTML',
                                              reply_markup=task_worker_stud,
@@ -89,7 +70,7 @@ async def show_more_stud(callback: types.CallbackQuery):
     Функция просмотра подробной информации о студенте.
     """
     tasks = select_chosen_tasks(callback.from_user.id)
-    usr_id = callback.from_user.id
+    usr_id = str(callback.from_user.id)
     student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
     await callback.message.edit_text(f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student), parse_mode='HTML',
                                      reply_markup=back_to_std)

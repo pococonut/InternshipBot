@@ -4,9 +4,9 @@ import phonenumbers
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from keyboard import back_cont_ikb, ikb_3, back_ikb
 from db.commands import select_user, registration_user
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from keyboard import back_cont_ikb, student_not_approved, back_ikb
 
 
 FORM = """
@@ -219,6 +219,6 @@ async def get_knowledge(message: types.Message, state=FSMContext):
     if student:
         await message.answer(f'Регистрация окончена.\n\n'
                              f'После рассмотрения заявки сотрудниками, вам придет уведомление.', parse_mode='HTML',
-                             reply_markup=ikb_3)
+                             reply_markup=student_not_approved)
     await state.finish()
 
