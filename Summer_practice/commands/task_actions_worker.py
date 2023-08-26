@@ -12,6 +12,13 @@ from keyboard import change_task_ikb, task_worker_own_ikb, task_worker_without_d
 globalDict_pagesW = dict()
 
 
+def get_worker_own_keyboard(s_id):
+    k = task_worker_own_ikb
+    if s_id is not None:
+        k = task_worker_without_del
+    return k
+
+
 class TaskChangeW(StatesGroup):
     num_task = State()
     param = State()
@@ -36,9 +43,7 @@ async def show_worker_task(callback: types.CallbackQuery):
         if usr_id not in globalDict_pagesW:
             globalDict_pagesW[usr_id] = 0
 
-        keyboard = task_worker_own_ikb
-        if tasks[globalDict_pagesW[usr_id]].student_id is not None:
-            keyboard = task_worker_without_del
+        keyboard = get_worker_own_keyboard(tasks[globalDict_pagesW[usr_id]].student_id)
 
         if callback.data == 'worker_task':
             pw = globalDict_pagesW[usr_id]
@@ -49,6 +54,8 @@ async def show_worker_task(callback: types.CallbackQuery):
                                              parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
         else:
             s, globalDict_pagesW[usr_id] = navigation(callback.data, globalDict_pagesW[usr_id], count_tasks)
+            keyboard = get_worker_own_keyboard(tasks[globalDict_pagesW[usr_id]].student_id)
+
             await callback.message.edit_text(s + short_long_task(tasks[globalDict_pagesW[usr_id]]), parse_mode='HTML',
                                              reply_markup=keyboard, disable_web_page_preview=True)
 

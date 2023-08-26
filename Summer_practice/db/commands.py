@@ -220,6 +220,10 @@ def select_task_for_stud():
     return task
 
 
+#session.query(Task).filter(Task.task_id == '36').update({f'student_id': None})
+#session.commit()
+
+
 def select_already_get_stud(s_id):
     """
     Функция возвращающая задачу, выбранную студентом.
@@ -227,8 +231,12 @@ def select_already_get_stud(s_id):
     :return: Задача, выбранная пользователем.
     """
     try:
-        task = session.query(Task).filter(Task.student_id == str(s_id)).order_by(Task.task_id.desc()).first()
-
+        task = session.query(Task).filter(Task.student_id != None).order_by(Task.task_id.desc()).all()
+        for t in task:
+            if str(s_id) in t.student_id:
+                task = t
+            else:
+                task = False
     except Exception as e:
         print(e)
         task = False

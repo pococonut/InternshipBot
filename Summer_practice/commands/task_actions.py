@@ -86,7 +86,14 @@ async def show_task(callback: types.CallbackQuery):
     usr_id = str(callback.from_user.id)
 
     if u_type == 'student':
-        tasks = select_task_for_stud()
+        tasks = select_task()
+        for i in tasks:
+            if i.student_id is not None:
+                print(i.task_name, len(i.student_id.split()))
+            else:
+                print(i.task_name, 'None')
+
+        tasks = [t for t in tasks if t.student_id is None or (len(t.student_id.split()) != int(t.num_people))]
     else:
         tasks = select_task()
 
@@ -114,6 +121,7 @@ async def show_task(callback: types.CallbackQuery):
                 disable_web_page_preview=True)
         else:
             s, globalDict_pages[usr_id] = navigation(callback.data, globalDict_pages[usr_id], count_tasks)
+            keyboard = get_keyboard_task(u_type, tasks[globalDict_pages[usr_id]].student_id, usr_id)
             await callback.message.edit_text(s + short_long_task(tasks[globalDict_pages[usr_id]]),
                                              parse_mode='HTML',
                                              reply_markup=keyboard,
@@ -128,7 +136,8 @@ async def show_more_task(callback: types.CallbackQuery):
     u_type = user_type(callback.from_user.id)[0]
     usr_id = str(callback.from_user.id)
     if u_type == 'student':
-        tasks = select_task_for_stud()
+        tasks = select_task()
+        tasks = [t for t in tasks if t.student_id is None or (len(t.student_id.split()) != int(t.num_people))]
         keyboard = task_student_more_ikb
     else:
         tasks = select_task()
@@ -228,11 +237,19 @@ async def stud_get_task(callback: types.CallbackQuery):
     """
     Функция для фиксирования выбора задачи студентом.
     """
-    tasks = select_task_for_stud()
+    tasks = select_task()
+    tasks = [t for t in tasks if t.student_id is None or (len(t.student_id.split()) != int(t.num_people))]
+
     usr_id = str(callback.from_user.id)
+    print(globalDict_pages)
     t_id = tasks[globalDict_pages[usr_id]].task_id
     worker_id = tasks[globalDict_pages[usr_id]].from_id
-    change_task(t_id, 'student_id', callback.from_user.id)
+
+    if int(tasks[globalDict_pages[usr_id]].num_people) == 1 or tasks[globalDict_pages[usr_id]].student_id is None:
+        change_task(t_id, 'student_id', callback.from_user.id)
+    else:
+        change_task(t_id, 'student_id', tasks[globalDict_pages[usr_id]].student_id + " " + str(callback.from_user.id))
+
     task_name = select_already_get_stud(callback.from_user.id).task_name
     student_name = select_user(callback.from_user.id).name
     await bot.send_message(worker_id, f'Студент\ка <a href="tg://user?id={callback.from_user.id}">{student_name}</a> '

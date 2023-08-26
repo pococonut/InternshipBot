@@ -84,3 +84,4 @@ class InternshipTask(Base):
 
     internship_id = Column(Integer, ForeignKey('internship.internship_id'))
 
+

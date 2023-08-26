@@ -50,7 +50,7 @@ def print_stud(s, c=None):
             f"<b>Группа:</b> {s.group}\n\n" \
             f"<b>Курсовые:</b> {s.coursework}\n\n" \
             f"<b>Знания:</b> {s.knowledge}\n\n" \
-            f"<b>Дата регистрации:</b> {s.reg_date}\n"
+            f"<b>Дата регистрации:</b> {s.reg_date}\n\n"
     return stud
 
 
