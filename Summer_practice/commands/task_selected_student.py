@@ -14,6 +14,7 @@ async def stud_chosen_task(callback: types.CallbackQuery):
     """
     try:
         task = select_already_get_stud(callback.from_user.id)
+        print(task)
         if not task:
             await callback.message.edit_text('Вы еще не выбрали задачу.', reply_markup=stud_is_approve)
             await callback.answer()

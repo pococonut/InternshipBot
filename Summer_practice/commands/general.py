@@ -62,6 +62,7 @@ def navigation(direction, page, count):
     :param count: Количество объектов.
     :return: Строка, Номер объекта.
     """
+    s = ''
     if 'right' in direction:
         page += 1
         if page == count:

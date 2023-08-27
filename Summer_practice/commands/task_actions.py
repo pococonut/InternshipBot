@@ -159,7 +159,7 @@ async def ch_task(callback: types.CallbackQuery):
     Функция возвращающая клавиатуру с доступными для изменения параметрами.
     """
     await callback.message.edit_reply_markup()
-    await callback.message.answer('Выберите параметр который желаете изменить.', reply_markup=change_task_ikb)
+    await callback.message.edit_text('Выберите параметр который желаете изменить.', reply_markup=change_task_ikb)
     await TaskChange.param.set()
 
 

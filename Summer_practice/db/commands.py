@@ -220,10 +220,6 @@ def select_task_for_stud():
     return task
 
 
-#session.query(Task).filter(Task.task_id == '36').update({f'student_id': None})
-#session.commit()
-
-
 def select_already_get_stud(s_id):
     """
     Функция возвращающая задачу, выбранную студентом.
@@ -235,11 +231,14 @@ def select_already_get_stud(s_id):
         for t in task:
             if str(s_id) in t.student_id:
                 task = t
+                break
             else:
                 task = False
     except Exception as e:
         print(e)
         task = False
+    print(task)
+
     return task
 
 
@@ -302,7 +301,18 @@ def change_task_stud(s_id, column, new_val):
     :param column: Столбец модели базы данных, отвечающий за сохранение id пользователя, выбравшего задачу.
     :param new_val: Новое значение - None.
     """
-    session.query(Task).filter(Task.student_id == str(s_id)).update({f'{column}': new_val})
+    s_id = str(s_id)
+    task = session.query(Task).filter(Task.student_id != None).order_by(Task.task_id.desc()).all()
+    for t in task:
+        if t.student_id == s_id:
+            session.query(Task).filter(Task.student_id == s_id).update({f'{column}': new_val})
+            break
+        else:
+            if len(t.student_id.split()) > 1 and s_id in t.student_id:
+                new_s_id = " ".join(t.student_id.replace(s_id, '').strip(' ').split())
+                print(new_s_id)
+                session.query(Task).filter(Task.task_id == t.task_id).update({f'{column}': new_s_id})
+
     session.commit()
 
 
