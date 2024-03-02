@@ -94,63 +94,63 @@ async def export_worker(callback: types.CallbackQuery):
     Функция возвращающая excel-файл с авторизированными сотрудниками.
     """
     workers = select_all_users()
-    wb = openpyxl.Workbook()
-    sheet = wb.active
-    sheet.title = "Сотрудники"
-    f = 0
-
-    c1 = sheet.cell(row=1, column=1)
-    c1.value = "Тип"
-    c2 = sheet.cell(row=1, column=2)
-    c2.value = "Имя"
-    c3 = sheet.cell(row=1, column=3)
-    c3.value = "Номер Телефона"
-    c4 = sheet.cell(row=1, column=4)
-    c4.value = "Дата регистрации"
-    c5 = sheet.cell(row=1, column=5)
-    c5.value = "Дата изменения"
-    c6 = sheet.cell(row=1, column=6)
-    c6.value = "Логин"
-    c7 = sheet.cell(row=1, column=7)
-    c7.value = "Пароль"
-
-    i = 2
-    for w in range(2, len(workers) + 2):
-        index = w - 2
-
-        if workers[index].type != 'student':
-            f = 1
-            s1 = sheet.cell(row=i, column=1)
-            s1.value = workers[index].type
-
-            s2 = sheet.cell(row=i, column=2)
-            s2.value = workers[index].name
-
-            s3 = sheet.cell(row=i, column=3)
-            s3.value = workers[index].phone
-
-            s4 = sheet.cell(row=i, column=4)
-            s4.value = workers[index].reg_date
-
-            s5 = sheet.cell(row=i, column=5)
-            s5.value = workers[index].upd_date
-
-            s6 = sheet.cell(row=i, column=6)
-            s6.value = workers[index].login
-
-            s7 = sheet.cell(row=i, column=7)
-            s7.value = workers[index].password
-
-            i += 1
-
-    if not f:
-        await callback.message.edit_text("Данные отсутствуют.", parse_mode='HTML', reply_markup=exp_ikb)
+    if not workers:
+        await callback.message.edit_text("Данные отсутствуют.", reply_markup=exp_ikb)
     else:
+        wb = openpyxl.Workbook()
+        sheet = wb.active
+        sheet.title = "Сотрудники"
+        f = 0
+
+        c1 = sheet.cell(row=1, column=1)
+        c1.value = "Тип"
+        c2 = sheet.cell(row=1, column=2)
+        c2.value = "Имя"
+        c3 = sheet.cell(row=1, column=3)
+        c3.value = "Номер Телефона"
+        c4 = sheet.cell(row=1, column=4)
+        c4.value = "Дата регистрации"
+        c5 = sheet.cell(row=1, column=5)
+        c5.value = "Дата изменения"
+        c6 = sheet.cell(row=1, column=6)
+        c6.value = "Логин"
+        c7 = sheet.cell(row=1, column=7)
+        c7.value = "Пароль"
+
+        i = 2
+        for w in range(2, len(workers) + 2):
+            index = w - 2
+
+            if workers[index].type != 'student':
+                f = 1
+                s1 = sheet.cell(row=i, column=1)
+                s1.value = workers[index].type
+
+                s2 = sheet.cell(row=i, column=2)
+                s2.value = workers[index].name
+
+                s3 = sheet.cell(row=i, column=3)
+                s3.value = workers[index].phone
+
+                s4 = sheet.cell(row=i, column=4)
+                s4.value = workers[index].reg_date
+
+                s5 = sheet.cell(row=i, column=5)
+                s5.value = workers[index].upd_date
+
+                s6 = sheet.cell(row=i, column=6)
+                s6.value = workers[index].login
+
+                s7 = sheet.cell(row=i, column=7)
+                s7.value = workers[index].password
+
+                i += 1
+
         wb.save(r"files\Сотрудники.xlsx")
         doc = open(r"files\Сотрудники.xlsx", 'rb')
 
-    await callback.answer()
-    await callback.message.answer_document(doc)
+        await callback.answer()
+        await callback.message.answer_document(doc)
 
 
 @dp.callback_query_handler(text='exp_appl')

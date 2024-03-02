@@ -115,7 +115,7 @@ async def change(message: types.Message):
     if keyboard is None:
         await message.answer('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
     else:
-        await message.edit_text(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
+        await message.answer(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
         await ChangeUser.par.set()
 
 

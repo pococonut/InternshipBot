@@ -118,7 +118,7 @@ async def get_name(message: types.Message, state=FSMContext):
             keyboard = worker_ikb
 
         change_name_added(data.get('login'), data.get('name'))
-        await message.answer(f'Вы авторизированны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - '
+        await message.answer(f'Вы авторизованны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - '
                              f'https://t.me/+FShhqiWUDJRjODky', disable_web_page_preview=True, parse_mode='HTML')
         await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
