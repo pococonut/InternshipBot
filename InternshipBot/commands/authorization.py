@@ -1,4 +1,3 @@
-import string
 import phonenumbers
 from create import dp
 from aiogram import types
@@ -16,26 +15,57 @@ class Authorisation(StatesGroup):
     name = State()
 
 
-def check(l, p):
+def check_user_name(name):
+    """
+    Функция для валидации ФИО
+    Args:
+        name: ФИО пользователя
+
+    Returns: True - ФИО корректно, False - ФИО некорректно
+    """
+
+    if len(name) > 60:
+        return False
+
+    if len(name.split()) != 3:
+        return False
+
+    no_numbers = name.replace(" ", "").replace("-", "").isalpha()
+    if not no_numbers:
+        return False
+
+    return True
+
+
+def make_name_capital_letters(user_name):
+    """
+    Функция для привидения первых букв в ФИО к верхнему регистру
+    Args:
+        user_name: ФИО пользователя
+
+    Returns: ФИО в правильном формате
+    """
+
+    return " ".join([w.capitalize() for w in user_name.split()])
+
+
+def check_login(login, password):
     """
     Функция проверки логина и пароля на соответствие.
 
-    :param l: Введенный пользователем Логин.
-    :param p: Введенный пользователем Пароль.
+    :param login: Введенный пользователем Логин.
+    :param password: Введенный пользователем Пароль.
     :return: Флаг, (f = False - логин или пароль неверный, f = словарь хранящий логин, пароль и тип пользователя).
     """
     authorisation_lst = {}
 
     for u in select_added_users():
-        inf = {'type': u.type,
-               'login': u.login,
-               'password': u.password,
-               }
+        inf = {'type': u.type, 'login': u.login, 'password': u.password}
         authorisation_lst[u.id] = inf
 
     f = False
     for key, inf in authorisation_lst.items():
-        if inf.get('login') == l and inf.get('password') == p:
+        if inf.get('login') == login and inf.get('password') == password:
             f = inf
     return f
 
@@ -66,15 +96,16 @@ async def get_password(message: types.Message, state=FSMContext):
     Функция получения пароля от пользователя.
     """
     data = await state.get_data()
-    info = check(data['login'], message.text)
+    info = check_login(data['login'], message.text)
     if not info:
         await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
         await state.finish()
         return
 
     await state.update_data(password=message.text)
-    await message.answer("Введите <b>Номер телефона, привязанный к telegram</b> в формате: <code><em>+79999999999</em></code>",
-                         parse_mode='HTML')
+    msg_text = ("Введите <b>Номер телефона, привязанный к telegram</b> "
+                "в формате: <code><em>+79999999999</em></code>")
+    await message.answer(msg_text, parse_mode='HTML')
     await Authorisation.next()
 
 
@@ -83,10 +114,10 @@ async def get_phone(message: types.Message, state=FSMContext):
     """
     Функция получения номера телефона от пользователя.
     """
-    m = message.text
     try:
-        phonenumbers.parse(m)
-        await state.update_data(phone=m)
+        phone = message.text
+        phonenumbers.parse(phone)
+        await state.update_data(phone=phone)
         await message.answer("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>", parse_mode='HTML')
     except:
         await message.answer("Введен неверный формат.\nПожалуйста, повторите ввод.")
@@ -100,14 +131,14 @@ async def get_name(message: types.Message, state=FSMContext):
     Функция получения ФИО от пользователя.
     """
     data = await state.get_data()
-    info = check(data['login'], data['password'])
-    m = message.text
-    if len(m.split()) != 3 or any(chr.isdigit() for chr in m) or any(chr in string.punctuation for chr in m):
+    info = check_login(data['login'], data['password'])
+    name = message.text
+    if not check_user_name(name):
         await message.answer('ФИО введено в некорректном формате', parse_mode='HTML')
         return
-    await state.update_data(name=" ".join([i.capitalize() for i in m.split()]))
-    data = await state.get_data()
 
+    await state.update_data(name=make_name_capital_letters(name))
+    data = await state.get_data()
     who = registration_user(message.from_user.id, info['type'], data)
 
     if not who:
@@ -118,9 +149,10 @@ async def get_name(message: types.Message, state=FSMContext):
             keyboard = worker_ikb
 
         change_name_added(data.get('login'), data.get('name'))
-        await message.answer(f'Вы авторизованны как <b>{who}</b>.\n\nЧат для связи доступен по ссылке - '
-                             f'https://t.me/+FShhqiWUDJRjODky', disable_web_page_preview=True, parse_mode='HTML')
-        await message.answer('Выберите команду.', parse_mode='HTML', reply_markup=keyboard)
 
+        msg_text = (f'Вы авторизованны как <b>{who}</b>.\n\n'
+                    'Чат для связи доступен по <a href="https://t.me/+FShhqiWUDJRjODky">этой ссылке</a>')
+
+        await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
     await state.finish()
 
