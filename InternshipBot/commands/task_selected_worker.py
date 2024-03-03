@@ -2,10 +2,10 @@ from commands.task_actions import short_long_task
 from create import dp
 from aiogram import types
 from keyboard import task_worker_stud, back_to_std
-from commands.general import print_stud, get_keyboard, navigation
+from commands.general import print_stud, get_keyboard, navigation, read_user_values, write_user_values
 from db.commands import select_chosen_tasks, select_user
 
-globalDict_pagesTws = dict()
+globalDict_pagesTws = read_user_values("globalDict_pagesTws")
 
 
 def show_stud_task(s, t):
@@ -58,8 +58,10 @@ async def worker_chosen_t(callback: types.CallbackQuery):
 
         if usr_id not in globalDict_pagesTws:
             globalDict_pagesTws[usr_id] = 0
+            write_user_values("globalDict_pagesTws", globalDict_pagesTws)
 
         s, globalDict_pagesTws[usr_id] = navigation(callback.data, globalDict_pagesTws[usr_id], count_tasks)
+        write_user_values("globalDict_pagesTws", globalDict_pagesTws)
 
         if len(tasks[globalDict_pagesTws[usr_id]].student_id.split()) == 1:
             student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
@@ -82,7 +84,6 @@ async def worker_chosen_t(callback: types.CallbackQuery):
                                                  disable_web_page_preview=True)
             else:
                 num = globalDict_pagesTws[usr_id]
-                print(num)
                 if num == (-1) * count_tasks:
                     num = 0
                 if num <= -1:
@@ -110,9 +111,6 @@ async def worker_chosen_t(callback: types.CallbackQuery):
                                                  parse_mode='HTML',
                                                  reply_markup=task_worker_stud,
                                                  disable_web_page_preview=True)
-
-
-
 
 
 @dp.callback_query_handler(text='tws_student')

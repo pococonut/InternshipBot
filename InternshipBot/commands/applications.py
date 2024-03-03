@@ -1,12 +1,12 @@
 from aiogram import types
 from create import bot, dp
 from aiogram.dispatcher import FSMContext
-from commands.general import print_stud, ConfirmDeletion, navigation
+from commands.general import print_stud, ConfirmDeletion, navigation, read_user_values, write_user_values
 from db.commands import select_students, select_applications, add_application
 from keyboard import admin_ikb, stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2
 
 
-globalDict = dict()
+globalDict = read_user_values("globalDict")
 
 
 def count_get_students():
@@ -44,6 +44,7 @@ async def show_stud(callback: types.CallbackQuery):
     usr_id = str(callback.from_user.id)
     if usr_id not in globalDict:
         globalDict[usr_id] = 0
+        write_user_values("globalDict", globalDict)
 
     if not students:
         await callback.message.edit_text('В данный момент заявок нет.\nЗагляните позже.', reply_markup=admin_ikb)
@@ -56,6 +57,7 @@ async def show_stud(callback: types.CallbackQuery):
                                              reply_markup=stud_application_ikb, parse_mode='HTML')
         else:
             s, globalDict[usr_id] = navigation(callback.data, globalDict[usr_id], count_students)
+            write_user_values("globalDict", globalDict)
             await callback.message.edit_text(s + print_stud(students[globalDict[usr_id]], callback.data),
                                              reply_markup=stud_application_ikb,
                                              parse_mode='HTML')
@@ -69,9 +71,8 @@ async def approve_stud(callback: types.CallbackQuery):
     usr_id = str(callback.from_user.id)
     student_id = current_student(globalDict[usr_id])
     add_application(student_id, callback.from_user.id, 1)
-    print(globalDict[usr_id])
     globalDict[usr_id] -= 1
-    print(globalDict[usr_id])
+    write_user_values("globalDict", globalDict)
 
     await bot.send_message(student_id, 'Ваша заявка была <b>одобрена</b>.\nВы можете выбрать задачу из списка '
                                        'доступных задач.\n\nЧат для связи доступен по ссылке - https://t.me/+FShhqiWUDJRjODky',
@@ -101,6 +102,7 @@ async def reject_stud_yes(callback: types.CallbackQuery, state=FSMContext):
 
     if count_students is not None and (globalDict[usr_id] >= count_students or globalDict[usr_id] < count_students):
         globalDict[usr_id] = 0
+        write_user_values("globalDict", globalDict)
 
     await state.finish()
     try:

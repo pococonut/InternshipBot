@@ -2,7 +2,7 @@ from aiogram import types
 from create import bot, dp
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.general import ConfirmDeletion, get_keyboard, navigation
+from commands.general import ConfirmDeletion, get_keyboard, navigation, read_user_values, write_user_values
 from db.commands import user_type, select_task_for_stud, select_task, select_already_get_stud,  change_task, \
     del_task, select_user
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
@@ -21,7 +21,7 @@ param_task = {'change_task_name': 'Название',
 
 ch_task_lst = list(param_task.keys())
 
-globalDict_pages = dict()
+globalDict_pages = read_user_values("globalDict_pages")
 
 
 class TaskChange(StatesGroup):
@@ -104,6 +104,7 @@ async def show_task(callback: types.CallbackQuery):
     else:
         if usr_id not in globalDict_pages:
             globalDict_pages[usr_id] = 0
+            write_user_values("globalDict_pages", globalDict_pages)
 
         count_tasks = len(tasks)
         keyboard = get_keyboard_task(u_type, tasks[globalDict_pages[usr_id]].student_id, usr_id)
@@ -121,6 +122,7 @@ async def show_task(callback: types.CallbackQuery):
                 disable_web_page_preview=True)
         else:
             s, globalDict_pages[usr_id] = navigation(callback.data, globalDict_pages[usr_id], count_tasks)
+            write_user_values("globalDict_pages", globalDict_pages)
             keyboard = get_keyboard_task(u_type, tasks[globalDict_pages[usr_id]].student_id, usr_id)
             await callback.message.edit_text(s + short_long_task(tasks[globalDict_pages[usr_id]]),
                                              parse_mode='HTML',
@@ -227,6 +229,7 @@ async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
 
     if count_tasks is not None and (globalDict_pages[usr_id] >= count_tasks or globalDict_pages[usr_id] < count_tasks):
         globalDict_pages[usr_id] = 0
+        write_user_values("globalDict_pages", globalDict_pages)
 
     await state.finish()
     await callback.message.edit_text('Задача удалена', parse_mode='HTML', reply_markup=back_task_w_ikb)
@@ -241,7 +244,6 @@ async def stud_get_task(callback: types.CallbackQuery):
     tasks = [t for t in tasks if t.student_id is None or (len(t.student_id.split()) != int(t.num_people))]
 
     usr_id = str(callback.from_user.id)
-    print(globalDict_pages)
     t_id = tasks[globalDict_pages[usr_id]].task_id
     worker_id = tasks[globalDict_pages[usr_id]].from_id
 

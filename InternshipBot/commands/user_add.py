@@ -1,13 +1,13 @@
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion, navigation
+from commands.general import ConfirmDeletion, navigation, read_user_values, write_user_values
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import add_user, select_added_users, del_added
 from keyboard import back_ikb, types_users, add_usr, added_ikb, del_added_ikb, back_added_ikb, login_added_ikb
 
 
-globalDict_added = dict()
+globalDict_added = read_user_values("globalDict_added")
 
 types_w = {
     'admin': 'Администратор',
@@ -98,6 +98,7 @@ async def show_added(callback: types.CallbackQuery):
 
         if usr_id not in globalDict_added:
             globalDict_added[usr_id] = 0
+            write_user_values("globalDict_added", globalDict_added)
 
         if callback.data == 'show_added_users':
             a = globalDict_added[usr_id]
@@ -115,7 +116,7 @@ async def show_added(callback: types.CallbackQuery):
                                              disable_web_page_preview=True)
         else:
             s, globalDict_added[usr_id] = navigation(callback.data, globalDict_added[usr_id], count_added)
-
+            write_user_values("globalDict_added", globalDict_added)
             if added_users[globalDict_added[usr_id]].name_usr is not None:
                 keyboard = login_added_ikb
             else:
@@ -150,6 +151,7 @@ async def del_a_yes(callback: types.CallbackQuery, state=FSMContext):
 
     if count_added is not None and (globalDict_added[usr_id] >= count_added or globalDict_added[usr_id] < count_added):
         globalDict_added[usr_id] = 0
+        write_user_values("globalDict_added", globalDict_added)
 
     await state.finish()
     await callback.message.edit_text('Данные удалены', parse_mode='HTML', reply_markup=back_added_ikb)

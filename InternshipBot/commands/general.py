@@ -1,3 +1,6 @@
+import logging
+import os
+import json
 from db.commands import user_type, stud_approve
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from keyboard import back_ikb, admin_ikb, worker_ikb, student_not_approved, stud_is_approve
@@ -5,6 +8,56 @@ from keyboard import back_ikb, admin_ikb, worker_ikb, student_not_approved, stud
 
 class ConfirmDeletion(StatesGroup):
     delete = State()
+
+
+def read_user_values(dict_name):
+    """
+    Функция для чтения переменных пользователя, используемых при взаимодействии с ботом
+    Args:
+        dict_name: Название словаря с переменными
+
+    Returns: Словарь с переменными
+    """
+
+    filename = "user_values.json"
+    try:
+        if not os.path.exists(filename):
+            with open(filename, 'w', encoding='UTF-8') as f:
+                json.dump({}, f)
+
+        with open(filename, 'r', encoding='UTF-8') as file:
+            data = json.load(file)
+            g_dict = data.get(f'{dict_name}', {})
+            return g_dict
+
+    except FileNotFoundError:
+        logging.warning(f"File {filename} not found.")
+        return {}
+    except json.JSONDecodeError:
+        logging.warning(f"Error decoding JSON from file {filename}.")
+        return {}
+
+
+def write_user_values(dict_name, g_dict):
+    """
+    Функция для записи переменных пользователя, используемых при взаимодействии с ботом
+    Args:
+        dict_name: Название словаря с переменными
+        g_dict: Словарь с переменными
+
+    Returns: None
+    """
+
+    filename = "user_values.json"
+    try:
+        with open(filename, 'r', encoding='UTF-8') as file:
+            data = json.load(file)
+            data[f'{dict_name}'] = g_dict
+
+        with open(filename, 'w', encoding='UTF-8') as file:
+            json.dump(data, file)
+    except Exception as e:
+        logging.exception(e)
 
 
 def get_keyboard(t_id):
