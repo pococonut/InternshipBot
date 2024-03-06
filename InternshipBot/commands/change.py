@@ -4,11 +4,10 @@ import phonenumbers
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from commands.general import get_keyboard
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from commands.general import get_keyboard, check_user_name
 from keyboard import change_ikb, change_worker_ikb, back_ikb
 from db.commands import select_user, user_type, change_inform
-from aiogram.dispatcher.filters.state import StatesGroup, State
-
 
 check_d = {'student_name': 'ФИО',
            'phone': 'Номер телефона',
@@ -19,73 +18,122 @@ check_d = {'student_name': 'ФИО',
            'course': 'Курс',
            'group': 'Группа',
            'coursework': 'Курсовые работы',
-           'knowledge': 'Знания',
-           }
+           'knowledge': 'Знания', }
 
-stud_params, s_p = list(check_d.keys()), []
+student_params = list(check_d.keys())
+param_for_change = {}
 
 
 class ChangeUser(StatesGroup):
-    par = State()
-    new_val = State()
+    parameter = State()
+    new_value = State()
 
 
-def check_param(p, v):
+def check_symbols(value):
+    """
+    Функция для проверки отсутствия в строке цифр и символов
+    :param value: Строка для проверки
+    :return: False - есть запрещенные символы,
+             True - нет запрещенных символов
+    """
+
+    if any(chr.isdigit() for chr in value):
+        return False
+    if any(chr in string.punctuation for chr in value):
+        return False
+    return True
+
+
+def check_phone(value):
+    """
+    Функция для проверки формата номера телефона
+    :param value: Строка для проверки
+    :return: Номер телефона, если он правильный, иначе False
+    """
+
+    try:
+        phonenumbers.parse(value)
+        return value
+    except:
+        return False
+
+
+def check_university(value):
+    """
+    Функция для проверки формата написания названия университета
+    :param value: Строка для проверки
+    :return: название университета, если написание правильное, иначе False
+    """
+
+    if len(value.split()) != 1:
+        return False
+    if not check_symbols(value):
+        return False
+    return value.upper()
+
+
+def check_course(value):
+    """
+    Функция для проверки формата написания курса
+    :param value: Строка для проверки
+    :return: Курс, если написание правильное, иначе False
+    """
+
+    if len(value) != 1:
+        return False
+    if not check_symbols(value):
+        return False
+    return value
+
+
+def check_group(value):
+    """
+    Функция для проверки формата написания группы
+    :param value: Строка для проверки
+    :return: Группа, если написание правильное, иначе False
+    """
+
+    if re.fullmatch('\d{,3}\D\d', value) is None:
+        return False
+    if ' ' in value or any(chr.isalpha() for chr in value):
+        return False
+    if any(chr in string.punctuation.replace('/', '') for chr in value):
+        return False
+    return value
+
+
+def check_len_txt(value):
+    """
+    Функция для проверки максимальной длинны сообщения
+    :param value: Строка для проверки
+    :return: Сообщение, если длинна не превышает максимальное значение, иначе False
+    """
+
+    if len(value) > 200:
+        return False
+    return value
+
+
+def check_param(parameter, value):
     """
     Функция проверки параметра заявки на корректность.
-    :param p: Название параметра, который пользователь хочет изменить.
-    :param v: Введенное пользователем новое значение параметра.
+    :param parameter: Название параметра, который пользователь хочет изменить.
+    :param value: Введенное пользователем новое значение параметра.
     :return: Возвращает введенное значение, если оно прошло проверку, иначе возвращает False.
     """
-    if p == 'student_name':
-        if len(v.split()) != 3 or any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
-            return False
-        else:
-            return " ".join([i.capitalize() for i in v.split()])
-    elif p == 'phone':
-        try:
-            phonenumbers.parse(v)
-            return v
-        except:
-            return False
-    elif p == 'university':
-        if len(v.split()) != 1 or any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
-            return False
-        else:
-            return v.upper()
-    elif p == 'faculty':
-        if any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
-            return False
-        else:
-            return v.capitalize()
-    elif p == 'specialties':
-        if any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
-            return False
-        else:
-            return v.capitalize()
-    elif p == 'department':
-        if any(chr.isdigit() for chr in v) or any(chr in string.punctuation for chr in v):
-            return False
-        else:
-            return v.upper()
-    elif p == 'course':
-        if len(v) != 1 or any(chr.isalpha() for chr in v) or any(chr in string.punctuation for chr in v):
-            return False
-        else:
-            return v
-    elif p == 'group':
-        if ((re.fullmatch('\d{,3}\D\d', v) is None) or ' ' in v or any(chr.isalpha() for chr in v) or any(
-                chr in string.punctuation.replace('/', '') for chr in v)):
-            return False
-        else:
-            return v
-    elif p == 'coursework' or 'knowledge':
-        if len(v) > 200:
-            return False
-        else:
-            return v
 
-    return v
+    parameters = {"student_name": check_user_name,
+                  "phone": check_phone,
+                  "university": check_university,
+                  "faculty": check_symbols,
+                  "specialties": check_symbols,
+                  "department": check_symbols,
+                  "course": check_course,
+                  "group": check_group,
+                  "coursework": check_len_txt,
+                  "knowledge": check_len_txt}
+
+    return parameters[parameter](value)
 
 
 def change_keyboard(t_id):
@@ -94,16 +142,15 @@ def change_keyboard(t_id):
     :param t_id: Уникальный идентификатор пользователя в телеграм.
     :return k: Inline-клавиатура.
     """
+
     user_exist = select_user(t_id)
     if not user_exist:
-        k = None
-    else:
-        u_type = user_type(t_id)
-        if u_type[0] == 'student':
-            k = change_ikb
-        else:
-            k = change_worker_ikb
-    return k
+        return None
+
+    u_type = user_type(t_id)
+    if u_type[0] == 'student':
+        return change_ikb
+    return change_worker_ikb
 
 
 @dp.message_handler(commands=['change'])
@@ -111,12 +158,15 @@ async def change(message: types.Message):
     """
     Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
     """
+
     keyboard = change_keyboard(message.from_user.id)
     if keyboard is None:
-        await message.answer('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.', parse_mode='HTML')
+        msg_text = 'Вы еще не зарегистрированы.\nПройдите этап регистрации.'
+        await message.answer(msg_text)
     else:
-        await message.answer(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
-        await ChangeUser.par.set()
+        msg_text = 'Выберите параметр, который желаете изменить.'
+        await message.answer(msg_text, reply_markup=keyboard)
+        await ChangeUser.parameter.set()
 
 
 @dp.callback_query_handler(text='change')
@@ -124,42 +174,57 @@ async def change_inline(callback: types.CallbackQuery):
     """
     Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
     """
+
     keyboard = change_keyboard(callback.from_user.id)
     if keyboard is None:
-        await callback.message.edit_text('Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.',
-                                         parse_mode='HTML')
+        msg_text = 'Вы еще не зарегистрированы.\nПройдите этап регистрации.'
+        await callback.message.edit_text(msg_text)
     else:
-        await callback.message.edit_text(f'Выберите параметр, который желаете изменить.', reply_markup=keyboard)
-        await ChangeUser.par.set()
+        msg_text = 'Выберите параметр, который желаете изменить.'
+        await callback.message.edit_text(msg_text, reply_markup=keyboard)
+        await ChangeUser.parameter.set()
 
 
-@dp.callback_query_handler(text=stud_params, state=ChangeUser.par)
+@dp.callback_query_handler(text=student_params, state=ChangeUser.parameter)
 async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция получения нового значения параметра, выбранного для изменения.
     """
-    await state.update_data(par=callback.data)
-    s_p.append(callback.data)
+
+    user_id = str(callback.from_user.id)
+    param_for_change[user_id] = callback.data
+
+    await state.update_data(parameter=callback.data)
     await callback.message.edit_text("Введите новое значение.", reply_markup=back_ikb)
     await ChangeUser.next()
 
 
-@dp.message_handler(state=ChangeUser.new_val)
+@dp.message_handler(state=ChangeUser.new_value)
 async def get_val_student(message: types.Message, state: FSMContext):
     """
     Функция проверки и установки нового значения параметра, выбранного для изменения.
     """
-    x = check_param(s_p[0], message.text)
-    if not x:
-        await message.answer("Значение введено в некорректном формате. Повторите ввод.")
+
+    user_id = str(message.from_user.id)
+    parameter = param_for_change[user_id]
+    new_value = message.text
+    result_change = check_param(parameter, new_value)
+
+    if not result_change:
+        msg_text = "Значение введено в некорректном формате. Повторите ввод."
+        await message.answer(msg_text)
         return
-    s_p.clear()
-    await state.update_data(new_val=x)
+
+    await state.update_data(new_value=result_change)
     data = await state.get_data()
-    await message.answer(f"<b>Параметр:</b> {check_d.get(data['par'])}\n\n"
-                         f"<b>Новое значение:</b> {data['new_val']}", parse_mode='HTML')
-    u_type = user_type(message.from_user.id)[0]
-    change_inform(message.from_user.id, u_type, data['par'], data['new_val'])
-    keyboard = get_keyboard(message.from_user.id)
-    await message.answer('Параметр изменен.', parse_mode='HTML', reply_markup=keyboard)
+
+    u_type = user_type(user_id)[0]
+    keyboard = get_keyboard(user_id)
+    change_inform(user_id, u_type, data['parameter'], data['new_value'])
+    msg_text = (f"<b>Параметр:</b> {check_d.get(data['parameter'])}\n"
+                f"<b>Новое значение:</b> {data['new_value']}\n"
+                f"Параметр изменен.")
+
+    await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard)
+    param_for_change.clear()
     await state.finish()

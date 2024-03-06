@@ -10,6 +10,29 @@ class ConfirmDeletion(StatesGroup):
     delete = State()
 
 
+def check_user_name(name):
+    """
+    Функция для валидации ФИО
+    Args:
+        name: ФИО пользователя
+
+    Returns: True - ФИО корректно, False - ФИО некорректно
+    """
+
+    if len(name) > 60:
+        return False
+
+    if len(name.split()) != 3:
+        return False
+
+    no_numbers = name.replace(" ", "").replace("-", "").isalpha()
+    if not no_numbers:
+        return False
+
+    name = " ".join([w.capitalize() for w in name.split()])
+    return name
+
+
 def read_user_values(dict_name):
     """
     Функция для чтения переменных пользователя, используемых при взаимодействии с ботом

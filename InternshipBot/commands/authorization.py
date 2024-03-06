@@ -1,10 +1,10 @@
 import phonenumbers
-from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from commands.general import get_keyboard
-from keyboard import admin_ikb, worker_ikb, login_rep
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from create import dp
+from commands.general import get_keyboard, check_user_name
+from keyboard import admin_ikb, worker_ikb, login_rep
 from db.commands import select_added_users, change_name_added, registration_user
 
 
@@ -15,40 +15,6 @@ class Authorisation(StatesGroup):
     name = State()
 
 
-def check_user_name(name):
-    """
-    Функция для валидации ФИО
-    Args:
-        name: ФИО пользователя
-
-    Returns: True - ФИО корректно, False - ФИО некорректно
-    """
-
-    if len(name) > 60:
-        return False
-
-    if len(name.split()) != 3:
-        return False
-
-    no_numbers = name.replace(" ", "").replace("-", "").isalpha()
-    if not no_numbers:
-        return False
-
-    return True
-
-
-def make_name_capital_letters(user_name):
-    """
-    Функция для привидения первых букв в ФИО к верхнему регистру
-    Args:
-        user_name: ФИО пользователя
-
-    Returns: ФИО в правильном формате
-    """
-
-    return " ".join([w.capitalize() for w in user_name.split()])
-
-
 def check_login(login, password):
     """
     Функция проверки логина и пароля на соответствие.
@@ -57,6 +23,7 @@ def check_login(login, password):
     :param password: Введенный пользователем Пароль.
     :return: Флаг, (f = False - логин или пароль неверный, f = словарь хранящий логин, пароль и тип пользователя).
     """
+
     authorisation_lst = {}
 
     for u in select_added_users():
@@ -75,6 +42,7 @@ async def authorization_command(callback: types.CallbackQuery):
     """
     Функция начала процесса авторизации.
     """
+
     keyboard = get_keyboard(callback.from_user.id)
     await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
     await Authorisation.login.set()
@@ -85,6 +53,7 @@ async def get_login(message: types.Message, state=FSMContext):
     """
     Функция получения логина от пользователя.
     """
+
     await state.update_data(login=message.text)
     await message.answer('Введите <b>пароль.</b>', parse_mode='HTML')
     await Authorisation.next()
@@ -95,16 +64,19 @@ async def get_password(message: types.Message, state=FSMContext):
     """
     Функция получения пароля от пользователя.
     """
+
     data = await state.get_data()
-    info = check_login(data['login'], message.text)
-    if not info:
+    login = data['login']
+    password = message.text
+    result_of_check = check_login(login, password)
+    if not result_of_check:
         await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
         await state.finish()
         return
 
-    await state.update_data(password=message.text)
     msg_text = ("Введите <b>Номер телефона, привязанный к telegram</b> "
                 "в формате: <code><em>+79999999999</em></code>")
+    await state.update_data(password=password)
     await message.answer(msg_text, parse_mode='HTML')
     await Authorisation.next()
 
@@ -114,11 +86,13 @@ async def get_phone(message: types.Message, state=FSMContext):
     """
     Функция получения номера телефона от пользователя.
     """
+
     try:
         phone = message.text
         phonenumbers.parse(phone)
         await state.update_data(phone=phone)
-        await message.answer("Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>", parse_mode='HTML')
+        msg_text = "Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>"
+        await message.answer(msg_text, parse_mode='HTML')
     except:
         await message.answer("Введен неверный формат.\nПожалуйста, повторите ввод.")
         return
@@ -130,16 +104,17 @@ async def get_name(message: types.Message, state=FSMContext):
     """
     Функция получения ФИО от пользователя.
     """
+
     data = await state.get_data()
-    info = check_login(data['login'], data['password'])
-    name = message.text
-    if not check_user_name(name):
+    result_of_check = check_login(data['login'], data['password'])
+    name = check_user_name(message.text)
+    if not name:
         await message.answer('ФИО введено в некорректном формате', parse_mode='HTML')
         return
 
-    await state.update_data(name=make_name_capital_letters(name))
+    await state.update_data(name=name)
     data = await state.get_data()
-    who = registration_user(message.from_user.id, info['type'], data)
+    who = registration_user(message.from_user.id, result_of_check, data)
 
     if not who:
         await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)

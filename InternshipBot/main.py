@@ -1,3 +1,4 @@
+import logging
 from aiogram.utils import executor
 from aiogram import types
 from create import dp
@@ -19,4 +20,6 @@ async def start_command(message: types.Message):
 Base.metadata.create_all(bind=engine)
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
+                        format="%(asctime)s %(levelname)s %(message)s")
     executor.start_polling(dp, skip_updates=True)
