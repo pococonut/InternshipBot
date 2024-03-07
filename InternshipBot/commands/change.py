@@ -1,11 +1,8 @@
-import re
-import string
-import phonenumbers
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.general import get_keyboard, check_user_name
+from commands.general import get_keyboard, check_param
 from keyboard import change_ikb, change_worker_ikb, back_ikb
 from db.commands import select_user, user_type, change_inform
 
@@ -27,113 +24,6 @@ param_for_change = {}
 class ChangeUser(StatesGroup):
     parameter = State()
     new_value = State()
-
-
-def check_symbols(value):
-    """
-    Функция для проверки отсутствия в строке цифр и символов
-    :param value: Строка для проверки
-    :return: False - есть запрещенные символы,
-             True - нет запрещенных символов
-    """
-
-    if any(chr.isdigit() for chr in value):
-        return False
-    if any(chr in string.punctuation for chr in value):
-        return False
-    return True
-
-
-def check_phone(value):
-    """
-    Функция для проверки формата номера телефона
-    :param value: Строка для проверки
-    :return: Номер телефона, если он правильный, иначе False
-    """
-
-    try:
-        phonenumbers.parse(value)
-        return value
-    except:
-        return False
-
-
-def check_university(value):
-    """
-    Функция для проверки формата написания названия университета
-    :param value: Строка для проверки
-    :return: название университета, если написание правильное, иначе False
-    """
-
-    if len(value.split()) != 1:
-        return False
-    if not check_symbols(value):
-        return False
-    return value.upper()
-
-
-def check_course(value):
-    """
-    Функция для проверки формата написания курса
-    :param value: Строка для проверки
-    :return: Курс, если написание правильное, иначе False
-    """
-
-    if len(value) != 1:
-        return False
-    if not check_symbols(value):
-        return False
-    return value
-
-
-def check_group(value):
-    """
-    Функция для проверки формата написания группы
-    :param value: Строка для проверки
-    :return: Группа, если написание правильное, иначе False
-    """
-
-    if re.fullmatch('\d{,3}\D\d', value) is None:
-        return False
-    if ' ' in value or any(chr.isalpha() for chr in value):
-        return False
-    if any(chr in string.punctuation.replace('/', '') for chr in value):
-        return False
-    return value
-
-
-def check_len_txt(value):
-    """
-    Функция для проверки максимальной длинны сообщения
-    :param value: Строка для проверки
-    :return: Сообщение, если длинна не превышает максимальное значение, иначе False
-    """
-
-    if len(value) > 200:
-        return False
-    return value
-
-
-def check_param(parameter, value):
-    """
-    Функция проверки параметра заявки на корректность.
-    :param parameter: Название параметра, который пользователь хочет изменить.
-    :param value: Введенное пользователем новое значение параметра.
-    :return: Возвращает введенное значение, если оно прошло проверку, иначе возвращает False.
-    """
-
-    parameters = {"student_name": check_user_name,
-                  "phone": check_phone,
-                  "university": check_university,
-                  "faculty": check_symbols,
-                  "specialties": check_symbols,
-                  "department": check_symbols,
-                  "course": check_course,
-                  "group": check_group,
-                  "coursework": check_len_txt,
-                  "knowledge": check_len_txt}
-
-    return parameters[parameter](value)
 
 
 def change_keyboard(t_id):
