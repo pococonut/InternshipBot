@@ -5,7 +5,7 @@ from commands.general import ConfirmDeletion, navigation, read_user_values, writ
 from commands.general import get_keyboard
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import change_task, del_task, select_worker_task
-from commands.task_actions import ch_task_lst, param_task, short_long_task
+from commands.task_actions import change_param_task_list, param_task, short_long_task
 from keyboard import change_task_ikb, task_worker_own_ikb, task_worker_without_del, \
     selected_task, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb, back_task_own_ikb, del_task_worker_ikb
 
@@ -88,7 +88,7 @@ async def ch_w_task(callback: types.CallbackQuery):
     await TaskChangeW.param.set()
 
 
-@dp.callback_query_handler(text=ch_task_lst, state=TaskChangeW.param)
+@dp.callback_query_handler(text=change_param_task_list, state=TaskChangeW.param)
 async def ch_w_task_param(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для получения названия параметра, который пользователь желает изменить.

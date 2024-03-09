@@ -118,16 +118,17 @@ async def get_name(message: types.Message, state=FSMContext):
 
     if not who:
         await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
-    else:
-        keyboard = admin_ikb
-        if who == 'сотрудник':
-            keyboard = worker_ikb
+        return
 
-        change_name_added(data.get('login'), data.get('name'))
+    keyboard = admin_ikb
+    if who == 'сотрудник':
+        keyboard = worker_ikb
 
-        msg_text = (f'Вы авторизованны как <b>{who}</b>.\n\n'
-                    'Чат для связи доступен по <a href="https://t.me/+FShhqiWUDJRjODky">этой ссылке</a>')
+    change_name_added(data.get('login'), data.get('name'))
 
-        await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+    msg_text = (f'Вы авторизованны как <b>{who}</b>.\n\n'
+                'Чат для связи доступен по <a href="https://t.me/+FShhqiWUDJRjODky">этой ссылке</a>')
+
+    await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
     await state.finish()
 

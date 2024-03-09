@@ -19,7 +19,7 @@ async def back_func1(callback: types.CallbackQuery, state: FSMContext):
     await state.finish()
     await callback.message.edit_reply_markup()
 
-    if u_type is None:
+    if not u_type:
         await callback.message.edit_text('Действие отменено.')
     else:
         if callback.data == 'back_added':

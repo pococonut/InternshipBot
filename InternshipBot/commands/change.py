@@ -53,10 +53,11 @@ async def change(message: types.Message):
     if keyboard is None:
         msg_text = 'Вы еще не зарегистрированы.\nПройдите этап регистрации.'
         await message.answer(msg_text)
-    else:
-        msg_text = 'Выберите параметр, который желаете изменить.'
-        await message.answer(msg_text, reply_markup=keyboard)
-        await ChangeUser.parameter.set()
+        return
+
+    msg_text = 'Выберите параметр, который желаете изменить.'
+    await message.answer(msg_text, reply_markup=keyboard)
+    await ChangeUser.parameter.set()
 
 
 @dp.callback_query_handler(text='change')
@@ -69,10 +70,11 @@ async def change_inline(callback: types.CallbackQuery):
     if keyboard is None:
         msg_text = 'Вы еще не зарегистрированы.\nПройдите этап регистрации.'
         await callback.message.edit_text(msg_text)
-    else:
-        msg_text = 'Выберите параметр, который желаете изменить.'
-        await callback.message.edit_text(msg_text, reply_markup=keyboard)
-        await ChangeUser.parameter.set()
+        return
+
+    msg_text = 'Выберите параметр, который желаете изменить.'
+    await callback.message.edit_text(msg_text, reply_markup=keyboard)
+    await ChangeUser.parameter.set()
 
 
 @dp.callback_query_handler(text=student_params, state=ChangeUser.parameter)

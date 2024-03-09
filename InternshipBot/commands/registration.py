@@ -105,7 +105,7 @@ async def get_university(message: types.Message, state=FSMContext):
 
     parameter = check_param("university", message.text)
     if not parameter:
-        await message.answer('ВУЗ введен в некорректном формате', parse_mode='HTML')
+        await message.answer('ВУЗ введен в некорректном формате')
         return
 
     msg_text = "Введите <b>Факультет</b> в формате: <em>Математика и компьютерные науки</em>"
@@ -122,7 +122,7 @@ async def get_faculty(message: types.Message, state=FSMContext):
 
     parameter = check_param("faculty", message.text)
     if not parameter:
-        await message.answer('Факультет введен в некорректном формате', parse_mode='HTML')
+        await message.answer('Факультет введен в некорректном формате')
         return
 
     msg_text = "Введите <b>Направление</b> в формате: <em>Фундаментальные математика и механика</em>"
@@ -139,7 +139,7 @@ async def get_specialties(message: types.Message, state=FSMContext):
 
     parameter = check_param("specialties", message.text)
     if not parameter:
-        await message.answer('Направление введено в некорректном формате', parse_mode='HTML')
+        await message.answer('Направление введено в некорректном формате')
         return
 
     msg_text = "Введите <b>Кафедру</b> (при отсутствии введите: 'Нет') в формате: <em>ВМИ</em>"
@@ -156,7 +156,7 @@ async def get_department(message: types.Message, state=FSMContext):
 
     parameter = check_param("department", message.text)
     if not parameter:
-        await message.answer('Кафедра введена в некорректном формате', parse_mode='HTML')
+        await message.answer('Кафедра введена в некорректном формате')
         return
 
     msg_text = "Введите <b>Курс</b> в формате: <em>2</em>"
@@ -173,7 +173,7 @@ async def get_course(message: types.Message, state=FSMContext):
 
     parameter = check_param("course", message.text)
     if not parameter:
-        await message.answer('Курс введен в некорректном формате', parse_mode='HTML')
+        await message.answer('Курс введен в некорректном формате')
         return
 
     msg_text = "Введите <b>Группу</b> в формате: <em>23/3</em>"
@@ -190,7 +190,7 @@ async def get_group(message: types.Message, state=FSMContext):
 
     parameter = check_param("group", message.text)
     if not parameter:
-        await message.answer('Группа введена в некорректном формате', parse_mode='HTML')
+        await message.answer('Группа введена в некорректном формате')
         return
 
     msg_text = ('Введите <b>Темы курсовых работ</b> (при отсутствии введите: "Нет") в формате: '
@@ -208,7 +208,7 @@ async def get_coursework(message: types.Message, state=FSMContext):
 
     parameter = check_param("coursework", message.text)
     if not parameter:
-        await message.answer('Количество слов превышает допустимое значение - 200 слов', parse_mode='HTML')
+        await message.answer('Количество слов превышает допустимое значение - 200 слов')
         return
 
     msg_text = ("Введите <b>Ваши знания</b> (при отсутствии введите: "
@@ -226,7 +226,7 @@ async def get_knowledge(message: types.Message, state=FSMContext):
 
     parameter = check_param("coursework", message.text)
     if not parameter:
-        await message.answer('Количество слов превышает допустимое значение - 200 слов', parse_mode='HTML')
+        await message.answer('Количество слов превышает допустимое значение - 200 слов')
         return
 
     await state.update_data(knowledge=message.text)
