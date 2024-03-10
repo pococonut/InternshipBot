@@ -1,10 +1,48 @@
 from aiogram import types
 from create import bot, dp
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion
-from commands.task_actions import short_long_task
-from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve
-from db.commands import select_already_get_stud, change_task_stud, select_user
+from commands.general import ConfirmDeletion, get_tasks_for_student, short_long_task
+from commands.task_actions import tasks_values
+from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve, back_task_ikb
+from db.commands import select_already_get_stud, change_task_stud, select_user, change_task
+
+
+def add_student_to_task(tasks, usr_id):
+    """
+    Функция для прикрепления студента к задаче
+    """
+
+    current_task = tasks[tasks_values[usr_id]]
+    max_student_task = int(current_task.num_people)
+    task_student_id = current_task.student_id
+
+    if max_student_task == 1 or not task_student_id:
+        change_task(current_task.task_id, 'student_id', usr_id)
+    else:
+        change_task(current_task.task_id, 'student_id', current_task.student_id + " " + usr_id)
+
+
+@dp.callback_query_handler(text='stud_get_task')
+async def stud_get_task(callback: types.CallbackQuery):
+    """
+    Функция для фиксирования выбора задачи студентом.
+    """
+
+    usr_id = str(callback.from_user.id)
+    tasks = get_tasks_for_student()
+    add_student_to_task(tasks, usr_id)
+
+    task_name = select_already_get_stud(usr_id).task_name
+    student_name = select_user(usr_id).name
+    worker_id = tasks[tasks_values[usr_id]].from_id
+
+    msg_text_worker = (f'Студент\ка <a href="tg://user?id={usr_id}">{student_name}</a> '
+                       f'<b>выбрал\а</b> задачу <em>{task_name}</em>.')
+    msg_text_student = (f'Задача <em>{task_name}</em> выбрана.\nВы можете отказаться '
+                        f'от задачи, нажав в меню <em>Выбранная задача</em>.')
+
+    await bot.send_message(worker_id, msg_text_worker, reply_markup=task_is_approve, parse_mode='HTML')
+    await callback.message.edit_text(msg_text_student, parse_mode='HTML', reply_markup=back_task_ikb)
 
 
 @dp.callback_query_handler(text='stud_chosen_tasks')

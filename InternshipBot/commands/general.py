@@ -4,13 +4,48 @@ import phonenumbers
 import logging
 import os
 import json
-from db.commands import user_type, stud_approve
+from db.commands import user_type, stud_approve, select_task, select_user
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from keyboard import back_ikb, admin_ikb, worker_ikb, student_not_approved, stud_is_approve
 
 
 class ConfirmDeletion(StatesGroup):
     delete = State()
+
+
+def short_long_task(task, flag=0):
+    """
+    Функция вывода данных задачи.
+    :param task: Строка модели БД, относящаяся к конкретной задаче, с информацией о ней.
+    :param flag: Булево значение, 1 - вывод всей информации задачи, 0 - вывод краткой информации задачи.
+    :return: Строка с информацией о задаче.
+    """
+
+    s = f"<b>Название:</b> {task.task_name}\n\n" \
+        f"<b>Цель:</b> {task.task_goal}\n\n" \
+        f"<b>Описание:</b> {task.task_description}\n\n" \
+        f"<b>Необходимые навыки и технологии:</b>\n{task.task_technologies}\n\n"
+
+    if flag:
+        s += f"<b>Задачи:</b>\n{task.task_tasks}\n\n" \
+             f"<b>Умения и навыки, получаемые в процессе " \
+             f"прохождения практики:</b>\n{task.task_new_skills}\n\n" \
+             f"<b>Количество людей:</b> {task.num_people}\n\n" \
+             f"<b>Материалы:</b>\n{str(task.materials)}\n\n"
+
+    if select_user(task.from_id):
+        s += f"<b>Сотрудник:</b> <a href='tg://user?id={task.from_id}'>{select_user(task.from_id).name}</a>"
+
+    return s
+
+
+def get_tasks_for_student():
+    """
+    Функция получения списка задач для студентов
+    :return: список задач для студентов
+    """
+
+    return [t for t in select_task() if not t.student_id or (len(t.student_id.split()) != int(t.num_people))]
 
 
 def check_user_name(name):

@@ -1,14 +1,24 @@
 from aiogram import types
 from create import bot, dp
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion, navigation, read_user_values, write_user_values
+from commands.general import ConfirmDeletion, navigation, read_user_values, write_user_values, short_long_task
 from commands.general import get_keyboard
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import change_task, del_task, select_worker_task
-from commands.task_actions import change_param_task_list, param_task, short_long_task
 from keyboard import change_task_ikb, task_worker_own_ikb, task_worker_without_del, \
     selected_task, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb, back_task_own_ikb, del_task_worker_ikb
 
+
+param_task = {'change_task_name': 'Название',
+              'change_task_goal': 'Цель',
+              'change_task_description': 'Описание',
+              'change_task_tasks': 'Задачи',
+              'change_task_technologies': 'Навыки и технологии',
+              'change_task_new_skills': 'Получаемые навыки',
+              'change_num_people': 'Количество людей',
+              'change_materials': 'Материалы'}
+
+change_param_task_list = list(param_task.keys())
 globalDict_pagesW = read_user_values("globalDict_pagesW")
 
 

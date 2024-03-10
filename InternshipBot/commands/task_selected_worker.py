@@ -1,8 +1,7 @@
-from commands.task_actions import short_long_task
 from create import dp
 from aiogram import types
 from keyboard import task_worker_stud, back_to_std
-from commands.general import print_stud, get_keyboard, navigation, read_user_values, write_user_values
+from commands.general import print_stud, get_keyboard, navigation, read_user_values, write_user_values, short_long_task
 from db.commands import select_chosen_tasks, select_user
 
 globalDict_pagesTws = read_user_values("globalDict_pagesTws")
