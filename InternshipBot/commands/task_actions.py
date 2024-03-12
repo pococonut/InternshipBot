@@ -48,81 +48,57 @@ def get_keyboard_more_task(usr_type, task_selected):
     return task_worker_more_ikb
 
 
-@dp.callback_query_handler(text='show_task')
+def get_task_data(usr_id, callback):
+    """
+
+    :return:
+    """
+
+    u_type = user_type(usr_id)[0]
+
+    if u_type == 'student':
+        tasks = get_tasks_for_student()
+    else:
+        tasks = select_task()
+
+    if not tasks:
+        keyboard = get_keyboard(usr_id)
+        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
+        return keyboard, msg_text
+
+    if usr_id not in tasks_values:
+        tasks_values[usr_id] = 0
+        write_user_values("tasks_values", tasks_values)
+
+    count_tasks = len(tasks)
+    current_task = tasks[tasks_values[usr_id]]
+    student_ids_task = current_task.student_id
+    keyboard = get_keyboard_task(u_type, student_ids_task, usr_id)
+    current_page = tasks_values[usr_id]
+
+    if 'right' not in callback and 'left' not in callback:
+        current_page = tasks_values[usr_id]
+        if tasks_values[usr_id] <= -1:
+            current_page = count_tasks + tasks_values[usr_id]
+        current_task = tasks[tasks_values[usr_id]]
+        msg_text = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n" + short_long_task(current_task)
+        return keyboard, msg_text
+
+    s, tasks_values[usr_id] = navigation(callback, current_page, count_tasks)
+    write_user_values("tasks_values", tasks_values)
+    current_task = tasks[tasks_values[usr_id]]
+    msg_text = s + short_long_task(current_task)
+    return keyboard, msg_text
+
+
+@dp.callback_query_handler(text=['show_task', 'right', 'left'])
 async def show_task(callback: types.CallbackQuery):
     """
     Функция просмотра доступных пользователю задач.
     """
 
     usr_id = str(callback.from_user.id)
-    u_type = user_type(usr_id)[0]
-
-    if u_type == 'student':
-        tasks = get_tasks_for_student()
-    else:
-        tasks = select_task()
-
-    if not tasks:
-        keyboard = get_keyboard(usr_id)
-        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
-        await callback.message.edit_text(msg_text, reply_markup=keyboard)
-        await callback.answer()
-        return
-
-    if usr_id not in tasks_values:
-        tasks_values[usr_id] = 0
-        write_user_values("tasks_values", tasks_values)
-
-    count_tasks = len(tasks)
-    student_ids_task = tasks[tasks_values[usr_id]].student_id
-    keyboard = get_keyboard_task(u_type, student_ids_task, usr_id)
-
-    page = tasks_values[usr_id]
-    if tasks_values[usr_id] <= -1:
-        page = count_tasks + tasks_values[usr_id]
-
-    current_task = tasks[tasks_values[usr_id]]
-    msg_text = f"<b>№</b> {page + 1}/{count_tasks}\n\n" + short_long_task(current_task)
-
-    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
-
-
-@dp.callback_query_handler(text=['right', 'left'])
-async def show_task_lr(callback: types.CallbackQuery):
-    """
-    Функция просмотра доступных пользователю задач.
-    """
-
-    usr_id = str(callback.from_user.id)
-    u_type = user_type(usr_id)[0]
-
-    if u_type == 'student':
-        tasks = get_tasks_for_student()
-    else:
-        tasks = select_task()
-
-    if not tasks:
-        keyboard = get_keyboard(usr_id)
-        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
-        await callback.message.edit_text(msg_text, reply_markup=keyboard)
-        await callback.answer()
-        return
-
-    if usr_id not in tasks_values:
-        tasks_values[usr_id] = 0
-        write_user_values("tasks_values", tasks_values)
-
-    count_tasks = len(tasks)
-    student_ids_task = tasks[tasks_values[usr_id]].student_id
-    keyboard = get_keyboard_task(u_type, student_ids_task, usr_id)
-
-    current_page = tasks_values[usr_id]
-    s, tasks_values[usr_id] = navigation(callback.data, current_page, count_tasks)
-    write_user_values("tasks_values", tasks_values)
-
-    current_task = tasks[tasks_values[usr_id]]
-    msg_text = s + short_long_task(current_task)
-
+    keyboard, msg_text = get_task_data(usr_id, callback.data)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
