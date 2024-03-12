@@ -3,8 +3,8 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from create import dp
-from commands.general import get_keyboard, check_user_name
-from keyboard import admin_ikb, worker_ikb, login_rep
+from commands.general import check_user_name
+from keyboard import admin_ikb, worker_ikb, login_rep, back_ikb
 from db.commands import select_added_users, change_name_added, registration_user
 
 
@@ -43,8 +43,7 @@ async def authorization_command(callback: types.CallbackQuery):
     Функция начала процесса авторизации.
     """
 
-    keyboard = get_keyboard(callback.from_user.id)
-    await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=keyboard)
+    await callback.message.edit_text(f'Введите <b>логин.</b>', parse_mode='HTML', reply_markup=back_ikb)
     await Authorisation.login.set()
 
 

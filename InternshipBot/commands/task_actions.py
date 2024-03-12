@@ -2,7 +2,7 @@ from aiogram import types
 from create import dp
 from commands.general import get_keyboard, navigation, read_user_values, write_user_values, get_tasks_for_student, \
     short_long_task
-from db.commands import user_type, select_task, select_already_get_stud, select_user
+from db.commands import user_type, select_task, select_already_get_stud
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
     task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all
 

@@ -23,10 +23,15 @@ globalDict_pagesW = read_user_values("globalDict_pagesW")
 
 
 def get_worker_own_keyboard(s_id):
-    k = task_worker_own_ikb
-    if s_id is not None:
-        k = task_worker_without_del
-    return k
+    """
+
+    :param s_id:
+    :return:
+    """
+
+    if s_id:
+        return task_worker_without_del
+    return task_worker_own_ikb
 
 
 class TaskChangeW(StatesGroup):
@@ -35,41 +40,66 @@ class TaskChangeW(StatesGroup):
     value = State()
 
 
-@dp.callback_query_handler(text=['worker_task', 'worker_right', 'worker_left'])
+@dp.callback_query_handler(text="worker_task")
 async def show_worker_task(callback: types.CallbackQuery):
     """
     Функция просмотра задач, опубликованных сотрудником.
     """
+
     usr_id = str(callback.from_user.id)
     tasks = select_worker_task(usr_id)
 
     if not tasks:
         keyboard = get_keyboard(usr_id)
-        await callback.message.edit_text('В данный момент задач нет.\nЗагляните позже.', reply_markup=keyboard)
+        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
+        await callback.message.edit_text(msg_text, reply_markup=keyboard)
         await callback.answer()
-    else:
-        count_tasks = len(tasks)
+        return
 
-        if usr_id not in globalDict_pagesW:
-            globalDict_pagesW[usr_id] = 0
-            write_user_values("globalDict_pagesW", globalDict_pagesW)
+    if usr_id not in globalDict_pagesW:
+        globalDict_pagesW[usr_id] = 0
+        write_user_values("globalDict_pagesW", globalDict_pagesW)
 
-        keyboard = get_worker_own_keyboard(tasks[globalDict_pagesW[usr_id]].student_id)
+    count_tasks = len(tasks)
+    current_task = tasks[globalDict_pagesW[usr_id]]
+    task_selected = current_task.student_id
+    keyboard = get_worker_own_keyboard(task_selected)
+    current_page = globalDict_pagesW[usr_id]
 
-        if callback.data == 'worker_task':
-            pw = globalDict_pagesW[usr_id]
-            if globalDict_pagesW[usr_id] <= -1:
-                pw = count_tasks + globalDict_pagesW[usr_id]
-            count_tasks = len(tasks)
-            await callback.message.edit_text(f"<b>№</b> {pw + 1}/{count_tasks}\n\n" + short_long_task(tasks[globalDict_pagesW[usr_id]]),
-                                             parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
-        else:
-            s, globalDict_pagesW[usr_id] = navigation(callback.data, globalDict_pagesW[usr_id], count_tasks)
-            write_user_values("globalDict_pagesW", globalDict_pagesW)
-            keyboard = get_worker_own_keyboard(tasks[globalDict_pagesW[usr_id]].student_id)
+    if globalDict_pagesW[usr_id] <= -1:
+        current_page = count_tasks + globalDict_pagesW[usr_id]
 
-            await callback.message.edit_text(s + short_long_task(tasks[globalDict_pagesW[usr_id]]), parse_mode='HTML',
-                                             reply_markup=keyboard, disable_web_page_preview=True)
+    msg_text = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n" + short_long_task(current_task)
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+
+
+@dp.callback_query_handler(text=['worker_right', 'worker_left'])
+async def show_worker_task_lr(callback: types.CallbackQuery):
+    """
+    Функция просмотра задач, опубликованных сотрудником.
+    """
+
+    usr_id = str(callback.from_user.id)
+    tasks = select_worker_task(usr_id)
+
+    if not tasks:
+        keyboard = get_keyboard(usr_id)
+        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
+        await callback.message.edit_text(msg_text, reply_markup=keyboard)
+        await callback.answer()
+        return
+
+    if usr_id not in globalDict_pagesW:
+        globalDict_pagesW[usr_id] = 0
+        write_user_values("globalDict_pagesW", globalDict_pagesW)
+
+    s, globalDict_pagesW[usr_id] = navigation(callback.data, globalDict_pagesW[usr_id], len(tasks))
+    write_user_values("globalDict_pagesW", globalDict_pagesW)
+
+    current_task = tasks[globalDict_pagesW[usr_id]]
+    msg_text = s + short_long_task(current_task)
+    keyboard = get_worker_own_keyboard(current_task.student_id)
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='more_task_w')
@@ -77,14 +107,18 @@ async def show_more_worker_task(callback: types.CallbackQuery):
     """
     Функция просмотра подробной информации задачи, опубликованной сотрудником.
     """
-    tasks = select_worker_task(callback.from_user.id)
+
     usr_id = str(callback.from_user.id)
+    tasks = select_worker_task(callback.from_user.id)
+    current_task = tasks[globalDict_pagesW[usr_id]]
+    task_selected = current_task.student_id
+    msg_text = short_long_task(current_task, 1)
 
     keyboard = task_worker_more_w_ikb
-    if tasks[globalDict_pagesW[usr_id]].student_id is not None:
+    if task_selected:
         keyboard = task_worker_more_without_del_w_ikb
-    await callback.message.edit_text(short_long_task(tasks[globalDict_pagesW[usr_id]], 1), parse_mode='HTML',
-                                     reply_markup=keyboard, disable_web_page_preview=True)
+
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='change_task_w')

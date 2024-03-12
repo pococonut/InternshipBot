@@ -2,7 +2,7 @@ from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from db.commands import select_user, registration_user
+from db.commands import select_user, registration_user, user_type
 from commands.general import check_param
 from keyboard import back_cont_ikb, student_not_approved, back_ikb
 
@@ -43,6 +43,13 @@ async def registration_command(callback: types.CallbackQuery):
     """
     Функция вывода сообщения для ознакомления с необходимыми для подачи заявки параметрами.
     """
+
+    user_id = str(callback.from_user.id)
+    user_exist = select_user(user_id)
+    if user_exist:
+        u_type = user_type(user_id)[0]
+        await callback.message.edit_text(f"Вы уже зарегистрированы как {u_type}.")
+        return
 
     await callback.message.edit_text(FORM, parse_mode='HTML', reply_markup=back_cont_ikb)
 

@@ -43,7 +43,7 @@ async def cont_task_command(callback: types.CallbackQuery):
     Функция начала ввода параметров задачи.
     """
 
-    await callback.message.edit_text("Введите название задачи.", parse_mode='HTML', reply_markup=back_ikb)
+    await callback.message.edit_text("Введите название задачи.", reply_markup=back_ikb)
     await Task.task_name.set()
 
 
@@ -52,10 +52,12 @@ async def add_task_name(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Название.
     """
-    if len(message.text.split()) > 20:
-        await message.answer('Количество слов параметра <em>Название</em> превышает максимальное значение'
-                             ' - 20 слов', parse_mode='HTML')
+
+    if len(message.text.split()) > 50:
+        msg_text = 'Количество слов параметра <em>Название</em> превышает максимальное значение - 50 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(task_name=message.text)
     await message.answer('Введите цель работы.')
     await Task.next()
@@ -66,10 +68,12 @@ async def add_task_goal(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Цель задачи.
     """
+
     if len(message.text.split()) > 50:
-        await message.answer('Количество слов параметра <em>Цель задачи</em> превышает максимальное значение'
-                             ' - 50 слов', parse_mode='HTML')
+        msg_text = 'Количество слов параметра <em>Цель задачи</em> превышает максимальное значение - 50 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(task_goal=message.text)
     await message.answer('Введите описание работы.')
     await Task.next()
@@ -80,10 +84,12 @@ async def add_task_description(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Описание задачи.
     """
+
     if len(message.text.split()) > 200:
-        await message.answer('Количество слов параметра <em>Описание задачи</em> превышает максимальное значение'
-                             ' - 200 слов', parse_mode='HTML')
+        msg_text = 'Количество слов параметра <em>Описание задачи</em> превышает максимальное значение - 200 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(task_description=message.text)
     await message.answer('Введите задачи работы.')
     await Task.next()
@@ -94,10 +100,12 @@ async def add_task_tasks(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Подзадачи.
     """
+
     if len(message.text.split()) > 500:
-        await message.answer('Количество слов параметра <em>Описание задачи</em> превышает максимальное значение'
-                             ' - 500 слов', parse_mode='HTML')
+        msg_text = 'Количество слов параметра <em>Описание задачи</em> превышает максимальное значение - 500 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(task_tasks=message.text)
     await message.answer('Введите необходимые навыки и технологии.')
     await Task.next()
@@ -108,10 +116,12 @@ async def add_task_technologies(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Необходимые навыки и технологии.
     """
+
     if len(message.text.split()) > 200:
-        await message.answer('Количество слов параметра <em>Необходимые навыки и технологии</em> превышает максимальное'
-                             ' значение - 200 слов', parse_mode='HTML')
+        msg_text = 'Количество слов параметра <em>Навыки и технологии</em> превышает максимальное значение - 200 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(task_technologies=message.text)
     await message.answer('Введите навыки, получаемые в процессе прохождения практики.')
     await Task.next()
@@ -122,10 +132,12 @@ async def add_task_new_skills(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Навыки, получаемые в процессе прохождения практики.
     """
+
     if len(message.text.split()) > 200:
-        await message.answer('Количество слов параметра <em>Навыки, получаемые в процессе прохождения практики</em>'
-                             ' превышает максимальное значение - 200 слов', parse_mode='HTML')
+        msg_text = 'Количество слов параметра <em>Получаемые навыки</em> превышает максимальное значение - 200 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(task_new_skills=message.text)
     await message.answer('Введите количество человек.')
     await Task.next()
@@ -136,12 +148,15 @@ async def add_task_num_people(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Количество человек.
     """
+
     if len(message.text.split()) > 1 or any(chr.isalpha() for chr in message.text):
         await message.answer('Параметр введен в некорректном формате. Повторите ввод')
         return
+
     if int(message.text) > 5:
         await message.answer('Количество человек превышает максимальное значение - 5 человек.')
         return
+
     await state.update_data(num_people=message.text)
     await message.answer('Введите материалы.')
     await Task.next()
@@ -152,26 +167,27 @@ async def add_task_materials(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Материалы.
     """
+
     if len(message.text.split()) > 200:
-        await message.answer('Количество слов параметра <em>Материалы</em> превышает максимальное значение - 200 слов',
-                             parse_mode='HTML')
+        msg_text = 'Количество слов параметра <em>Материалы</em> превышает максимальное значение - 200 слов'
+        await message.answer(msg_text, parse_mode='HTML')
         return
+
     await state.update_data(materials=str(message.text))
     data = await state.get_data()
     task = add_task(message.from_id, data)
+
     if task:
         u_type = user_type(message.from_user.id)[0]
-        keyboard = admin_ikb
-        if u_type == 'worker':
-            keyboard = worker_ikb
-        await message.answer(f'📝 <b>Добавлена задача</b>\n\n'
-                             f'<b>Название:</b> {data["task_name"]}\n\n'
-                             f'<b>Цель:</b> {data["task_goal"]}\n\n'
-                             f'<b>Описание:</b> {data["task_description"]}\n\n'
-                             f'<b>Задачи:</b>\n{data["task_tasks"]}\n\n'
-                             f'<b>Необходимые навыки и технологии:</b>\n{data["task_technologies"]}\n\n'
-                             f'<b>Умения и навыки, получаемые в процессе прохождения практики:</b>\n{data["task_new_skills"]}\n\n'
-                             f'<b>Количество людей:</b> {data["num_people"]}\n\n'
-                             f'<b>Материалы:</b>\n{str(data["materials"])}', parse_mode='HTML',
-                             reply_markup=keyboard, disable_web_page_preview=True)
+        keyboard = worker_ikb if u_type == 'worker' else admin_ikb
+        msg_text = f'📝 <b>Добавлена задача</b>\n\n' \
+                   f'<b>Название:</b> {data["task_name"]}\n\n' \
+                   f'<b>Цель:</b> {data["task_goal"]}\n\n' \
+                   f'<b>Описание:</b> {data["task_description"]}\n\n' \
+                   f'<b>Задачи:</b>\n{data["task_tasks"]}\n\n' \
+                   f'<b>Необходимые навыки и технологии:</b>\n{data["task_technologies"]}\n\n' \
+                   f'<b>Навыки, получаемые в процессе прохождения практики:</b>\n{data["task_new_skills"]}\n\n' \
+                   f'<b>Количество людей:</b> {data["num_people"]}\n\n' \
+                   f'<b>Материалы:</b>\n{str(data["materials"])}'
+        await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
     await state.finish()
