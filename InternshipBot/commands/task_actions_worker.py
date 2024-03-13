@@ -1,12 +1,12 @@
 from aiogram import types
+from commands.task_actions import get_task_data
 from create import bot, dp
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion, navigation, read_user_values, write_user_values, short_long_task
-from commands.general import get_keyboard
+from commands.general import ConfirmDeletion, read_user_values, write_user_values, short_long_task
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import change_task, del_task, select_worker_task
-from keyboard import change_task_ikb, task_worker_own_ikb, task_worker_without_del, \
-    selected_task, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb, back_task_own_ikb, del_task_worker_ikb
+from keyboard import change_task_ikb, selected_task, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb, \
+    back_task_own_ikb, del_task_worker_ikb
 
 
 param_task = {'change_task_name': 'Название',
@@ -19,19 +19,7 @@ param_task = {'change_task_name': 'Название',
               'change_materials': 'Материалы'}
 
 change_param_task_list = list(param_task.keys())
-globalDict_pagesW = read_user_values("globalDict_pagesW")
-
-
-def get_worker_own_keyboard(s_id):
-    """
-
-    :param s_id:
-    :return:
-    """
-
-    if s_id:
-        return task_worker_without_del
-    return task_worker_own_ikb
+tasks_worker_values = read_user_values("tasks_worker_values")
 
 
 class TaskChangeW(StatesGroup):
@@ -40,65 +28,14 @@ class TaskChangeW(StatesGroup):
     value = State()
 
 
-@dp.callback_query_handler(text="worker_task")
+@dp.callback_query_handler(text=['worker_task', 'worker_right', 'worker_left'])
 async def show_worker_task(callback: types.CallbackQuery):
     """
     Функция просмотра задач, опубликованных сотрудником.
     """
 
     usr_id = str(callback.from_user.id)
-    tasks = select_worker_task(usr_id)
-
-    if not tasks:
-        keyboard = get_keyboard(usr_id)
-        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
-        await callback.message.edit_text(msg_text, reply_markup=keyboard)
-        await callback.answer()
-        return
-
-    if usr_id not in globalDict_pagesW:
-        globalDict_pagesW[usr_id] = 0
-        write_user_values("globalDict_pagesW", globalDict_pagesW)
-
-    count_tasks = len(tasks)
-    current_task = tasks[globalDict_pagesW[usr_id]]
-    task_selected = current_task.student_id
-    keyboard = get_worker_own_keyboard(task_selected)
-    current_page = globalDict_pagesW[usr_id]
-
-    if globalDict_pagesW[usr_id] <= -1:
-        current_page = count_tasks + globalDict_pagesW[usr_id]
-
-    msg_text = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n" + short_long_task(current_task)
-    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
-
-
-@dp.callback_query_handler(text=['worker_right', 'worker_left'])
-async def show_worker_task_lr(callback: types.CallbackQuery):
-    """
-    Функция просмотра задач, опубликованных сотрудником.
-    """
-
-    usr_id = str(callback.from_user.id)
-    tasks = select_worker_task(usr_id)
-
-    if not tasks:
-        keyboard = get_keyboard(usr_id)
-        msg_text = 'В данный момент задач нет.\nЗагляните позже.'
-        await callback.message.edit_text(msg_text, reply_markup=keyboard)
-        await callback.answer()
-        return
-
-    if usr_id not in globalDict_pagesW:
-        globalDict_pagesW[usr_id] = 0
-        write_user_values("globalDict_pagesW", globalDict_pagesW)
-
-    s, globalDict_pagesW[usr_id] = navigation(callback.data, globalDict_pagesW[usr_id], len(tasks))
-    write_user_values("globalDict_pagesW", globalDict_pagesW)
-
-    current_task = tasks[globalDict_pagesW[usr_id]]
-    msg_text = s + short_long_task(current_task)
-    keyboard = get_worker_own_keyboard(current_task.student_id)
+    keyboard, msg_text = get_task_data(usr_id, callback.data, tasks_worker_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
@@ -110,7 +47,7 @@ async def show_more_worker_task(callback: types.CallbackQuery):
 
     usr_id = str(callback.from_user.id)
     tasks = select_worker_task(callback.from_user.id)
-    current_task = tasks[globalDict_pagesW[usr_id]]
+    current_task = tasks[tasks_worker_values[usr_id]]
     task_selected = current_task.student_id
     msg_text = short_long_task(current_task, 1)
 
@@ -126,9 +63,9 @@ async def ch_w_task(callback: types.CallbackQuery):
     """
     Функция возвращающая клавиатуру с доступными для изменения параметрами.
     """
+
     await callback.message.edit_reply_markup()
-    await callback.message.answer('Выберите параметр который желаете изменить.', parse_mode='HTML',
-                                  reply_markup=change_task_ikb)
+    await callback.message.answer('Выберите параметр который желаете изменить.', reply_markup=change_task_ikb)
     await TaskChangeW.param.set()
 
 
@@ -137,9 +74,10 @@ async def ch_w_task_param(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для получения названия параметра, который пользователь желает изменить.
     """
+
     await state.update_data(param=callback.data)
     usr_id = str(callback.from_user.id)
-    await state.update_data(num_task=globalDict_pagesW[usr_id])
+    await state.update_data(num_task=tasks_worker_values[usr_id])
     await callback.message.edit_text("Введите новое значение.")
     await TaskChangeW.next()
 
@@ -149,23 +87,29 @@ async def ch_w_task_val(message: types.Message, state=FSMContext):
     """
     Функция для получения нового значения параметра, который пользователь желает изменить.
     """
+
     await state.update_data(value=message.text)
     data = await state.get_data()
-    await message.answer(f"<b>Параметр:</b> {param_task.get(data['param'])}\n\n"
-                         f"<b>Новое значение:</b> {data['value']}\n\n", parse_mode='HTML')
+
     tasks = select_worker_task(message.from_user.id)
-    t_id = tasks[data['num_task']].task_id
+    task_id = tasks[data['num_task']].task_id
     name = tasks[data['num_task']].task_name
-    change_task(t_id, data['param'][7:], data['value'])
+    change_task(task_id, data['param'][7:], data['value'])
+    student_id = tasks[data['num_task']].student_id
 
-    if tasks[data['num_task']].student_id is not None:
-        s_id = tasks[data['num_task']].student_id
-        await bot.send_message(s_id, f"В задаче <b><em>{name}</em></b> "
-                                     f"параметр <b><em>{param_task.get(data['param'])}</em></b> был изменен на новое значение:"
-                                     f"\n<b><em>{data['value']}</em></b>.",
-                               reply_markup=selected_task, parse_mode='HTML')
+    if student_id:
+        msg_student = f"В задаче <b><em>{name}</em></b> "\
+                      f"параметр <b><em>{param_task.get(data['param'])}" \
+                      f"</em></b> был изменен на новое значение:"\
+                      f"\n<b><em>{data['value']}</em></b>."
 
-    await message.answer('Задача изменена.', parse_mode='HTML', reply_markup=back_task_own_ikb)
+        await bot.send_message(student_id, msg_student, reply_markup=selected_task, parse_mode='HTML')
+
+    msg_worker = f"<b>Параметр:</b> {param_task.get(data['param'])}\n\n" \
+                 f"<b>Новое значение:</b> {data['value']}\n\n" \
+                 f"Задача изменена."
+
+    await message.answer(msg_worker, parse_mode='HTML', reply_markup=back_task_own_ikb)
     await state.finish()
 
 
@@ -174,8 +118,9 @@ async def del_worker_t(callback: types.CallbackQuery):
     """
     Функция для подтверждения действия удаления задачи сотрудника.
     """
+
     await callback.message.edit_reply_markup()
-    await callback.message.edit_text('Удалить задачу?', parse_mode='HTML', reply_markup=del_task_worker_ikb)
+    await callback.message.edit_text('Удалить задачу?', reply_markup=del_task_worker_ikb)
     await ConfirmDeletion.delete.set()
 
 
@@ -184,17 +129,21 @@ async def del_worker_t_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для удаления задачи сотрудника.
     """
+
     await state.update_data(delete=callback.data)
-    tasks = select_worker_task(callback.from_user.id)
     usr_id = str(callback.from_user.id)
-    t_id = tasks[globalDict_pagesW[usr_id]].task_id
+    tasks = select_worker_task(usr_id)
+    task_id = tasks[tasks_worker_values[usr_id]].task_id
     count_tasks = len(tasks)
-    del_task(t_id)
-
-    if count_tasks is not None and (globalDict_pagesW[usr_id] >= count_tasks or globalDict_pagesW[usr_id] < count_tasks):
-        globalDict_pagesW[usr_id] = 0
-        write_user_values("globalDict_pagesW", globalDict_pagesW)
-
+    del_task(task_id)
     await state.finish()
-    await callback.message.edit_text('Задача удалена', parse_mode='HTML', reply_markup=back_task_own_ikb)
+
+    condition1 = tasks_worker_values[usr_id] >= count_tasks
+    condition2 = tasks_worker_values[usr_id] < count_tasks
+    if count_tasks and (condition1 or condition2):
+        tasks_worker_values[usr_id] = 0
+        write_user_values("tasks_worker_values", tasks_worker_values)
+
+    msg_text = 'Задача удалена'
+    await callback.message.edit_text(msg_text, reply_markup=back_task_own_ikb)
 

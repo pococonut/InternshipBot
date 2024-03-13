@@ -2,10 +2,10 @@ from aiogram import types
 from create import dp
 from commands.general import get_keyboard, navigation, read_user_values, write_user_values, get_tasks_for_student, \
     short_long_task
-from db.commands import user_type, select_task, select_already_get_stud
+from db.commands import user_type, select_task, select_already_get_stud, select_worker_task
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
-    task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all
-
+    task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all, \
+    task_worker_without_del, task_worker_own_ikb
 
 tasks_values = read_user_values("tasks_values")
 
@@ -48,16 +48,34 @@ def get_keyboard_more_task(usr_type, task_selected):
     return task_worker_more_ikb
 
 
-def get_task_data(usr_id, callback):
+def get_worker_own_keyboard(usr_id):
+    """
+    Функция возвращает клавиатуру в зависимости от того,
+     закреплена ли задача за студентом или нет
+    :param usr_id: Идентификатор пользователя
+    :return: Клавиатура
     """
 
-    :return:
+    if usr_id:
+        return task_worker_without_del
+    return task_worker_own_ikb
+
+
+def get_task_data(usr_id, callback, dict_values):
+    """
+    Функция возвращает клавиатуру и информацию о задаче
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param callback: Кнопка
+    :param dict_values: Значения навигации пользователя
+    :return: Клавиатура и информация о задаче
     """
 
     u_type = user_type(usr_id)[0]
 
     if u_type == 'student':
         tasks = get_tasks_for_student()
+    elif 'worker' in callback:
+        tasks = select_worker_task(usr_id)
     else:
         tasks = select_task()
 
@@ -66,27 +84,29 @@ def get_task_data(usr_id, callback):
         msg_text = 'В данный момент задач нет.\nЗагляните позже.'
         return keyboard, msg_text
 
-    if usr_id not in tasks_values:
-        tasks_values[usr_id] = 0
-        write_user_values("tasks_values", tasks_values)
+    if usr_id not in dict_values:
+        dict_values[usr_id] = 0
+        write_user_values(f"{dict_values}", dict_values)
 
     count_tasks = len(tasks)
-    current_task = tasks[tasks_values[usr_id]]
+    current_task = tasks[dict_values[usr_id]]
     student_ids_task = current_task.student_id
-    keyboard = get_keyboard_task(u_type, student_ids_task, usr_id)
-    current_page = tasks_values[usr_id]
+    current_page = dict_values[usr_id]
+
+    if 'worker' in callback:
+        keyboard = get_worker_own_keyboard(current_task.student_id)
+    else:
+        keyboard = get_keyboard_task(u_type, student_ids_task, usr_id)
 
     if 'right' not in callback and 'left' not in callback:
-        current_page = tasks_values[usr_id]
-        if tasks_values[usr_id] <= -1:
-            current_page = count_tasks + tasks_values[usr_id]
-        current_task = tasks[tasks_values[usr_id]]
+        if dict_values[usr_id] <= -1:
+            current_page = count_tasks + dict_values[usr_id]
         msg_text = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n" + short_long_task(current_task)
         return keyboard, msg_text
 
-    s, tasks_values[usr_id] = navigation(callback, current_page, count_tasks)
-    write_user_values("tasks_values", tasks_values)
-    current_task = tasks[tasks_values[usr_id]]
+    s, dict_values[usr_id] = navigation(callback, current_page, count_tasks)
+    write_user_values("tasks_values", dict_values)
+    current_task = tasks[dict_values[usr_id]]
     msg_text = s + short_long_task(current_task)
     return keyboard, msg_text
 
@@ -98,7 +118,7 @@ async def show_task(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    keyboard, msg_text = get_task_data(usr_id, callback.data)
+    keyboard, msg_text = get_task_data(usr_id, callback.data, tasks_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
@@ -120,6 +140,5 @@ async def show_more_task(callback: types.CallbackQuery):
     task_selected = current_task.student_id
     keyboard = get_keyboard_more_task(u_type, task_selected)
     msg_text = short_long_task(current_task, 1)
-
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
