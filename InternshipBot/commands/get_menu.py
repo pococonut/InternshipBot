@@ -1,6 +1,6 @@
 from create import dp
 from aiogram import types
-from db.commands import user_type
+from db.commands import get_user_type
 from commands.general import get_keyboard
 from keyboard import new_user_ikb, chat_ikb
 
@@ -12,7 +12,7 @@ def check_get_menu(user_id):
     :return: Текст сообщения, клавиатура
     """
 
-    user_exist = user_type(user_id)
+    user_exist = get_user_type(user_id)
     if not user_exist:
         msg_text = (f'Выберите команду.\n<em>Регистрация</em> -  Для студентов.'
                     f'\n<em>Авторизация</em> - Для сотрудников.')

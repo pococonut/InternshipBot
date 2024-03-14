@@ -389,12 +389,13 @@ def del_added(a_id):
         print(e)
 
 
-def user_type(user_id):
+def get_user_type(user_id):
     """
     Функция возвращающая тип пользователя (Администратор, Директор, Сотрудник, Студент).
     :param user_id: Уникальный идентификатор пользователя.
     :return: Тип пользователя.
     """
+
     try:
         u_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:

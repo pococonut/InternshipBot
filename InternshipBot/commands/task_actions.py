@@ -2,7 +2,7 @@ from aiogram import types
 from create import dp
 from commands.general import get_keyboard, navigation, read_user_values, write_user_values, get_tasks_for_student, \
     short_long_task
-from db.commands import user_type, select_task, select_already_get_stud, select_worker_task
+from db.commands import select_task, select_already_get_stud, select_worker_task, get_user_type
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
     task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all, \
     task_worker_without_del, task_worker_own_ikb
@@ -61,7 +61,7 @@ def get_worker_own_keyboard(usr_id):
     return task_worker_own_ikb
 
 
-def get_task_data(usr_id, callback, dict_values):
+def get_task_message_keyboard(usr_id, callback, dict_values):
     """
     Функция возвращает клавиатуру и информацию о задаче
     :param usr_id: Идентификатор пользователя в телеграм
@@ -70,9 +70,9 @@ def get_task_data(usr_id, callback, dict_values):
     :return: Клавиатура и информация о задаче
     """
 
-    u_type = user_type(usr_id)[0]
+    user_type = get_user_type(usr_id)[0]
 
-    if u_type == 'student':
+    if user_type == 'student':
         tasks = get_tasks_for_student()
     elif 'worker' in callback:
         tasks = select_worker_task(usr_id)
@@ -96,7 +96,7 @@ def get_task_data(usr_id, callback, dict_values):
     if 'worker' in callback:
         keyboard = get_worker_own_keyboard(current_task.student_id)
     else:
-        keyboard = get_keyboard_task(u_type, student_ids_task, usr_id)
+        keyboard = get_keyboard_task(user_type, student_ids_task, usr_id)
 
     if 'right' not in callback and 'left' not in callback:
         if dict_values[usr_id] <= -1:
@@ -118,7 +118,7 @@ async def show_task(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    keyboard, msg_text = get_task_data(usr_id, callback.data, tasks_values)
+    keyboard, msg_text = get_task_message_keyboard(usr_id, callback.data, tasks_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
@@ -129,16 +129,18 @@ async def show_more_task(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    u_type = user_type(usr_id)[0]
+    user_type = get_user_type(usr_id)[0]
 
-    if u_type == 'student':
+    if user_type == 'student':
         tasks = get_tasks_for_student()
+    elif 'worker' in callback:
+        tasks = select_worker_task(usr_id)
     else:
         tasks = select_task()
 
     current_task = tasks[tasks_values[usr_id]]
     task_selected = current_task.student_id
-    keyboard = get_keyboard_more_task(u_type, task_selected)
+    keyboard = get_keyboard_more_task(user_type, task_selected)
     msg_text = short_long_task(current_task, 1)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 

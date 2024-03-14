@@ -4,7 +4,7 @@ import phonenumbers
 import logging
 import os
 import json
-from db.commands import user_type, stud_approve, select_task, select_user
+from db.commands import get_user_type, stud_approve, select_task, select_user
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from keyboard import back_ikb, admin_ikb, worker_ikb, student_not_approved, stud_is_approve
 
@@ -235,7 +235,7 @@ def get_keyboard(t_id):
     :return k: Inline-клавиатура.
     """
 
-    u_type = user_type(t_id)
+    u_type = get_user_type(t_id)
     if u_type is None:
         k = back_ikb
     else:

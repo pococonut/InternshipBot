@@ -1,15 +1,18 @@
 from aiogram import types
-from create import bot, dp
 from aiogram.dispatcher import FSMContext
+from create import bot, dp
 from commands.general import ConfirmDeletion, get_tasks_for_student, short_long_task
 from commands.task_actions import tasks_values
-from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve, back_task_ikb
 from db.commands import select_already_get_stud, change_task_stud, select_user, change_task
+from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve, back_task_ikb
 
 
 def add_student_to_task(tasks, usr_id):
     """
-    Функция для прикрепления студента к задаче
+    Функция для фиксирования задачи за студентом
+    :param tasks: Список задач
+    :param usr_id: Идентификатор пользователя
+    :return: None
     """
 
     current_task = tasks[tasks_values[usr_id]]
@@ -57,9 +60,8 @@ async def stud_chosen_task(callback: types.CallbackQuery):
         await callback.answer()
         return
 
-    msg_text = f"📝 <b>Выбранная задача</b>\n\n" + short_long_task(task, 1)
-    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=stud_reject_task,
-                                     disable_web_page_preview=True)
+    m = f"📝 <b>Выбранная задача</b>\n\n" + short_long_task(task, 1)
+    await callback.message.edit_text(m, parse_mode='HTML', reply_markup=stud_reject_task, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='reject_task')
@@ -68,8 +70,9 @@ async def stud_reject_t(callback: types.CallbackQuery):
     Функция подтверждения отказа от задачи.
     """
 
+    msg_text = 'Отказаться от задачи?'
     await callback.message.edit_reply_markup()
-    await callback.message.edit_text('Отказаться от задачи?', parse_mode='HTML', reply_markup=reject_task_ikb)
+    await callback.message.edit_text(msg_text, reply_markup=reject_task_ikb)
     await ConfirmDeletion.delete.set()
 
 

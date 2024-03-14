@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from create import bot, dp
 from commands.task_actions import tasks_values
-from db.commands import select_task, change_task, user_type
+from db.commands import select_task, change_task, get_user_type
 from keyboard import change_task_ikb, selected_task, back_task_ikb, back_task_w_ikb
 
 param_task = {'change_task_name': 'Название',
@@ -73,7 +73,7 @@ async def ch_task_val(message: types.Message, state=FSMContext):
         student_id = tasks[data['num_task']].student_id
         await bot.send_message(student_id, msg_text, reply_markup=selected_task, parse_mode='HTML')
 
-    if user_type(user_id)[0] == 'student':
+    if get_user_type(user_id)[0] == 'student':
         keyboard = back_task_ikb
     else:
         keyboard = back_task_w_ikb

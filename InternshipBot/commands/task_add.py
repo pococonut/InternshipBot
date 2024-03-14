@@ -1,7 +1,7 @@
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from db.commands import user_type, add_task
+from db.commands import get_user_type, add_task
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from keyboard import admin_ikb, worker_ikb, back_ikb, back_cont_task_ikb
 
@@ -178,7 +178,7 @@ async def add_task_materials(message: types.Message, state=FSMContext):
     task = add_task(message.from_id, data)
 
     if task:
-        u_type = user_type(message.from_user.id)[0]
+        u_type = get_user_type(message.from_user.id)[0]
         keyboard = worker_ikb if u_type == 'worker' else admin_ikb
         msg_text = f'📝 <b>Добавлена задача</b>\n\n' \
                    f'<b>Название:</b> {data["task_name"]}\n\n' \

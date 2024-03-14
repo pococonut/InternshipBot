@@ -1,9 +1,9 @@
 from aiogram import types
-from commands.task_actions import get_task_data
-from create import bot, dp
 from aiogram.dispatcher import FSMContext
-from commands.general import ConfirmDeletion, read_user_values, write_user_values, short_long_task
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from create import bot, dp
+from commands.task_actions import get_task_message_keyboard
+from commands.general import ConfirmDeletion, read_user_values, write_user_values, short_long_task
 from db.commands import change_task, del_task, select_worker_task
 from keyboard import change_task_ikb, selected_task, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb, \
     back_task_own_ikb, del_task_worker_ikb
@@ -35,7 +35,7 @@ async def show_worker_task(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    keyboard, msg_text = get_task_data(usr_id, callback.data, tasks_worker_values)
+    keyboard, msg_text = get_task_message_keyboard(usr_id, callback.data, tasks_worker_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
@@ -75,8 +75,8 @@ async def ch_w_task_param(callback: types.CallbackQuery, state=FSMContext):
     Функция для получения названия параметра, который пользователь желает изменить.
     """
 
-    await state.update_data(param=callback.data)
     usr_id = str(callback.from_user.id)
+    await state.update_data(param=callback.data)
     await state.update_data(num_task=tasks_worker_values[usr_id])
     await callback.message.edit_text("Введите новое значение.")
     await TaskChangeW.next()
@@ -93,22 +93,20 @@ async def ch_w_task_val(message: types.Message, state=FSMContext):
 
     tasks = select_worker_task(message.from_user.id)
     task_id = tasks[data['num_task']].task_id
-    name = tasks[data['num_task']].task_name
-    change_task(task_id, data['param'][7:], data['value'])
+    task_name = tasks[data['num_task']].task_name
     student_id = tasks[data['num_task']].student_id
+    change_task(task_id, data['param'][7:], data['value'])
 
     if student_id:
-        msg_student = f"В задаче <b><em>{name}</em></b> "\
+        msg_student = f"В задаче <b><em>{task_name}</em></b> "\
                       f"параметр <b><em>{param_task.get(data['param'])}" \
                       f"</em></b> был изменен на новое значение:"\
                       f"\n<b><em>{data['value']}</em></b>."
-
         await bot.send_message(student_id, msg_student, reply_markup=selected_task, parse_mode='HTML')
 
     msg_worker = f"<b>Параметр:</b> {param_task.get(data['param'])}\n\n" \
                  f"<b>Новое значение:</b> {data['value']}\n\n" \
                  f"Задача изменена."
-
     await message.answer(msg_worker, parse_mode='HTML', reply_markup=back_task_own_ikb)
     await state.finish()
 
@@ -144,6 +142,6 @@ async def del_worker_t_yes(callback: types.CallbackQuery, state=FSMContext):
         tasks_worker_values[usr_id] = 0
         write_user_values("tasks_worker_values", tasks_worker_values)
 
-    msg_text = 'Задача удалена'
+    msg_text = 'Задача удалена.'
     await callback.message.edit_text(msg_text, reply_markup=back_task_own_ikb)
 

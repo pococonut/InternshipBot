@@ -4,8 +4,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from create import dp
 from commands.general import check_user_name
+from db.commands import select_added_users, registration_user
 from keyboard import admin_ikb, worker_ikb, login_rep, back_ikb
-from db.commands import select_added_users, change_name_added, registration_user
 
 
 class Authorisation(StatesGroup):
@@ -26,9 +26,9 @@ def check_login(login, password):
 
     authorisation_lst = {}
 
-    for u in select_added_users():
-        inf = {'type': u.type, 'login': u.login, 'password': u.password}
-        authorisation_lst[u.id] = inf
+    for user in select_added_users():
+        inf = {'type': user.type, 'login': user.login, 'password': user.password}
+        authorisation_lst[user.id] = inf
 
     f = False
     for key, inf in authorisation_lst.items():
@@ -104,30 +104,27 @@ async def get_name(message: types.Message, state=FSMContext):
     Функция получения ФИО от пользователя.
     """
 
-    data = await state.get_data()
-    result_of_check = check_login(data['login'], data['password'])
     name = check_user_name(message.text)
     if not name:
-        await message.answer('ФИО введено в некорректном формате', parse_mode='HTML')
+        msg_text = 'ФИО введено в некорректном формате'
+        await message.answer(msg_text, parse_mode='HTML')
         return
 
     await state.update_data(name=name)
     data = await state.get_data()
-    who = registration_user(message.from_user.id, result_of_check, data)
 
-    if not who:
-        await message.answer("Введен неверный логин или пароль.", reply_markup=login_rep)
+    user_type = registration_user(message.from_user.id, 'worker', data)
+    if not user_type:
+        msg_text = 'Ошибка авторизации.'
+        await message.answer(msg_text, reply_markup=login_rep)
         return
 
     keyboard = admin_ikb
-    if who == 'сотрудник':
+    if user_type == 'сотрудник':
         keyboard = worker_ikb
 
-    change_name_added(data.get('login'), data.get('name'))
-
-    msg_text = (f'Вы авторизованны как <b>{who}</b>.\n\n'
+    msg_text = (f'Вы авторизованны как <b>{user_type}</b>.\n\n'
                 'Чат для связи доступен по <a href="https://t.me/+FShhqiWUDJRjODky">этой ссылке</a>')
-
     await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
     await state.finish()
 

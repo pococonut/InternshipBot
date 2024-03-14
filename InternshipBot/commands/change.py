@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from commands.general import get_keyboard, check_param
 from keyboard import change_ikb, change_worker_ikb, back_ikb
-from db.commands import select_user, user_type, change_inform
+from db.commands import select_user, get_user_type, change_inform
 
 check_d = {'student_name': 'ФИО',
            'phone': 'Номер телефона',
@@ -37,7 +37,7 @@ def change_keyboard(t_id):
     if not user_exist:
         return None
 
-    u_type = user_type(t_id)
+    u_type = get_user_type(t_id)
     if u_type[0] == 'student':
         return change_ikb
     return change_worker_ikb
@@ -110,7 +110,7 @@ async def get_val_student(message: types.Message, state: FSMContext):
     await state.update_data(new_value=result_change)
     data = await state.get_data()
 
-    u_type = user_type(user_id)[0]
+    u_type = get_user_type(user_id)[0]
     keyboard = get_keyboard(user_id)
     change_inform(user_id, u_type, data['parameter'], data['new_value'])
     msg_text = (f"<b>Параметр:</b> {check_d.get(data['parameter'])}\n"

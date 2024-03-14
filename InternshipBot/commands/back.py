@@ -1,11 +1,16 @@
 from create import dp
 from aiogram import types
-from db.commands import user_type
+from db.commands import get_user_type
 from aiogram.dispatcher import FSMContext
 from commands.general import get_keyboard
 from keyboard import add_usr, back_applications, back_task_w_ikb
 
-lst_back = ['back', 'back_added', 'back_application', 'back_tasks']
+back_keyboards = {'back_added': add_usr,
+                  'back_application': back_applications,
+                  'back_tasks': back_task_w_ikb,
+                  'back': None}
+
+lst_back = list(back_keyboards.keys())
 
 
 @dp.callback_query_handler(text=lst_back, state="*")
@@ -14,20 +19,18 @@ async def back_func1(callback: types.CallbackQuery, state: FSMContext):
     Функция для отмены действия.
     """
 
-    user_id = callback.from_user.id
-    u_type = user_type(user_id)
     await state.finish()
     await callback.message.edit_reply_markup()
+    user_id = callback.from_user.id
+    user_type = get_user_type(user_id)
+    msg_text = 'Действие отменено.'
 
-    if not u_type:
-        await callback.message.edit_text('Действие отменено.')
-    else:
-        if callback.data == 'back_added':
-            keyboard = add_usr
-        elif callback.data == 'back_application':
-            keyboard = back_applications
-        elif callback.data == 'back_tasks':
-            keyboard = back_task_w_ikb
-        else:
-            keyboard = get_keyboard(user_id)
-        await callback.message.edit_text('Действие отменено.', reply_markup=keyboard)
+    if not user_type:
+        await callback.message.edit_text(msg_text)
+        return
+
+    keyboard = back_keyboards.get(callback.data)
+    if not keyboard:
+        keyboard = get_keyboard(user_id)
+
+    await callback.message.edit_text(msg_text, reply_markup=keyboard)
