@@ -5,7 +5,7 @@ from commands.general import get_keyboard, navigation, read_user_values, write_u
 from db.commands import select_task, select_already_get_stud, select_worker_task, get_user_type
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
     task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all, \
-    task_worker_without_del, task_worker_own_ikb
+    task_worker_without_del, task_worker_own_ikb, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb
 
 tasks_values = read_user_values("tasks_values")
 
@@ -37,13 +37,18 @@ def get_keyboard_task(callback, usr_id, have_task):
     return task_ikb
 
 
-def get_keyboard_more_task(usr_id, task_selected):
+def get_keyboard_more_task(usr_id, task_selected, callback):
     """
     Функция получения клавиатуры в соответствии с типом пользователя при подробном просмотре задачи.
     :param usr_id: Идентификатор пользователя
     :param task_selected: Просматриваемая задача
     :return: Клавиатура
     """
+
+    if 'worker' in callback:
+        if task_selected:
+            return task_worker_more_without_del_w_ikb
+        return task_worker_more_w_ikb
 
     user_type = get_user_type(usr_id)[0]
     if user_type == 'student':
@@ -122,7 +127,7 @@ def get_task_more_message(usr_id, callback, dict_name, dict_values):
     values = check_range(len(tasks), usr_id, dict_name, dict_values)[0]
     current_task = tasks[values[usr_id]]
     task_selected = current_task.student_id
-    keyboard = get_keyboard_more_task(usr_id, task_selected)
+    keyboard = get_keyboard_more_task(usr_id, task_selected, callback)
     msg_text = short_long_task(current_task, 1)
 
     return keyboard, msg_text

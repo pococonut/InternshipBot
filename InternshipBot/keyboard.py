@@ -240,7 +240,7 @@ task_worker_own_b0 = InlineKeyboardButton("Подробнее", callback_data="m
 task_worker_own_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_worker_own_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
 task_worker_own_b3 = InlineKeyboardButton(text="Изменить", callback_data="change_task_w")
-task_worker_own_b4 = InlineKeyboardButton(text="Удалить", callback_data="del_task_w")
+task_worker_own_b4 = InlineKeyboardButton(text="Удалить", callback_data="del_task_worker")
 task_worker_own_ikb.add(task_worker_own_b0)
 task_worker_own_ikb.add(task_worker_own_b3, task_worker_own_b4, task_worker_own_b1, task_worker_own_b2)
 task_worker_own_ikb.add(menu)
@@ -321,7 +321,7 @@ del_task_ikb.add(del_task_ib1, del_task_ib2)
 
 # Клавиатура для удаления задачи сотрудника(для сотрудников)
 del_task_worker_ikb = InlineKeyboardMarkup(row_width=2)
-del_task_worker_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_w_yes")
+del_task_worker_ib1 = InlineKeyboardButton(text="Удалить", callback_data="del_yes_worker")
 del_task_worker_ikb.add(del_task_worker_ib1, back_b)
 
 # Клавиатура для отклонения заявки студента (для администратора\директора)
