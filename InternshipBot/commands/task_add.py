@@ -149,7 +149,7 @@ async def add_task_num_people(message: types.Message, state=FSMContext):
     Функция получения параметра задачи - Количество человек.
     """
 
-    if len(message.text.split()) > 1 or any(chr.isalpha() for chr in message.text):
+    if not message.text.isdigit() or len(message.text.split()) > 1 or any(chr.isalpha() for chr in message.text):
         await message.answer('Параметр введен в некорректном формате. Повторите ввод')
         return
 

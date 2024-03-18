@@ -108,11 +108,6 @@ back_task_ikb.add(stud_is_approve_b1).add(back_task_b).add(menu)
 back_task_w_ikb = InlineKeyboardMarkup(row_width=2)
 back_task_w_ikb.add(back_task_b).add(menu)
 
-# Клавиатура для возвращения к просмотру задач сотрудника
-back_task_own_ikb = InlineKeyboardMarkup(row_width=2)
-back_task_own_b = InlineKeyboardButton("Вернуться к просмотру", callback_data="worker_task")
-back_task_own_ikb.add(back_task_own_b).add(menu)
-
 # Клавиатура для возвращения к просмотру заявок сотрудника
 back_applications = InlineKeyboardMarkup(row_width=2)
 back_applications_b1 = InlineKeyboardButton(text="Вернуться к просмотру", callback_data="show_students")
@@ -241,7 +236,7 @@ student_task_already_choose.add(menu)
 
 # Клавиатура для просмотра, удаления\редактирования задач сотрудника (для сотрудников)
 task_worker_own_ikb = InlineKeyboardMarkup(row_width=2)
-task_worker_own_b0 = InlineKeyboardButton("Подробнее", callback_data="more_task_w")
+task_worker_own_b0 = InlineKeyboardButton("Подробнее", callback_data="more_task_worker")
 task_worker_own_b1 = InlineKeyboardButton("Назад", callback_data="worker_left")
 task_worker_own_b2 = InlineKeyboardButton("Вперед", callback_data="worker_right")
 task_worker_own_b3 = InlineKeyboardButton(text="Изменить", callback_data="change_task_w")

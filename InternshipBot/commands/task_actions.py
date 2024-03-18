@@ -10,18 +10,23 @@ from keyboard import task_ikb, student_task_already_choose, student_task_choose,
 tasks_values = read_user_values("tasks_values")
 
 
-def get_keyboard_task(usr_id, have_task, task_id):
+def get_keyboard_task(callback, usr_id, have_task):
     """
     Функция получения клавиатуры в соответствии с типом пользователя.
+    :param callback: Кнопка.
     :param usr_id: Идентификатор пользователя.
     :param have_task: Параметр, указывающий на наличие у студента выбранной задачи.
-    :param task_id: Уникальный идентификатор пользователя в телеграм.
     :return: Клавиатура пользователя, в зависимости от его типа.
     """
 
+    if 'worker' in callback:
+        if have_task:
+            return task_worker_without_del
+        return task_worker_own_ikb
+
     usr_type = get_user_type(usr_id)[0]
     if usr_type == 'student':
-        already_get = select_already_get_stud(task_id)
+        already_get = select_already_get_stud(usr_id)
         if already_get:
             return student_task_already_choose
         return student_task_choose
@@ -39,8 +44,8 @@ def get_keyboard_more_task(usr_id, task_selected):
     :param task_selected: Просматриваемая задача
     :return: Клавиатура
     """
-    user_type = get_user_type(usr_id)[0]
 
+    user_type = get_user_type(usr_id)[0]
     if user_type == 'student':
         return task_student_more_ikb
     if user_type == 'worker':
@@ -50,20 +55,13 @@ def get_keyboard_more_task(usr_id, task_selected):
     return task_worker_more_ikb
 
 
-def get_worker_own_keyboard(usr_id):
-    """
-    Функция возвращает клавиатуру в зависимости от того,
-     закреплена ли задача за студентом или нет
-    :param usr_id: Идентификатор пользователя
-    :return: Клавиатура
-    """
-
-    if usr_id:
-        return task_worker_without_del
-    return task_worker_own_ikb
-
-
 def get_tasks_for_user(usr_id, callback):
+    """
+    Функция для получения списка задач в зависимости от типа пользователя
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param callback: Кнопка
+    :return:
+    """
 
     user_type = get_user_type(usr_id)[0]
     if user_type == 'student':
@@ -72,6 +70,62 @@ def get_tasks_for_user(usr_id, callback):
         return select_worker_task(usr_id)
     else:
         return select_task()
+
+
+def check_range(count_tasks, usr_id, dict_name, dict_values):
+    """
+    Функция для проверки на ошибку выхода из массива
+    :param count_tasks: Количество задач
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param dict_name: Название словаря с навигацией пользователей
+    :param dict_values: Словарь с навигацией пользователей
+    :return: Словарь навигации, флаг: True - выход за пределы массива, False - ошибки нет
+    """
+
+    flag = False
+    condition_1 = abs(dict_values[usr_id]) >= count_tasks
+    if count_tasks and condition_1:
+        flag = True
+        dict_values[usr_id] = count_tasks-1
+        write_user_values(dict_name, dict_values)
+
+    return dict_values, flag
+
+
+def check_user_values(usr_id, dict_name, dict_values):
+    """
+    Функция для проверки наличия идентификатора пользователя в словаре навигации,
+    если идентификатора пользователя нет, он записывается в словарь
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param dict_name: Название словаря с навигацией пользователей
+    :param dict_values: Словарь с навигацией пользователей
+    :return: Словарь навигации
+    """
+
+    if usr_id not in dict_values:
+        dict_values[usr_id] = 0
+        write_user_values(dict_name, dict_values)
+    return dict_values
+
+
+def get_task_more_message(usr_id, callback, dict_name, dict_values):
+    """
+    Функция возвращает клавиатуру и информацию о задаче при подробном просмотре
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param callback: Кнопка
+    :param dict_name: Название словаря с навигацией пользователей
+    :param dict_values: Словарь с навигацией пользователей
+    :return: Клавиатура и информация о задаче
+    """
+
+    tasks = get_tasks_for_user(usr_id, callback)
+    values = check_range(len(tasks), usr_id, dict_name, dict_values)[0]
+    current_task = tasks[values[usr_id]]
+    task_selected = current_task.student_id
+    keyboard = get_keyboard_more_task(usr_id, task_selected)
+    msg_text = short_long_task(current_task, 1)
+
+    return keyboard, msg_text
 
 
 def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
@@ -91,36 +145,34 @@ def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
         msg_text = 'В данный момент задач нет.\nЗагляните позже.'
         return keyboard, msg_text
 
-    if usr_id not in dict_values:
-        dict_values[usr_id] = 0
-        write_user_values(f"{dict_name}", dict_values)
-
+    dict_values = check_user_values(usr_id, dict_name, dict_values)
     count_tasks = len(tasks)
 
-    condition1 = dict_values[usr_id] >= count_tasks
-    if count_tasks and condition1:
-        dict_values[usr_id] = count_tasks - 1
-        write_user_values(f"{dict_name}", dict_values)
-
-    current_task = tasks[dict_values[usr_id]]
-    student_ids_task = current_task.student_id
-    current_page = dict_values[usr_id]
-
-    if 'worker' in callback:
-        keyboard = get_worker_own_keyboard(current_task.student_id)
+    if 'right' in callback or 'left' in callback:
+        result = check_range(count_tasks, usr_id, dict_name, dict_values)
+        dict_values = result[0]
+        outside = result[1]
+        if outside:
+            page_title = f"<b>№</b> {count_tasks}/{count_tasks}\n\n"
+        else:
+            current_page = dict_values[usr_id]
+            result = navigation(callback, current_page, count_tasks)
+            page_title = result[0]
+            dict_values[usr_id] = result[1]
+            write_user_values(dict_name, dict_values)
+        msg_text = page_title
     else:
-        keyboard = get_keyboard_task(usr_id, student_ids_task, usr_id)
-
-    if 'right' not in callback and 'left' not in callback:
+        dict_values = check_range(count_tasks, usr_id, dict_name, dict_values)[0]
+        current_page = dict_values[usr_id]
         if dict_values[usr_id] <= -1:
             current_page = count_tasks + dict_values[usr_id]
-        msg_text = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n" + short_long_task(current_task)
-        return keyboard, msg_text
+        msg_text = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n"
 
-    s, dict_values[usr_id] = navigation(callback, current_page, count_tasks)
-    write_user_values(dict_name, dict_values)
     current_task = tasks[dict_values[usr_id]]
-    msg_text = s + short_long_task(current_task)
+    msg_text += short_long_task(current_task)
+    students_id = current_task.student_id
+    keyboard = get_keyboard_task(callback, usr_id, students_id)
+
     return keyboard, msg_text
 
 
@@ -142,11 +194,8 @@ async def show_more_task(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    tasks = get_tasks_for_user(usr_id, callback.data)
-
-    current_task = tasks[tasks_values[usr_id]]
-    task_selected = current_task.student_id
-    keyboard = get_keyboard_more_task(usr_id, task_selected)
-    msg_text = short_long_task(current_task, 1)
+    keyboard, msg_text = get_task_more_message(usr_id, callback.data, "tasks_values", tasks_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+
+
 
