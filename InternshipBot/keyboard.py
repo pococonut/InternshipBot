@@ -28,6 +28,13 @@ login_rep.add(lr_b1)
 
 # Клавиатура администратора/директора
 admin_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+
+admin_tasks_b = InlineKeyboardButton(text="Задачи", callback_data="tasks_actions")
+admin_students_b = InlineKeyboardButton(text="Студенты", callback_data="students_actions")
+admin_accounts_b = InlineKeyboardButton(text="Аккаунты", callback_data="accounts_actions")
+admin_b10 = InlineKeyboardButton(text="Экспорт данных", callback_data="export")
+chat = InlineKeyboardButton(text="Чат", callback_data="chat")
+
 admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_data="add_task")
 admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
 admin_b5 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
@@ -35,9 +42,17 @@ admin_b6 = InlineKeyboardButton('Выбранные задачи', callback_data
 admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
 admin_b8 = InlineKeyboardButton(text="Добавить аккаунт", callback_data="add_user")
 admin_b9 = InlineKeyboardButton(text="Просмотр аккаунтов", callback_data="show_added_users")
-admin_b10 = InlineKeyboardButton(text="Экспорт данных", callback_data="export")
-chat = InlineKeyboardButton(text="Чат", callback_data="chat")
-admin_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, admin_b7, admin_b8, admin_b9, admin_b10, chat)
+
+admin_tasks_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+admin_tasks_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, menu)
+
+admin_students_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+admin_students_ikb.add(admin_b7, menu)
+
+admin_accounts_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
+admin_accounts_ikb.add(admin_b8, admin_b9, menu)
+
+admin_ikb.add(admin_tasks_b, admin_students_b, admin_accounts_b, admin_b10, chat)
 
 # Клавиатура сотрудника
 worker_ikb = InlineKeyboardMarkup(row_width=2)

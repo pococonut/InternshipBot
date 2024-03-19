@@ -2,7 +2,7 @@ from create import dp
 from aiogram import types
 from db.commands import get_user_type
 from commands.general import get_keyboard
-from keyboard import new_user_ikb, chat_ikb
+from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb
 
 
 def check_get_menu(user_id):
@@ -38,6 +38,39 @@ async def menu_get_inline(callback: types.CallbackQuery):
 
     msg_text, keyboard = check_get_menu(callback.from_user.id)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard)
+
+
+@dp.callback_query_handler(text="tasks_actions")
+async def show_task(callback: types.CallbackQuery):
+    """
+    Функция просмотра доступных пользователю задач.
+    """
+
+    msg_text = "Выберите команду."
+    keyboard = admin_tasks_ikb
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+
+
+@dp.callback_query_handler(text="students_actions")
+async def show_task(callback: types.CallbackQuery):
+    """
+    Функция просмотра доступных пользователю задач.
+    """
+
+    msg_text = "Выберите команду."
+    keyboard = admin_students_ikb
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
+
+
+@dp.callback_query_handler(text="accounts_actions")
+async def show_task(callback: types.CallbackQuery):
+    """
+    Функция просмотра доступных пользователю задач.
+    """
+
+    msg_text = "Выберите команду."
+    keyboard = admin_accounts_ikb
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='chat')
