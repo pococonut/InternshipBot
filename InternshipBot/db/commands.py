@@ -237,8 +237,6 @@ def select_already_get_stud(s_id):
     except Exception as e:
         print(e)
         task = False
-    print(task)
-
     return task
 
 
@@ -310,7 +308,6 @@ def change_task_stud(s_id, column, new_val):
         else:
             if len(t.student_id.split()) > 1 and s_id in t.student_id:
                 new_s_id = " ".join(t.student_id.replace(s_id, '').strip(' ').split())
-                print(new_s_id)
                 session.query(Task).filter(Task.task_id == t.task_id).update({f'{column}': new_s_id})
 
     session.commit()

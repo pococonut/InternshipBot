@@ -43,7 +43,7 @@ async def menu_get_inline(callback: types.CallbackQuery):
 @dp.callback_query_handler(text="tasks_actions")
 async def show_task(callback: types.CallbackQuery):
     """
-    Функция просмотра доступных пользователю задач.
+    Функция просмотра доступных пользователю команд для задач.
     """
 
     msg_text = "Выберите команду."
@@ -54,7 +54,7 @@ async def show_task(callback: types.CallbackQuery):
 @dp.callback_query_handler(text="students_actions")
 async def show_task(callback: types.CallbackQuery):
     """
-    Функция просмотра доступных пользователю задач.
+    Функция просмотра доступных пользователю команд для работы с заявками/студентами.
     """
 
     msg_text = "Выберите команду."
@@ -65,7 +65,7 @@ async def show_task(callback: types.CallbackQuery):
 @dp.callback_query_handler(text="accounts_actions")
 async def show_task(callback: types.CallbackQuery):
     """
-    Функция просмотра доступных пользователю задач.
+    Функция просмотра доступных пользователю команд для работы с аккаунтами.
     """
 
     msg_text = "Выберите команду."

@@ -5,7 +5,7 @@ from commands.general import get_keyboard, navigation, read_user_values, write_u
 from db.commands import select_task, select_already_get_stud, select_worker_task, get_user_type
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
     task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all, \
-    task_worker_without_del, task_worker_own_ikb, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb
+    task_worker_without_del, task_worker_own_ikb, task_worker_more_w_ikb, task_worker_more_without_del_w_ikb, stud_more_task
 
 tasks_values = read_user_values("tasks_values")
 
@@ -45,6 +45,8 @@ def get_keyboard_more_task(usr_id, task_selected, callback):
     :return: Клавиатура
     """
 
+    if callback == "more_task_student_chosen":
+        return stud_more_task
     if 'worker' in callback:
         if task_selected:
             return task_worker_more_without_del_w_ikb
@@ -69,6 +71,11 @@ def get_tasks_for_user(usr_id, callback):
     """
 
     user_type = get_user_type(usr_id)[0]
+    if callback == "more_task_student_chosen":
+        task = select_already_get_stud(usr_id)
+        if not task:
+            return False
+        return task
     if user_type == 'student':
         return get_tasks_for_student()
     elif 'worker' in callback:
@@ -124,12 +131,16 @@ def get_task_more_message(usr_id, callback, dict_name, dict_values):
     """
 
     tasks = get_tasks_for_user(usr_id, callback)
+    if list != type(tasks):
+        keyboard = get_keyboard_more_task(usr_id, tasks, callback)
+        msg_text = short_long_task(tasks, 1)
+        return keyboard, msg_text
+
     values = check_range(len(tasks), usr_id, dict_name, dict_values)[0]
     current_task = tasks[values[usr_id]]
     task_selected = current_task.student_id
     keyboard = get_keyboard_more_task(usr_id, task_selected, callback)
     msg_text = short_long_task(current_task, 1)
-
     return keyboard, msg_text
 
 
@@ -192,7 +203,7 @@ async def show_task(callback: types.CallbackQuery):
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
-@dp.callback_query_handler(text='more_task')
+@dp.callback_query_handler(text=['more_task', 'more_task_student_chosen'])
 async def show_more_task(callback: types.CallbackQuery):
     """
     Функция просмотра подробной информации задачи.

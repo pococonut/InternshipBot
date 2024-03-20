@@ -22,7 +22,8 @@ def add_student_to_task(tasks, usr_id):
     if max_student_task == 1 or not task_student_id:
         change_task(current_task.task_id, 'student_id', usr_id)
     else:
-        change_task(current_task.task_id, 'student_id', current_task.student_id + " " + usr_id)
+        lst_students_ids = current_task.student_id + " " + usr_id
+        change_task(current_task.task_id, 'student_id', lst_students_ids)
 
 
 @dp.callback_query_handler(text='stud_get_task')
@@ -60,7 +61,7 @@ async def stud_chosen_task(callback: types.CallbackQuery):
         await callback.answer()
         return
 
-    m = f"📝 <b>Выбранная задача</b>\n\n" + short_long_task(task, 1)
+    m = f"📝 <b>Выбранная задача</b>\n\n" + short_long_task(task, 0)
     await callback.message.edit_text(m, parse_mode='HTML', reply_markup=stud_reject_task, disable_web_page_preview=True)
 
 
@@ -71,7 +72,6 @@ async def stud_reject_t(callback: types.CallbackQuery):
     """
 
     msg_text = 'Отказаться от задачи?'
-    await callback.message.edit_reply_markup()
     await callback.message.edit_text(msg_text, reply_markup=reject_task_ikb)
     await ConfirmDeletion.delete.set()
 
