@@ -86,7 +86,7 @@ async def approve_student(callback: types.CallbackQuery):
     application_values[usr_id] -= 1
     write_user_values("application_values", application_values)
 
-    msg_text = ('Ваша заявка была <b>одобрена</b>.\n Вы можете выбрать задачу из списка доступных задач.\n'
+    msg_text = ('Ваша заявка была <b>одобрена</b>.\nВы можете выбрать задачу из списка доступных задач.\n'
                 'Чат для связи доступен по <a href="https://t.me/+FShhqiWUDJRjODky">этой ссылке</a>')
 
     await callback.message.edit_text('Заявка одобрена.', reply_markup=stud_application_ikb_2)

@@ -1,8 +1,9 @@
 from create import dp
 from aiogram import types
-from db.commands import get_user_type
+from db.commands import get_user_type, stud_approve
 from commands.general import get_keyboard
-from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb
+from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb, \
+    student_not_approved
 
 
 def check_get_menu(user_id):
@@ -17,6 +18,7 @@ def check_get_menu(user_id):
         msg_text = (f'Выберите команду.\n<em>Регистрация</em> -  Для студентов.'
                     f'\n<em>Авторизация</em> - Для сотрудников.')
         return msg_text, new_user_ikb
+
     return 'Выберите команду.', get_keyboard(user_id)
 
 

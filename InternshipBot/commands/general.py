@@ -123,7 +123,7 @@ def check_course(value):
 
     if len(value) != 1:
         return False
-    if not check_symbols(value):
+    if any(chr in string.punctuation for chr in value):
         return False
     return value
 
@@ -236,19 +236,20 @@ def get_keyboard(t_id):
     """
 
     u_type = get_user_type(t_id)
-    if u_type is None:
-        k = back_ikb
-    else:
-        if u_type[0] in ('admin', 'director'):
-            k = admin_ikb
-        elif u_type[0] == 'worker':
-            k = worker_ikb
-        elif u_type[0] == 'student':
-            approve = stud_approve(t_id)
-            k = student_not_approved
-            if approve:
-                k = stud_is_approve
-    return k
+    if not u_type:
+        return back_ikb
+
+    if u_type[0] in ('admin', 'director'):
+        return admin_ikb
+
+    if u_type[0] == 'worker':
+        return worker_ikb
+
+    if u_type[0] == 'student':
+        approve = stud_approve(t_id)
+        if approve:
+            return stud_is_approve
+        return student_not_approved
 
 
 def print_stud(s, c=None):

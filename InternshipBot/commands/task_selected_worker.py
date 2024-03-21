@@ -1,151 +1,72 @@
-from create import dp
 from aiogram import types
-from keyboard import task_worker_stud, back_to_std
-from commands.general import print_stud, get_keyboard, navigation, read_user_values, write_user_values, short_long_task
+from create import dp
 from db.commands import select_chosen_tasks, select_user
+from commands.task_actions import check_user_values, get_check_page_title
+from commands.general import print_stud, get_keyboard, read_user_values, short_long_task
+from keyboard import task_worker_stud, back_to_std
 
-globalDict_pagesTws = read_user_values("globalDict_pagesTws")
-
-
-def show_stud_task(s, t):
-    """
-    Функция вывода краткой информации о Задаче и Студенте, выбравшем ее.
-    :param s: Строка модели БД, относящаяся к конкретному студенту, с информацией о нем.
-    :param t: Строка модели БД, относящаяся к конкретной задаче, с информацией о ней.
-    :return:
-    """
-
-    v = f"👨‍🎓<b>Студент\ка</b>\n\n" \
-        f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n" \
-        f"<b>Направление:</b> {s.specialties}\n\n" \
-        f"<b>Курс:</b> {s.course}\n\n" \
-        f"<b>Знания:</b> {s.knowledge}\n\n" \
-        f"———————————————————\n\n" \
-        f"📚<b>Выбранная задача</b>\n\n" \
-        f"<b>Название:</b> {t.task_name}\n\n" \
-        f"<b>Описание:</b> {t.task_description}\n\n"
-    return v
+task_chosen_values = read_user_values("task_chosen_values")
 
 
 def show_short_stud(s):
     """
-    Функция вывода краткой информации о Задаче и Студенте, выбравшем ее.
+    Функция вывода краткой информации о Студенте.
     :param s: Строка модели БД, относящаяся к конкретному студенту, с информацией о нем.
-    :param t: Строка модели БД, относящаяся к конкретной задаче, с информацией о ней.
-    :return:
+    :return: краткая информация о Студенте
     """
 
-    v = f"👨‍🎓<b>Студент\ка</b>\n\n" \
-        f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n" \
-        f"<b>Направление:</b> {s.specialties}\n\n" \
-        f"<b>Курс:</b> {s.course}\n\n" \
+    v = f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n" \
+        f"<b>Направление:</b> {s.specialties}\n" \
+        f"<b>Курс:</b> {s.course}\n" \
         f"<b>Знания:</b> {s.knowledge}\n\n" \
-        f"———————————————————\n\n"
+
     return v
 
 
-@dp.callback_query_handler(text="worker_chosen_tasks")
+def get_worker_chosen_task(usr_id, callback, dict_name, dict_values):
+    """
+    Функция для получения информации о выбранных задачах сотрудника
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param callback: Кнопка
+    :param dict_name: Название словаря с навигацией пользователей
+    :param dict_values: Словарь с навигацией пользователей
+    :return: Информация о выбранных задачах сотрудника
+    """
+
+    tasks = select_chosen_tasks(usr_id)
+    if not tasks:
+        keyboard = get_keyboard(callback.from_user.id)
+        return 'Ваши задачи еще не выбраны.', keyboard
+
+    dict_values = check_user_values(usr_id, dict_name, dict_values)
+    current_task = tasks[dict_values[usr_id]]
+    student_id = current_task.student_id
+    students_list = student_id.split()
+    msg_text = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
+    msg_text += f"👨‍🎓<b>Студент\ы</b>\n\n"
+
+    if len(students_list) == 1:
+        student = select_user(student_id)
+        msg_text += show_short_stud(student)
+    else:
+        for student in students_list:
+            msg_text += show_short_stud(select_user(student))
+
+    msg_text += f"———————————————————\n\n"
+    msg_text += f"📚<b>Выбранная задача</b>\n\n" + short_long_task(current_task)
+
+    return msg_text, task_worker_stud
+
+
+@dp.callback_query_handler(text=["worker_chosen_tasks", 'tws_right', 'tws_left'])
 async def worker_chosen_t(callback: types.CallbackQuery):
     """
-
+    Функция для просмотра выбранных студентами задач
     """
-
-    tasks = select_chosen_tasks(callback.from_user.id)
-    keyboard = get_keyboard(callback.from_user.id)
-    if not tasks:
-        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=keyboard)
-        await callback.answer()
-        return
 
     usr_id = str(callback.from_user.id)
-    count_tasks = len(tasks)
-    student_lst = []
-
-    if usr_id not in globalDict_pagesTws:
-        globalDict_pagesTws[usr_id] = 0
-        write_user_values("globalDict_pagesTws", globalDict_pagesTws)
-
-    s, globalDict_pagesTws[usr_id] = navigation(callback.data, globalDict_pagesTws[usr_id], count_tasks)
-    write_user_values("globalDict_pagesTws", globalDict_pagesTws)
-
-    current_task = tasks[globalDict_pagesTws[usr_id]]
-    task_selected = current_task.student_id
-    students_list = task_selected.split()
-    if len(task_selected.split()) == 1:
-        student = select_user(task_selected)
-    else:
-        for s in students_list:
-            student_lst.append(select_user(s))
-
-    if student_lst:
-        s_sh = ''
-        for s in student_lst:
-            s_sh += show_short_stud(s)
-        s_sh += f"📚<b>Выбранная задача</b>\n\n" + short_long_task(tasks[globalDict_pagesTws[usr_id]])
-        await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n" +
-                                         s_sh,
-                                         parse_mode='HTML',
-                                         reply_markup=task_worker_stud,
-                                         disable_web_page_preview=True)
-    else:
-        num = globalDict_pagesTws[usr_id]
-        if num == (-1) * count_tasks:
-            num = 0
-        if num <= -1:
-            num = count_tasks
-        await callback.message.edit_text(f"<b>№</b> {num}/{count_tasks}\n\n" +
-                                         show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
-                                         parse_mode='HTML',
-                                         reply_markup=task_worker_stud,
-                                         disable_web_page_preview=True)
-
-
-@dp.callback_query_handler(text=['tws_right', 'tws_left'])
-async def worker_chosen_t(callback: types.CallbackQuery):
-    """
-
-    """
-
-    tasks = select_chosen_tasks(callback.from_user.id)
-    keyboard = get_keyboard(callback.from_user.id)
-    if not tasks:
-        await callback.message.edit_text('Ваши задачи еще не выбраны.', reply_markup=keyboard)
-        await callback.answer()
-        return
-
-    usr_id = str(callback.from_user.id)
-    count_tasks = len(tasks)
-    student_lst = []
-
-    if usr_id not in globalDict_pagesTws:
-        globalDict_pagesTws[usr_id] = 0
-        write_user_values("globalDict_pagesTws", globalDict_pagesTws)
-
-    s, globalDict_pagesTws[usr_id] = navigation(callback.data, globalDict_pagesTws[usr_id], count_tasks)
-    write_user_values("globalDict_pagesTws", globalDict_pagesTws)
-
-    if len(tasks[globalDict_pagesTws[usr_id]].student_id.split()) == 1:
-        student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
-    else:
-        lst = tasks[globalDict_pagesTws[usr_id]].student_id.split()
-        for s in lst:
-            student_lst.append(select_user(s))
-
-    if student_lst:
-        s_sh = ''
-        for s in student_lst:
-            s_sh += show_short_stud(s)
-        s_sh += f"📚<b>Выбранная задача</b>\n\n" + short_long_task(tasks[globalDict_pagesTws[usr_id]])
-        await callback.message.edit_text(f"<b>№</b> {globalDict_pagesTws[usr_id] + 1}/{count_tasks}\n\n" +
-                                         s_sh,
-                                         parse_mode='HTML',
-                                         reply_markup=task_worker_stud,
-                                         disable_web_page_preview=True)
-    else:
-        await callback.message.edit_text(s + show_stud_task(student, tasks[globalDict_pagesTws[usr_id]]),
-                                         parse_mode='HTML',
-                                         reply_markup=task_worker_stud,
-                                         disable_web_page_preview=True)
+    msg_text, keyboard = get_worker_chosen_task(usr_id, callback.data, "task_chosen_values", task_chosen_values)
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
 @dp.callback_query_handler(text='tws_student')
@@ -153,12 +74,13 @@ async def show_more_stud(callback: types.CallbackQuery):
     """
     Функция просмотра подробной информации о студенте.
     """
+
     usr_id = str(callback.from_user.id)
     tasks = select_chosen_tasks(usr_id)
-    count_students = tasks[globalDict_pagesTws[usr_id]].student_id
+    count_students = tasks[task_chosen_values[usr_id]].student_id
 
     if len(count_students.split()) == 1:
-        student = select_user(tasks[globalDict_pagesTws[usr_id]].student_id)
+        student = select_user(tasks[task_chosen_values[usr_id]].student_id)
         await callback.message.edit_text(f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student), parse_mode='HTML',
                                          reply_markup=back_to_std)
     else:
