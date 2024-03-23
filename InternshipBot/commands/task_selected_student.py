@@ -21,9 +21,9 @@ def add_student_to_task(tasks, usr_id):
 
     if max_student_task == 1 or not task_student_id:
         change_task(current_task.task_id, 'student_id', usr_id)
-    else:
-        lst_students_ids = current_task.student_id + " " + usr_id
-        change_task(current_task.task_id, 'student_id', lst_students_ids)
+        return
+    lst_students_ids = current_task.student_id + " " + usr_id
+    change_task(current_task.task_id, 'student_id', lst_students_ids)
 
 
 @dp.callback_query_handler(text='stud_get_task')

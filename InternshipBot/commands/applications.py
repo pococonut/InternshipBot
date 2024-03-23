@@ -1,76 +1,78 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+
+from commands.task_actions import check_user_values, get_check_page_title
 from create import bot, dp
-from commands.general import print_stud, ConfirmDeletion, navigation, read_user_values, write_user_values
+from commands.general import print_stud, ConfirmDeletion, navigation, read_user_values, write_user_values, get_keyboard
 from db.commands import select_students, select_applications, add_application
-from keyboard import admin_ikb, stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2
+from keyboard import admin_ikb, stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2, \
+    student_data_ikb
 
 application_values = read_user_values("application_values")
 
 
-def get_pending_students():
+def get_students(f=None):
     """
-    Функция, возвращающая нерассмотренные заявки студентов и их количество.
-    :return: Количество нерассмотренных заявок, нерассмотренные заявки.
+    Функция возвращающая список студентов
+    :return: Список студентов
     """
 
     all_students = select_students()
     applications = select_applications()
     pending_students_ids = [student.student_id for student in applications]
-    pending_students = [s for s in all_students if s.telegram_id not in pending_students_ids]
-    return pending_students
+    if not f:
+        return [s for s in all_students if s.telegram_id not in pending_students_ids]
+    return [s for s in all_students if s.telegram_id in pending_students_ids]
 
 
-@dp.callback_query_handler(text='show_students')
+def get_student_msg(data, usr_id, callback, dict_name, dict_values):
+    """
+    Функция возвращает клавиатуру и информацию о задаче
+    :param usr_id: Идентификатор пользователя в телеграм
+    :param callback: Кнопка
+    :param dict_name: Название словаря с навигацией пользователей
+    :param dict_values: Словарь с навигацией пользователей
+    :return: Клавиатура и информация о задаче
+    """
+
+    if not data:
+        msg_text = 'В данный момент данных нет.\nЗагляните позже.'
+        return get_keyboard(usr_id), msg_text
+
+    dict_values = check_user_values(usr_id, dict_name, dict_values)
+    result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(data))
+    msg_text, dict_values = result[0], result[1]
+    write_user_values(dict_name, dict_values)
+    current_application = data[dict_values[usr_id]]
+    msg_text += print_stud(current_application, callback)
+
+    if "application" in callback:
+        return stud_application_ikb, msg_text
+    return student_data_ikb, msg_text
+
+
+@dp.callback_query_handler(text=['show_students', "students_left", "students_right"])
+async def show_applications(callback: types.CallbackQuery):
+    """
+    Функция просмотра студентов.
+    """
+
+    usr_id = str(callback.from_user.id)
+    students = get_students(1)
+    keyboard, msg_text = get_student_msg(students, usr_id, callback.data, "application_values", application_values)
+    await callback.message.edit_text(msg_text, reply_markup=keyboard, parse_mode='HTML')
+
+
+@dp.callback_query_handler(text=['show_applications', 'right_application', 'left_application'])
 async def show_applications(callback: types.CallbackQuery):
     """
     Функция просмотра, отклонения/одобрения нерассмотренных заявок студентов.
     """
 
-    applications = get_pending_students()
-    if not applications:
-        msg_text = 'В данный момент заявок нет.\nЗагляните позже.'
-        await callback.message.edit_text(msg_text, reply_markup=admin_ikb)
-        await callback.answer()
-        return
-
     usr_id = str(callback.from_user.id)
-    if usr_id not in application_values:
-        application_values[usr_id] = 0
-        write_user_values("application_values", application_values)
-
-    count_students = len(applications)
-    current_page = application_values[usr_id] + 1
-    current_application = applications[application_values[usr_id]]
-    page_string = f"<b>№</b> {current_page}/{count_students}\n\n"
-    msg_text = page_string + print_stud(current_application, callback.data)
-    await callback.message.edit_text(msg_text, reply_markup=stud_application_ikb, parse_mode='HTML')
-
-
-@dp.callback_query_handler(text=['right_stud', 'left_stud'])
-async def show_applications_lr(callback: types.CallbackQuery):
-    """
-    Функция просмотра, отклонения/одобрения нерассмотренных заявок студентов.
-    """
-
-    applications = get_pending_students()
-    if not applications:
-        msg_text = 'В данный момент заявок нет.\nЗагляните позже.'
-        await callback.message.edit_text(msg_text, reply_markup=admin_ikb)
-        await callback.answer()
-        return
-
-    usr_id = str(callback.from_user.id)
-    if usr_id not in application_values:
-        application_values[usr_id] = 0
-        write_user_values("application_values", application_values)
-
-    count_students = len(applications)
-    page_string, application_values[usr_id] = navigation(callback.data, application_values[usr_id], count_students)
-    write_user_values("application_values", application_values)
-    current_application = applications[application_values[usr_id]]
-    msg_text = page_string + print_stud(current_application, callback.data)
-    await callback.message.edit_text(msg_text, reply_markup=stud_application_ikb, parse_mode='HTML')
+    applications = get_students()
+    keyboard, msg_text = get_student_msg(applications, usr_id, callback.data, "application_values", application_values)
+    await callback.message.edit_text(msg_text, reply_markup=keyboard, parse_mode='HTML')
 
 
 @dp.callback_query_handler(text='approve')
@@ -80,7 +82,7 @@ async def approve_student(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    applications = get_pending_students()
+    applications = get_students()
     student_id = applications[application_values[usr_id]].telegram_id
     add_application(student_id, callback.from_user.id, 1)
     application_values[usr_id] -= 1
@@ -112,10 +114,10 @@ async def reject_student_yes(callback: types.CallbackQuery, state=FSMContext):
 
     await state.update_data(delete=callback.data)
     usr_id = str(callback.from_user.id)
-    applications = get_pending_students()
+    applications = get_students()
     student_id = applications[application_values[usr_id]].telegram_id
     add_application(student_id, callback.from_user.id, 0)
-    applications = get_pending_students()
+    applications = get_students()
     count_students = len(applications)
 
     condition1 = application_values[usr_id] >= count_students

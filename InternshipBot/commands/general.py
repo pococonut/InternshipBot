@@ -263,13 +263,13 @@ def print_stud(s, c=None):
     if c is None:
         stud = f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n"
     else:
-        stud = f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n\n"
-    stud += f"<b>Номер телефона:</b> <code>{s.phone}</code>\n\n"\
-            f"<b>ВУЗ:</b> {s.university}\n\n" \
-            f"<b>Факультет:</b> {s.faculty}\n\n" \
-            f"<b>Специальность:</b> {s.specialties}\n\n" \
-            f"<b>Кафедра:</b> {s.department}\n\n" \
-            f"<b>Курс:</b> {s.course}\n\n" \
+        stud = f"<b>ФИО:</b> <a href='tg://user?id={s.telegram_id}'>{s.student_name}</a>\n"
+    stud += f"<b>Номер телефона:</b> <code>{s.phone}</code>\n"\
+            f"<b>ВУЗ:</b> {s.university}\n" \
+            f"<b>Факультет:</b> {s.faculty}\n" \
+            f"<b>Специальность:</b> {s.specialties}\n" \
+            f"<b>Кафедра:</b> {s.department}\n" \
+            f"<b>Курс:</b> {s.course}\n" \
             f"<b>Группа:</b> {s.group}\n\n" \
             f"<b>Курсовые:</b> {s.coursework}\n\n" \
             f"<b>Знания:</b> {s.knowledge}\n\n" \

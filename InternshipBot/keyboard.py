@@ -39,15 +39,16 @@ admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_d
 admin_b4 = InlineKeyboardButton(text="Просмотр задач", callback_data="show_task")
 admin_b5 = InlineKeyboardButton(text="Свои задачи", callback_data="worker_task")
 admin_b6 = InlineKeyboardButton('Выбранные задачи', callback_data="worker_chosen_tasks")
-admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_students")
+admin_b7 = InlineKeyboardButton(text="Просмотр заявок", callback_data="show_applications")
 admin_b8 = InlineKeyboardButton(text="Добавить аккаунт", callback_data="add_user")
 admin_b9 = InlineKeyboardButton(text="Просмотр аккаунтов", callback_data="show_added_users")
+admin_b11 = InlineKeyboardButton(text="Принятые студенты", callback_data="show_students")
 
 admin_tasks_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_tasks_ikb.add(admin_b1, admin_b4, admin_b5, admin_b6, menu)
 
 admin_students_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
-admin_students_ikb.add(admin_b7, menu)
+admin_students_ikb.add(admin_b7).add(admin_b11).add(menu)
 
 admin_accounts_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_accounts_ikb.add(admin_b8, admin_b9, menu)
@@ -125,7 +126,7 @@ back_task_w_ikb.add(back_task_b).add(menu)
 
 # Клавиатура для возвращения к просмотру заявок сотрудника
 back_applications = InlineKeyboardMarkup(row_width=2)
-back_applications_b1 = InlineKeyboardButton(text="Вернуться к просмотру", callback_data="show_students")
+back_applications_b1 = InlineKeyboardButton(text="Вернуться к просмотру", callback_data="show_applications")
 back_applications.add(back_applications_b1).add(menu)
 
 # Клавиатура навигации\удаления по добавленным аккаунтам
@@ -156,12 +157,18 @@ exp_ikb.add(exp_b1, exp_b2, exp_b3, exp_b4, exp_b5).add(menu)
 stud_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 stud_ikb.add(stud_is_approve_b3)
 
+# Клавиатура для просмотра принятых студентов
+student_data_ikb = InlineKeyboardMarkup(row_width=2)
+student_data_b1 = InlineKeyboardButton("Назад", callback_data="students_left")
+student_data_b2 = InlineKeyboardButton("Вперед", callback_data="students_right")
+student_data_ikb.add(student_data_b1, student_data_b2, menu)
+
 # Клавиатура для просмотра, отклонения/одобрения заявок студентов
 stud_application_ikb = InlineKeyboardMarkup(row_width=2)
 stud_application_b1 = InlineKeyboardButton(text="Отклонить", callback_data="reject")
 stud_application_b2 = InlineKeyboardButton(text="Одобрить", callback_data="approve")
-stud_application_b4 = InlineKeyboardButton("Назад", callback_data="left_stud")
-stud_application_b5 = InlineKeyboardButton("Вперед", callback_data="right_stud")
+stud_application_b4 = InlineKeyboardButton("Назад", callback_data="left_application")
+stud_application_b5 = InlineKeyboardButton("Вперед", callback_data="right_application")
 stud_application_ikb.add(stud_application_b1, stud_application_b2, stud_application_b4, stud_application_b5, menu)
 
 # Клавиатура для просмотра заявок студентов
