@@ -161,21 +161,21 @@ def get_check_page_title(usr_id, callback, dict_name, dict_values, count_tasks):
         outside = result[1]
         page_title = f"<b>№</b> {count_tasks}/{count_tasks}\n\n"
         if outside:
-            return page_title
+            return page_title, dict_values
 
         current_page = dict_values[usr_id]
         result = navigation(callback, current_page, count_tasks)
         page_title = result[0]
         dict_values[usr_id] = result[1]
         write_user_values(dict_name, dict_values)
-        return page_title
+        return page_title, dict_values
 
     dict_values = check_range(count_tasks, usr_id, dict_name, dict_values)[0]
     current_page = dict_values[usr_id]
     if dict_values[usr_id] <= -1:
         current_page = count_tasks + dict_values[usr_id]
     page_title = f"<b>№</b> {current_page + 1}/{count_tasks}\n\n"
-    return page_title
+    return page_title, dict_values
 
 
 def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
@@ -196,8 +196,9 @@ def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
         return keyboard, msg_text
 
     dict_values = check_user_values(usr_id, dict_name, dict_values)
-    msg_text = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
-
+    result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
+    msg_text, dict_values = result[0], result[1]
+    write_user_values(dict_name, dict_values)
     current_task = tasks[dict_values[usr_id]]
     msg_text += short_long_task(current_task)
     students_id = current_task.student_id

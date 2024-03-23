@@ -35,14 +35,15 @@ def get_worker_chosen_task(usr_id, callback, dict_name, dict_values):
 
     tasks = select_chosen_tasks(usr_id)
     if not tasks:
-        keyboard = get_keyboard(callback.from_user.id)
+        keyboard = get_keyboard(usr_id)
         return 'Ваши задачи еще не выбраны.', keyboard
 
     dict_values = check_user_values(usr_id, dict_name, dict_values)
+    result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
+    msg_text, dict_values = result[0], result[1]
     current_task = tasks[dict_values[usr_id]]
     student_id = current_task.student_id
     students_list = student_id.split()
-    msg_text = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
     msg_text += f"👨‍🎓<b>Студент\ы</b>\n\n"
 
     if len(students_list) == 1:
@@ -76,21 +77,20 @@ async def show_more_stud(callback: types.CallbackQuery):
     """
 
     usr_id = str(callback.from_user.id)
-    tasks = select_chosen_tasks(usr_id)
-    count_students = tasks[task_chosen_values[usr_id]].student_id
+    chosen_task = select_chosen_tasks(usr_id)
+    current_page = task_chosen_values[usr_id]
+    students_ids = chosen_task[current_page].student_id
+    students_list = students_ids.split()
 
-    if len(count_students.split()) == 1:
-        student = select_user(tasks[task_chosen_values[usr_id]].student_id)
-        await callback.message.edit_text(f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student), parse_mode='HTML',
-                                         reply_markup=back_to_std)
+    if len(students_list) == 1:
+        student = select_user(chosen_task[current_page].student_id)
+        msg_text = f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student)
     else:
-        students_sh = ''
-        students_lst = count_students.split()
-        for s_id in count_students.split():
-            student = select_user(s_id)
-            students_sh += f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student)
-            if students_lst[-1] != s_id:
-                students_sh += "———————————————————\n\n"
+        msg_text = ''
+        for student_id in students_list:
+            student = select_user(student_id)
+            msg_text += f"👨‍🎓<b>Студент</b>\n\n" + print_stud(student)
+            if students_list[-1] != student_id:
+                msg_text += "———————————————————\n\n"
 
-        await callback.message.edit_text(students_sh, parse_mode='HTML',
-                                         reply_markup=back_to_std)
+    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=back_to_std)

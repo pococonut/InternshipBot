@@ -1,9 +1,8 @@
 from create import dp
 from aiogram import types
-from db.commands import get_user_type, stud_approve
+from db.commands import get_user_type
 from commands.general import get_keyboard
-from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb, \
-    student_not_approved
+from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb
 
 
 def check_get_menu(user_id):
