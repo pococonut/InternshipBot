@@ -286,7 +286,6 @@ def navigation(direction, page, count):
     :return: Строка, Номер объекта.
     """
 
-    s = ''
     if 'right' in direction:
         page += 1
         if page == count:
@@ -295,10 +294,9 @@ def navigation(direction, page, count):
         if page <= -1:
             num = count + page
         s = f"<b>№</b> {num + 1}/{count}\n\n"
-        if 'added' in direction:
-            s = f"*№\\ *{num + 1}/{count}\n\n"
+        return s, page
 
-    elif 'left' in direction:
+    if 'left' in direction:
         page -= 1
         num = 0
         if page == (-1) * count:
@@ -306,6 +304,4 @@ def navigation(direction, page, count):
         if page <= -1:
             num = count
         s = f"<b>№</b> {(num + page) + 1}/{count}\n\n"
-        if 'added' in direction:
-            s = f"*№\\ *{(num + page) + 1}/{count}\n\n"
-    return s, page
+        return s, page

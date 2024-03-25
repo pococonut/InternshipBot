@@ -51,7 +51,7 @@ admin_students_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_students_ikb.add(admin_b7).add(admin_b11).add(menu)
 
 admin_accounts_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
-admin_accounts_ikb.add(admin_b8, admin_b9, menu)
+admin_accounts_ikb.add(admin_b8).add(admin_b9).add(menu)
 
 admin_ikb.add(admin_tasks_b, admin_students_b, admin_accounts_b, admin_b10, chat)
 
@@ -139,10 +139,6 @@ added_ikb.add(added_b1,added_b2,added_b3).add(menu)
 # Клавиатура исключающая удаление аккаунта, если пользователь авторизовался
 login_added_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 login_added_ikb.add(added_b1, added_b2).add(menu)
-
-# Клавиатура для добавления аккаунта
-add_usr = InlineKeyboardMarkup(row_width=2)
-add_usr.add(admin_b8).add(admin_b9).add(menu)
 
 # Клавиатура для получения данных в виде excel-таблиц
 exp_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)

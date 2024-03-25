@@ -1,12 +1,10 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-
-from commands.task_actions import check_user_values, get_check_page_title
 from create import bot, dp
-from commands.general import print_stud, ConfirmDeletion, navigation, read_user_values, write_user_values, get_keyboard
+from commands.task_actions import check_user_values, get_check_page_title, check_range
+from commands.general import print_stud, ConfirmDeletion, read_user_values, write_user_values, get_keyboard
 from db.commands import select_students, select_applications, add_application
-from keyboard import admin_ikb, stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2, \
-    student_data_ikb
+from keyboard import stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2, student_data_ikb
 
 application_values = read_user_values("application_values")
 
@@ -41,7 +39,7 @@ def get_student_msg(data, usr_id, callback, dict_name, dict_values):
 
     dict_values = check_user_values(usr_id, dict_name, dict_values)
     result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(data))
-    msg_text, dict_values = result[0], result[1]
+    msg_text, dict_values = result
     write_user_values(dict_name, dict_values)
     current_application = data[dict_values[usr_id]]
     msg_text += print_stud(current_application, callback)
@@ -102,7 +100,7 @@ async def reject_student(callback: types.CallbackQuery):
     Функция подтверждения отклонения заявки.
     """
 
-    await callback.message.edit_text('Отклонить заявку?', parse_mode='HTML', reply_markup=del_stud_ikb)
+    await callback.message.edit_text('Отклонить заявку?', reply_markup=del_stud_ikb)
     await ConfirmDeletion.delete.set()
 
 
@@ -116,15 +114,9 @@ async def reject_student_yes(callback: types.CallbackQuery, state=FSMContext):
     usr_id = str(callback.from_user.id)
     applications = get_students()
     student_id = applications[application_values[usr_id]].telegram_id
-    add_application(student_id, callback.from_user.id, 0)
+    add_application(student_id, usr_id, 0)
     applications = get_students()
-    count_students = len(applications)
-
-    condition1 = application_values[usr_id] >= count_students
-    condition2 = application_values[usr_id] < count_students
-    if count_students and (condition1 or condition2):
-        application_values[usr_id] = 0
-        write_user_values("application_values", application_values)
+    check_range(len(applications), usr_id, "application_values", application_values)
 
     await state.finish()
     await bot.send_message(student_id, 'Ваша заявка была <b>отклонена</b>.', parse_mode='HTML')

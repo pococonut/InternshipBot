@@ -4,9 +4,9 @@ from aiogram import types
 from db.commands import get_user_type
 from aiogram.dispatcher import FSMContext
 from commands.general import get_keyboard
-from keyboard import add_usr, back_applications, back_task_w_ikb, back_task_own_ikb
+from keyboard import back_applications, back_task_w_ikb, back_task_own_ikb, admin_accounts_ikb
 
-back_keyboards = {'back_added': add_usr,
+back_keyboards = {'back_added': admin_accounts_ikb,
                   'back_application': back_applications,
                   'back_tasks': back_task_w_ikb,
                   'back_change_tasks': [back_task_own_ikb, back_task_w_ikb],

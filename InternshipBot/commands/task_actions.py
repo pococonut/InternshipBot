@@ -80,8 +80,7 @@ def get_tasks_for_user(usr_id, callback):
         return get_tasks_for_student()
     elif 'worker' in callback:
         return select_worker_task(usr_id)
-    else:
-        return select_task()
+    return select_task()
 
 
 def check_range(count_tasks, usr_id, dict_name, dict_values):
@@ -164,9 +163,10 @@ def get_check_page_title(usr_id, callback, dict_name, dict_values, count_tasks):
             return page_title, dict_values
 
         current_page = dict_values[usr_id]
+        print('page_title', page_title)
         result = navigation(callback, current_page, count_tasks)
-        page_title = result[0]
-        dict_values[usr_id] = result[1]
+        print('page_title', result[0])
+        page_title, dict_values[usr_id] = result
         write_user_values(dict_name, dict_values)
         return page_title, dict_values
 
@@ -189,7 +189,6 @@ def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
     """
 
     tasks = get_tasks_for_user(usr_id, callback)
-
     if not tasks:
         keyboard = get_keyboard(usr_id)
         msg_text = 'В данный момент задач нет.\nЗагляните позже.'
@@ -197,10 +196,12 @@ def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
 
     dict_values = check_user_values(usr_id, dict_name, dict_values)
     result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
-    msg_text, dict_values = result[0], result[1]
+    msg_text, dict_values = result
     write_user_values(dict_name, dict_values)
+
     current_task = tasks[dict_values[usr_id]]
     msg_text += short_long_task(current_task)
+
     students_id = current_task.student_id
     keyboard = get_keyboard_task(callback, usr_id, students_id)
 

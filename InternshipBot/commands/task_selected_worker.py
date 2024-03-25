@@ -40,7 +40,7 @@ def get_worker_chosen_task(usr_id, callback, dict_name, dict_values):
 
     dict_values = check_user_values(usr_id, dict_name, dict_values)
     result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
-    msg_text, dict_values = result[0], result[1]
+    msg_text, dict_values = result
     current_task = tasks[dict_values[usr_id]]
     student_id = current_task.student_id
     students_list = student_id.split()
