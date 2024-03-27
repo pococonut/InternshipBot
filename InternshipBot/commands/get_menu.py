@@ -1,47 +1,70 @@
+import functools
 from create import dp
 from aiogram import types
 from db.commands import get_user_type
 from commands.general import get_keyboard
 from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb
 
+unauthorized_msg = (f'Выберите команду.\n<em>Регистрация</em> -  Для студентов.'
+                    f'\n<em>Авторизация</em> - Для сотрудников.')
 
-def check_get_menu(user_id):
+
+def message_check_authentication(func):
     """
     Функция для проверки регистрации пользователя
-    :param user_id: Идентификатор пользователя в телеграм
-    :return: Текст сообщения, клавиатура
     """
 
-    user_exist = get_user_type(user_id)
-    if not user_exist:
-        msg_text = (f'Выберите команду.\n<em>Регистрация</em> -  Для студентов.'
-                    f'\n<em>Авторизация</em> - Для сотрудников.')
-        return msg_text, new_user_ikb
+    @functools.wraps(func)
+    async def wrapper(message: types.Message):
+        user_id = message.from_user.id
+        user_exist = get_user_type(user_id)
+        if not user_exist:
+            await message.answer(unauthorized_msg, parse_mode='HTML', reply_markup=new_user_ikb)
+        else:
+            await func(message)
+    return wrapper
 
-    return 'Выберите команду.', get_keyboard(user_id)
+
+def callback_check_authentication(func):
+    """
+    Функция для проверки регистрации пользователя
+    """
+
+    @functools.wraps(func)
+    async def wrapper(callback: types.CallbackQuery):
+        user_id = callback.from_user.id
+        user_exist = get_user_type(user_id)
+        if not user_exist:
+            await callback.message.edit_text(unauthorized_msg, parse_mode='HTML', reply_markup=new_user_ikb)
+        else:
+            await func(callback)
+    return wrapper
 
 
 @dp.message_handler(commands=['menu'])
+@message_check_authentication
 async def menu_get(message: types.Message):
     """
     Функция получения меню для зарегистрированного пользователя и авторизации/регистрации для незарегистрированного.
     """
 
-    msg_text, keyboard = check_get_menu(message.from_user.id)
-    await message.answer(msg_text, parse_mode='HTML', reply_markup=keyboard)
+    user_id = message.from_user.id
+    await message.answer('Выберите команду.', reply_markup=get_keyboard(user_id))
 
 
 @dp.callback_query_handler(text='menu')
+@callback_check_authentication
 async def menu_get_inline(callback: types.CallbackQuery):
     """
     Функция получения меню для зарегистрированного пользователя и авторизации/регистрации для незарегистрированного.
     """
 
-    msg_text, keyboard = check_get_menu(callback.from_user.id)
-    await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard)
+    user_id = callback.from_user.id
+    await callback.message.edit_text('Выберите команду.', reply_markup=get_keyboard(user_id))
 
 
 @dp.callback_query_handler(text="tasks_actions")
+@callback_check_authentication
 async def show_task(callback: types.CallbackQuery):
     """
     Функция просмотра доступных пользователю команд для задач.
@@ -53,6 +76,7 @@ async def show_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text="students_actions")
+@callback_check_authentication
 async def show_task(callback: types.CallbackQuery):
     """
     Функция просмотра доступных пользователю команд для работы с заявками/студентами.
@@ -64,6 +88,7 @@ async def show_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text="accounts_actions")
+@callback_check_authentication
 async def show_task(callback: types.CallbackQuery):
     """
     Функция просмотра доступных пользователю команд для работы с аккаунтами.
@@ -75,6 +100,7 @@ async def show_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='chat')
+@callback_check_authentication
 async def chat_command(callback: types.CallbackQuery):
     """
     Функция возвращающая ссылку на общий чат.

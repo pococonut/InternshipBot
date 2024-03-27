@@ -1,3 +1,4 @@
+from commands.get_menu import callback_check_authentication, message_check_authentication
 from create import dp
 from aiogram import types
 from db.commands import select_user
@@ -34,32 +35,24 @@ def show_inf(t_id):
 
 
 @dp.message_handler(commands=['show'])
+@message_check_authentication
 async def show_params(message: types.Message):
     """
     Функция печати данных пользователя.
     """
 
     inf = show_inf(message.from_user.id)
-    if not inf:
-        msg_text = 'Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.'
-        await message.answer(msg_text)
-        return
-
     msg_text = f"🧑‍💻<b>Ваши данные</b>\n\n" + inf
     await message.answer(msg_text, parse_mode='HTML', reply_markup=change_user_ikb)
 
 
 @dp.callback_query_handler(text='show')
+@callback_check_authentication
 async def show_params_inline(callback: types.CallbackQuery):
     """
     Функция печати данных пользователя.
     """
 
     inf = show_inf(callback.from_user.id)
-    if not inf:
-        msg_text = 'Вы еще не зарегистрированы.\nПожалуйста, пройдите этап регистрации.'
-        await callback.message.edit_text(msg_text)
-        return
-
     msg_text = f"🧑‍💻<b>Ваши данные</b>\n\n" + inf
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=change_user_ikb)

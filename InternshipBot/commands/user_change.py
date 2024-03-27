@@ -1,3 +1,4 @@
+from commands.get_menu import callback_check_authentication, message_check_authentication
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -44,40 +45,33 @@ def change_keyboard(t_id):
 
 
 @dp.message_handler(commands=['change'])
+@message_check_authentication
 async def change(message: types.Message):
     """
     Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
     """
 
     keyboard = change_keyboard(message.from_user.id)
-    if keyboard is None:
-        msg_text = 'Вы еще не зарегистрированы.\nПройдите этап регистрации.'
-        await message.answer(msg_text)
-        return
-
     msg_text = 'Выберите параметр, который желаете изменить.'
     await message.answer(msg_text, reply_markup=keyboard)
     await ChangeUser.parameter.set()
 
 
 @dp.callback_query_handler(text='change')
+@check_authentication_callback
 async def change_inline(callback: types.CallbackQuery):
     """
     Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
     """
 
     keyboard = change_keyboard(callback.from_user.id)
-    if keyboard is None:
-        msg_text = 'Вы еще не зарегистрированы.\nПройдите этап регистрации.'
-        await callback.message.edit_text(msg_text)
-        return
-
     msg_text = 'Выберите параметр, который желаете изменить.'
     await callback.message.edit_text(msg_text, reply_markup=keyboard)
     await ChangeUser.parameter.set()
 
 
 @dp.callback_query_handler(text=student_params, state=ChangeUser.parameter)
+@check_authentication_callback
 async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция получения нового значения параметра, выбранного для изменения.
@@ -92,6 +86,7 @@ async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
 
 
 @dp.message_handler(state=ChangeUser.new_value)
+@message_check_authentication
 async def get_val_student(message: types.Message, state: FSMContext):
     """
     Функция проверки и установки нового значения параметра, выбранного для изменения.
