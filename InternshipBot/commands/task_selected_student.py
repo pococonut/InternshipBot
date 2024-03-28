@@ -1,8 +1,9 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from create import bot, dp
-from commands.general import ConfirmDeletion, get_tasks_for_student, short_long_task
 from commands.task_actions import tasks_values
+from commands.get_menu import callback_check_authentication
+from commands.general import ConfirmDeletion, get_tasks_for_student, short_long_task
 from db.commands import select_already_get_stud, change_task_stud, select_user, change_task
 from keyboard import stud_is_approve, stud_reject_task, reject_task_ikb, task_is_approve, back_task_ikb
 
@@ -27,6 +28,7 @@ def add_student_to_task(tasks, usr_id):
 
 
 @dp.callback_query_handler(text='stud_get_task')
+@callback_check_authentication
 async def stud_get_task(callback: types.CallbackQuery):
     """
     Функция для фиксирования выбора задачи студентом.
@@ -50,6 +52,7 @@ async def stud_get_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='stud_chosen_tasks')
+@callback_check_authentication
 async def stud_chosen_task(callback: types.CallbackQuery):
     """
     Функция просмотра выбранной студентом задачи.
@@ -66,6 +69,7 @@ async def stud_chosen_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='reject_task')
+@callback_check_authentication
 async def stud_reject_t(callback: types.CallbackQuery):
     """
     Функция подтверждения отказа от задачи.
@@ -77,6 +81,7 @@ async def stud_reject_t(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='reject_task_yes', state=ConfirmDeletion.delete)
+@callback_check_authentication
 async def stud_reject_t_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция отказа от задачи.

@@ -2,6 +2,7 @@ from aiogram import types
 from create import dp
 from commands.general import get_keyboard, navigation, read_user_values, write_user_values, get_tasks_for_student, \
     short_long_task
+from commands.get_menu import callback_check_authentication
 from db.commands import select_task, select_already_get_stud, select_worker_task, get_user_type
 from keyboard import task_ikb, student_task_already_choose, student_task_choose, task_without_del, task_worker_ikb, \
     task_worker_more_ikb, task_worker_more_without_del_ikb, task_student_more_ikb, task_worker_more_all, \
@@ -209,6 +210,7 @@ def get_task_message_keyboard(usr_id, callback, dict_name, dict_values):
 
 
 @dp.callback_query_handler(text=['show_task', 'right', 'left'])
+@callback_check_authentication
 async def show_task(callback: types.CallbackQuery):
     """
     Функция просмотра доступных пользователю задач.
@@ -220,6 +222,7 @@ async def show_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=['more_task', 'more_task_student_chosen'])
+@callback_check_authentication
 async def show_more_task(callback: types.CallbackQuery):
     """
     Функция просмотра подробной информации задачи.

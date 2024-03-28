@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from create import bot, dp
 from commands.task_actions import check_user_values, get_check_page_title, check_range
 from commands.general import print_stud, ConfirmDeletion, read_user_values, write_user_values, get_keyboard
+from commands.get_menu import callback_check_authentication
 from db.commands import select_students, select_applications, add_application
 from keyboard import stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2, student_data_ikb
 
@@ -50,6 +51,7 @@ def get_student_msg(data, usr_id, callback, dict_name, dict_values):
 
 
 @dp.callback_query_handler(text=['show_students', "students_left", "students_right"])
+@callback_check_authentication
 async def show_applications(callback: types.CallbackQuery):
     """
     Функция просмотра студентов.
@@ -62,6 +64,7 @@ async def show_applications(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=['show_applications', 'right_application', 'left_application'])
+@callback_check_authentication
 async def show_applications(callback: types.CallbackQuery):
     """
     Функция просмотра, отклонения/одобрения нерассмотренных заявок студентов.
@@ -74,6 +77,7 @@ async def show_applications(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='approve')
+@callback_check_authentication
 async def approve_student(callback: types.CallbackQuery):
     """
     Функция одобрения заявки студента.
@@ -95,6 +99,7 @@ async def approve_student(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='reject')
+@callback_check_authentication
 async def reject_student(callback: types.CallbackQuery):
     """
     Функция подтверждения отклонения заявки.
@@ -105,6 +110,7 @@ async def reject_student(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='reject_yes', state=ConfirmDeletion.delete)
+@callback_check_authentication
 async def reject_student_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция отклонения заявки.

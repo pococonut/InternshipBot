@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from create import dp
 from db.commands import add_user
+from commands.get_menu import callback_check_authentication, message_check_authentication
 from keyboard import back_ikb, types_users, admin_accounts_ikb
 
 
@@ -13,6 +14,7 @@ class AddUser(StatesGroup):
 
 
 @dp.callback_query_handler(text='add_user')
+@callback_check_authentication
 async def add_user_command(callback: types.CallbackQuery):
     """
     Функция начала добавления аккаунта
@@ -23,6 +25,7 @@ async def add_user_command(callback: types.CallbackQuery):
 
 
 @dp.message_handler(state=AddUser.login)
+@message_check_authentication
 async def add_login(message: types.Message, state=FSMContext):
     """
     Функция получения параметра аккаунта - Пароль.
@@ -34,6 +37,7 @@ async def add_login(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=AddUser.password)
+@message_check_authentication
 async def add_password(message: types.Message, state=FSMContext):
     """
     Функция получения параметра аккаунта - Логин.
@@ -45,6 +49,7 @@ async def add_password(message: types.Message, state=FSMContext):
 
 
 @dp.callback_query_handler(text=['director', 'admin', 'worker'], state=AddUser.type)
+@callback_check_authentication
 async def add_type(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция получения параметра аккаунта - Тип пользователя (Директор, Администратор, Студент, Сотрудник).

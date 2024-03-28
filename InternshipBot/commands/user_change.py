@@ -1,9 +1,9 @@
-from commands.get_menu import callback_check_authentication, message_check_authentication
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from commands.general import get_keyboard, check_param
+from commands.get_menu import callback_check_authentication, message_check_authentication
 from keyboard import change_ikb, change_worker_ikb, back_ikb
 from db.commands import select_user, get_user_type, change_inform
 
@@ -58,7 +58,7 @@ async def change(message: types.Message):
 
 
 @dp.callback_query_handler(text='change')
-@check_authentication_callback
+@callback_check_authentication
 async def change_inline(callback: types.CallbackQuery):
     """
     Функция, возвращающая клавиатуру с параметрами, доступными для изменения.
@@ -71,7 +71,7 @@ async def change_inline(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=student_params, state=ChangeUser.parameter)
-@check_authentication_callback
+@callback_check_authentication
 async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция получения нового значения параметра, выбранного для изменения.

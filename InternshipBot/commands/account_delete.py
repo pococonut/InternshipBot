@@ -1,6 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from commands.account_show import globalDict_added
+from commands.get_menu import callback_check_authentication
 from commands.task_actions import check_range
 from create import dp
 from commands.general import ConfirmDeletion
@@ -9,6 +10,7 @@ from keyboard import del_added_ikb, back_added_ikb
 
 
 @dp.callback_query_handler(text='del_added')
+@callback_check_authentication
 async def del_a(callback: types.CallbackQuery):
     """
     Функция подтверждения удаления аккаунта.
@@ -19,6 +21,7 @@ async def del_a(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='del_a_yes', state=ConfirmDeletion.delete)
+@callback_check_authentication
 async def del_a_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция удаления аккаунта.

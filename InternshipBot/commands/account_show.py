@@ -1,4 +1,6 @@
 from aiogram import types
+
+from commands.get_menu import callback_check_authentication
 from commands.task_actions import check_user_values, get_check_page_title
 from create import dp
 from commands.general import read_user_values, write_user_values, get_keyboard
@@ -40,6 +42,7 @@ def get_accounts_message(usr_id, callback, dict_name, dict_values):
 
 
 @dp.callback_query_handler(text=["show_added_users", "left_added", "right_added"])
+@callback_check_authentication
 async def show_added(callback: types.CallbackQuery):
     """
     Функция просмотра добавленных аккаунтов.

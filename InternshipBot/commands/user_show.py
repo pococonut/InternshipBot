@@ -1,9 +1,9 @@
-from commands.get_menu import callback_check_authentication, message_check_authentication
 from create import dp
 from aiogram import types
 from db.commands import select_user
-from keyboard import change_user_ikb
 from commands.general import print_stud
+from commands.get_menu import callback_check_authentication, message_check_authentication
+from keyboard import change_user_ikb
 
 
 def print_worker(w):

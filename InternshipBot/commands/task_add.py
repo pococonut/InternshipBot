@@ -1,8 +1,9 @@
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from db.commands import get_user_type, add_task
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from db.commands import get_user_type, add_task
+from commands.get_menu import callback_check_authentication, message_check_authentication
 from keyboard import admin_ikb, worker_ikb, back_ikb, back_cont_task_ikb
 
 
@@ -33,11 +34,13 @@ class Task(StatesGroup):
 
 
 @dp.callback_query_handler(text='add_task')
+@callback_check_authentication
 async def add_t(callback: types.CallbackQuery):
     await callback.message.edit_text(FORM_task, parse_mode='HTML', reply_markup=back_cont_task_ikb)
 
 
 @dp.callback_query_handler(text='continue_task', state="*")
+@callback_check_authentication
 async def cont_task_command(callback: types.CallbackQuery):
     """
     Функция начала ввода параметров задачи.
@@ -48,6 +51,7 @@ async def cont_task_command(callback: types.CallbackQuery):
 
 
 @dp.message_handler(state=Task.task_name)
+@message_check_authentication
 async def add_task_name(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Название.
@@ -64,6 +68,7 @@ async def add_task_name(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.task_goal)
+@message_check_authentication
 async def add_task_goal(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Цель задачи.
@@ -80,6 +85,7 @@ async def add_task_goal(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.task_description)
+@message_check_authentication
 async def add_task_description(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Описание задачи.
@@ -96,6 +102,7 @@ async def add_task_description(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.task_tasks)
+@message_check_authentication
 async def add_task_tasks(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Подзадачи.
@@ -112,6 +119,7 @@ async def add_task_tasks(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.task_technologies)
+@message_check_authentication
 async def add_task_technologies(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Необходимые навыки и технологии.
@@ -128,6 +136,7 @@ async def add_task_technologies(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.task_new_skills)
+@message_check_authentication
 async def add_task_new_skills(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Навыки, получаемые в процессе прохождения практики.
@@ -144,6 +153,7 @@ async def add_task_new_skills(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.num_people)
+@message_check_authentication
 async def add_task_num_people(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Количество человек.
@@ -163,6 +173,7 @@ async def add_task_num_people(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Task.materials)
+@message_check_authentication
 async def add_task_materials(message: types.Message, state=FSMContext):
     """
     Функция получения параметра задачи - Материалы.

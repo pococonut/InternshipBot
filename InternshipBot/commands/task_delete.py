@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 from create import dp
 from db.commands import del_task
 from commands.general import ConfirmDeletion
+from commands.get_menu import callback_check_authentication
 from commands.task_actions_worker import tasks_worker_values
 from commands.task_actions import tasks_values, check_range, get_tasks_for_user
 from keyboard import del_task_ikb, back_task_w_ikb, back_task_own_ikb, del_task_worker_ikb
@@ -33,6 +34,7 @@ def get_values_deletion(callback):
 
 
 @dp.callback_query_handler(text=['del_task', 'del_task_worker'])
+@callback_check_authentication
 async def del_t(callback: types.CallbackQuery):
     """
     Функция для подтверждения действия удаления задачи.
@@ -44,6 +46,7 @@ async def del_t(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=['del_yes', 'del_yes_worker'], state=ConfirmDeletion.delete)
+@callback_check_authentication
 async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для удаления задачи.

@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from create import bot, dp
 from commands.task_actions import tasks_values
 from commands.task_actions_worker import tasks_worker_values
+from commands.get_menu import callback_check_authentication, message_check_authentication
 from db.commands import select_task, change_task, get_user_type, select_worker_task
 from keyboard import change_task_ikb, selected_task, back_task_w_ikb, back_task_own_ikb
 
@@ -27,6 +28,7 @@ class TaskChange(StatesGroup):
 
 
 @dp.callback_query_handler(text=['change_task', 'change_task_worker'])
+@callback_check_authentication
 async def ch_task(callback: types.CallbackQuery):
     """
     Функция возвращающая клавиатуру с доступными для изменения параметрами.
@@ -41,6 +43,7 @@ async def ch_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=change_param_task_list, state=TaskChange.param)
+@callback_check_authentication
 async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для получения названия параметра, который пользователь желает изменить.
@@ -61,6 +64,7 @@ async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
 
 
 @dp.message_handler(state=TaskChange.value)
+@message_check_authentication
 async def ch_task_val(message: types.Message, state=FSMContext):
     """
     Функция для получения нового значения параметра, который пользователь желает изменить.

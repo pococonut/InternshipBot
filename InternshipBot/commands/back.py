@@ -1,9 +1,9 @@
-from commands.task_change import values_user_type
 from create import dp
 from aiogram import types
 from db.commands import get_user_type
 from aiogram.dispatcher import FSMContext
 from commands.general import get_keyboard
+from commands.task_change import values_user_type
 from keyboard import back_applications, back_task_w_ikb, back_task_own_ikb, admin_accounts_ikb
 
 back_keyboards = {'back_added': admin_accounts_ikb,
@@ -37,7 +37,7 @@ def get_back_keyboard(user_id, callback):
 
 
 @dp.callback_query_handler(text=lst_back, state="*")
-async def back_func1(callback: types.CallbackQuery, state: FSMContext):
+async def back(callback: types.CallbackQuery, state: FSMContext):
     """
     Функция для отмены действия.
     """

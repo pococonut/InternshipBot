@@ -1,6 +1,7 @@
 from aiogram import types
 from create import dp
 from db.commands import select_chosen_tasks, select_user
+from commands.get_menu import callback_check_authentication
 from commands.task_actions import check_user_values, get_check_page_title
 from commands.general import print_stud, get_keyboard, read_user_values, short_long_task
 from keyboard import task_worker_stud, back_to_std
@@ -60,6 +61,7 @@ def get_worker_chosen_task(usr_id, callback, dict_name, dict_values):
 
 
 @dp.callback_query_handler(text=["worker_chosen_tasks", 'tws_right', 'tws_left'])
+@callback_check_authentication
 async def worker_chosen_t(callback: types.CallbackQuery):
     """
     Функция для просмотра выбранных студентами задач
@@ -71,6 +73,7 @@ async def worker_chosen_t(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='tws_student')
+@callback_check_authentication
 async def show_more_stud(callback: types.CallbackQuery):
     """
     Функция просмотра подробной информации о студенте.

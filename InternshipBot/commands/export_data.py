@@ -3,10 +3,12 @@ import openpyxl
 from create import dp
 from aiogram import types
 from keyboard import exp_ikb
+from commands.get_menu import callback_check_authentication
 from db.commands import stud_approve, select_added_users, select_task, select_user, select_all_users
 
 
 @dp.callback_query_handler(text='export')
+@callback_check_authentication
 async def export(callback: types.CallbackQuery):
     """
     Функция возвращающая клавиатуру со списком данных, доступных для получения в виде excel-файла.
@@ -16,6 +18,7 @@ async def export(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='exp_task')
+@callback_check_authentication
 async def export_task(callback: types.CallbackQuery):
     """
     Функция возвращающая excel-файл с параметрами добавленных задач.
@@ -93,6 +96,7 @@ async def export_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='exp_worker')
+@callback_check_authentication
 async def export_worker(callback: types.CallbackQuery):
     """
     Функция возвращающая excel-файл с авторизированными сотрудниками.
@@ -151,6 +155,7 @@ async def export_worker(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='exp_appl')
+@callback_check_authentication
 async def export_applications(callback: types.CallbackQuery):
     """
     Функция возвращающая excel-файл с параметрами заявок студентов.
@@ -217,6 +222,7 @@ async def export_applications(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='exp_approved')
+@callback_check_authentication
 async def export_approved(callback: types.CallbackQuery):
     """
     Функция возвращающая excel-файл с параметрами одобренных заявок студентов.
@@ -286,6 +292,7 @@ async def export_approved(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='exp_added')
+@callback_check_authentication
 async def export_added(callback: types.CallbackQuery):
     """
     Функция возвращающая excel-файл с добавленными аккаунтами.
