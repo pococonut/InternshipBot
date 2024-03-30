@@ -3,22 +3,11 @@ from aiogram.dispatcher import FSMContext
 from create import dp
 from db.commands import del_task
 from commands.general import ConfirmDeletion
+from commands.get_keyboard import get_keyboard_deletion
 from commands.get_menu import callback_check_authentication
 from commands.task_actions_worker import tasks_worker_values
 from commands.task_actions import tasks_values, check_range, get_tasks_for_user
-from keyboard import del_task_ikb, back_task_w_ikb, back_task_own_ikb, del_task_worker_ikb
-
-
-def get_keyboard_deletion(callback):
-    """
-    Функция для получения клавиатуры при удалении задачи
-    :param callback: Кнопка
-    :return: Клавиатура
-    """
-
-    if 'worker' in callback:
-        return del_task_worker_ikb
-    return del_task_ikb
+from keyboard import back_task_w_ikb, back_task_own_ikb
 
 
 def get_values_deletion(callback):

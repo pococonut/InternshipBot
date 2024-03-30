@@ -2,7 +2,7 @@ from create import dp
 from aiogram import types
 from db.commands import get_user_type
 from aiogram.dispatcher import FSMContext
-from commands.general import get_keyboard
+from commands.get_keyboard import get_account_keyboard
 from commands.task_change import values_user_type
 from keyboard import back_applications, back_task_w_ikb, back_task_own_ikb, admin_accounts_ikb
 
@@ -32,7 +32,7 @@ def get_back_keyboard(user_id, callback):
 
     keyboard = back_keyboards.get(callback)
     if not keyboard:
-        return get_keyboard(user_id)
+        return get_account_keyboard(user_id)
     return keyboard
 
 

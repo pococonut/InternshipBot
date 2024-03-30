@@ -4,9 +4,8 @@ import phonenumbers
 import logging
 import os
 import json
-from db.commands import get_user_type, stud_approve, select_task, select_user
+from db.commands import select_task, select_user
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from keyboard import back_ikb, admin_ikb, worker_ikb, student_not_approved, stud_is_approve
 
 
 class ConfirmDeletion(StatesGroup):
@@ -51,10 +50,8 @@ def get_tasks_for_student():
 def check_user_name(name):
     """
     Функция для валидации ФИО
-    Args:
-        name: ФИО пользователя
-
-    Returns: True - ФИО корректно, False - ФИО некорректно
+    name: ФИО пользователя
+    :return: True - ФИО корректно, False - ФИО некорректно
     """
 
     if len(name) > 60:
@@ -226,30 +223,6 @@ def write_user_values(dict_name, g_dict):
             json.dump(data, file)
     except Exception as e:
         logging.exception(e)
-
-
-def get_keyboard(t_id):
-    """
-    Функция возвращающая соответствующую inline-клавиатуру в зависимости от типа пользователя.
-    :param t_id: Уникальный идентификатор пользователя в телеграм.
-    :return k: Inline-клавиатура.
-    """
-
-    u_type = get_user_type(t_id)
-    if not u_type:
-        return back_ikb
-
-    if u_type[0] in ('admin', 'director'):
-        return admin_ikb
-
-    if u_type[0] == 'worker':
-        return worker_ikb
-
-    if u_type[0] == 'student':
-        approve = stud_approve(t_id)
-        if approve:
-            return stud_is_approve
-        return student_not_approved
 
 
 def print_stud(s, c=None):

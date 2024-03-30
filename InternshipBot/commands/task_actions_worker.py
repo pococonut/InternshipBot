@@ -14,8 +14,7 @@ async def show_worker_task(callback: types.CallbackQuery):
     Функция просмотра задач, опубликованных сотрудником.
     """
 
-    usr_id = str(callback.from_user.id)
-    keyboard, msg_text = get_task_message_keyboard(usr_id, callback.data, "tasks_worker_values", tasks_worker_values)
+    keyboard, msg_text = get_task_message_keyboard(callback, "tasks_worker_values", tasks_worker_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 
@@ -26,8 +25,7 @@ async def show_more_worker_task(callback: types.CallbackQuery):
     Функция просмотра подробной информации задачи, опубликованной сотрудником.
     """
 
-    usr_id = str(callback.from_user.id)
-    keyboard, msg_text = get_task_more_message(usr_id, callback.data, "tasks_worker_values", tasks_worker_values)
+    keyboard, msg_text = get_task_more_message(callback, "tasks_worker_values", tasks_worker_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 

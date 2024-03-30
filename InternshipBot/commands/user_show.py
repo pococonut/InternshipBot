@@ -19,7 +19,7 @@ def print_worker(w):
     return worker
 
 
-def show_inf(t_id):
+def show_user_info(t_id):
     """
     Функция возвращающая информацию о пользователе в зависимости от его типа.
     :param t_id: Уникальный идентификатор пользователя в telegram
@@ -41,8 +41,7 @@ async def show_params(message: types.Message):
     Функция печати данных пользователя.
     """
 
-    inf = show_inf(message.from_user.id)
-    msg_text = f"🧑‍💻<b>Ваши данные</b>\n\n" + inf
+    msg_text = f"🧑‍💻<b>Ваши данные</b>\n\n" + show_user_info(message.from_user.id)
     await message.answer(msg_text, parse_mode='HTML', reply_markup=change_user_ikb)
 
 
@@ -53,6 +52,5 @@ async def show_params_inline(callback: types.CallbackQuery):
     Функция печати данных пользователя.
     """
 
-    inf = show_inf(callback.from_user.id)
-    msg_text = f"🧑‍💻<b>Ваши данные</b>\n\n" + inf
+    msg_text = f"🧑‍💻<b>Ваши данные</b>\n\n" + show_user_info(callback.from_user.id)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=change_user_ikb)

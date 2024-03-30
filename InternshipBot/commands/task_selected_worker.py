@@ -2,8 +2,9 @@ from aiogram import types
 from create import dp
 from db.commands import select_chosen_tasks, select_user
 from commands.get_menu import callback_check_authentication
+from commands.get_keyboard import get_account_keyboard
 from commands.task_actions import check_user_values, get_check_page_title
-from commands.general import print_stud, get_keyboard, read_user_values, short_long_task
+from commands.general import print_stud, read_user_values, short_long_task
 from keyboard import task_worker_stud, back_to_std
 
 task_chosen_values = read_user_values("task_chosen_values")
@@ -24,7 +25,7 @@ def show_short_stud(s):
     return v
 
 
-def get_worker_chosen_task(usr_id, callback, dict_name, dict_values):
+def get_worker_chosen_task(callback, dict_name, dict_values):
     """
     Функция для получения информации о выбранных задачах сотрудника
     :param usr_id: Идентификатор пользователя в телеграм
@@ -34,13 +35,15 @@ def get_worker_chosen_task(usr_id, callback, dict_name, dict_values):
     :return: Информация о выбранных задачах сотрудника
     """
 
+    usr_id = str(callback.from_user.id)
     tasks = select_chosen_tasks(usr_id)
+
     if not tasks:
-        keyboard = get_keyboard(usr_id)
+        keyboard = get_account_keyboard(usr_id)
         return 'Ваши задачи еще не выбраны.', keyboard
 
     dict_values = check_user_values(usr_id, dict_name, dict_values)
-    result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(tasks))
+    result = get_check_page_title(callback, dict_name, dict_values, len(tasks))
     msg_text, dict_values = result
     current_task = tasks[dict_values[usr_id]]
     student_id = current_task.student_id
@@ -67,8 +70,7 @@ async def worker_chosen_t(callback: types.CallbackQuery):
     Функция для просмотра выбранных студентами задач
     """
 
-    usr_id = str(callback.from_user.id)
-    msg_text, keyboard = get_worker_chosen_task(usr_id, callback.data, "task_chosen_values", task_chosen_values)
+    msg_text, keyboard = get_worker_chosen_task(callback, "task_chosen_values", task_chosen_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 
 

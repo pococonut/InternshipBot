@@ -1,8 +1,9 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from create import bot, dp
+from commands.get_keyboard import get_account_keyboard
 from commands.task_actions import check_user_values, get_check_page_title, check_range
-from commands.general import print_stud, ConfirmDeletion, read_user_values, write_user_values, get_keyboard
+from commands.general import print_stud, ConfirmDeletion, read_user_values, write_user_values
 from commands.get_menu import callback_check_authentication
 from db.commands import select_students, select_applications, add_application
 from keyboard import stud_application_ikb, student_task_show, del_stud_ikb, stud_application_ikb_2, student_data_ikb
@@ -24,42 +25,44 @@ def get_students(f=None):
     return [s for s in all_students if s.telegram_id in pending_students_ids]
 
 
-def get_student_msg(data, usr_id, callback, dict_name, dict_values):
+def get_student_msg(callback, dict_name, dict_values, f=None):
     """
     Функция возвращает клавиатуру и информацию о задаче
-    :param usr_id: Идентификатор пользователя в телеграм
+    :param f:
     :param callback: Кнопка
     :param dict_name: Название словаря с навигацией пользователей
     :param dict_values: Словарь с навигацией пользователей
     :return: Клавиатура и информация о задаче
     """
 
-    if not data:
-        msg_text = 'В данный момент данных нет.\nЗагляните позже.'
-        return get_keyboard(usr_id), msg_text
+    students = get_students(f)
+    usr_id = str(callback.from_user.id)
 
+    if not students:
+        msg_text = 'В данный момент данных нет.\nЗагляните позже.'
+        return get_account_keyboard(usr_id), msg_text
+
+    button = callback.data
     dict_values = check_user_values(usr_id, dict_name, dict_values)
-    result = get_check_page_title(usr_id, callback, dict_name, dict_values, len(data))
+    result = get_check_page_title(callback, dict_name, dict_values, len(students))
     msg_text, dict_values = result
     write_user_values(dict_name, dict_values)
-    current_application = data[dict_values[usr_id]]
-    msg_text += print_stud(current_application, callback)
+    current_application = students[dict_values[usr_id]]
+    msg_text += print_stud(current_application, button)
 
-    if "application" in callback:
+    if "application" in button:
         return stud_application_ikb, msg_text
     return student_data_ikb, msg_text
 
 
 @dp.callback_query_handler(text=['show_students', "students_left", "students_right"])
 @callback_check_authentication
-async def show_applications(callback: types.CallbackQuery):
+async def show_students(callback: types.CallbackQuery):
     """
     Функция просмотра студентов.
     """
 
-    usr_id = str(callback.from_user.id)
-    students = get_students(1)
-    keyboard, msg_text = get_student_msg(students, usr_id, callback.data, "application_values", application_values)
+    keyboard, msg_text = get_student_msg(callback, "application_values", application_values, 1)
     await callback.message.edit_text(msg_text, reply_markup=keyboard, parse_mode='HTML')
 
 
@@ -70,9 +73,7 @@ async def show_applications(callback: types.CallbackQuery):
     Функция просмотра, отклонения/одобрения нерассмотренных заявок студентов.
     """
 
-    usr_id = str(callback.from_user.id)
-    applications = get_students()
-    keyboard, msg_text = get_student_msg(applications, usr_id, callback.data, "application_values", application_values)
+    keyboard, msg_text = get_student_msg(callback, "application_values", application_values)
     await callback.message.edit_text(msg_text, reply_markup=keyboard, parse_mode='HTML')
 
 

@@ -7,7 +7,7 @@ from commands.get_menu import callback_check_authentication, message_check_authe
 from keyboard import back_ikb, types_users, admin_accounts_ikb
 
 
-class AddUser(StatesGroup):
+class Account(StatesGroup):
     login = State()
     password = State()
     type = State()
@@ -21,10 +21,10 @@ async def add_user_command(callback: types.CallbackQuery):
     """
 
     await callback.message.edit_text("Ведите новый <b>логин.</b>", parse_mode='HTML', reply_markup=back_ikb)
-    await AddUser.login.set()
+    await Account.login.set()
 
 
-@dp.message_handler(state=AddUser.login)
+@dp.message_handler(state=Account.login)
 @message_check_authentication
 async def add_login(message: types.Message, state=FSMContext):
     """
@@ -33,10 +33,10 @@ async def add_login(message: types.Message, state=FSMContext):
 
     await state.update_data(login=message.text)
     await message.answer('Ведите новый <b>пароль.</b>', parse_mode='HTML')
-    await AddUser.next()
+    await Account.next()
 
 
-@dp.message_handler(state=AddUser.password)
+@dp.message_handler(state=Account.password)
 @message_check_authentication
 async def add_password(message: types.Message, state=FSMContext):
     """
@@ -45,10 +45,10 @@ async def add_password(message: types.Message, state=FSMContext):
 
     await state.update_data(password=message.text)
     await message.answer('Выберите <b>тип пользователя.</b>', parse_mode='HTML', reply_markup=types_users)
-    await AddUser.next()
+    await Account.next()
 
 
-@dp.callback_query_handler(text=['director', 'admin', 'worker'], state=AddUser.type)
+@dp.callback_query_handler(text=['director', 'admin', 'worker'], state=Account.type)
 @callback_check_authentication
 async def add_type(callback: types.CallbackQuery, state=FSMContext):
     """

@@ -2,7 +2,7 @@ import functools
 from create import dp
 from aiogram import types
 from db.commands import get_user_type
-from commands.general import get_keyboard
+from commands.get_keyboard import get_account_keyboard
 from keyboard import new_user_ikb, chat_ikb, admin_tasks_ikb, admin_students_ikb, admin_accounts_ikb
 
 unauthorized_msg = (f'Выберите команду.\n<em>Регистрация</em> -  Для студентов.'
@@ -49,7 +49,7 @@ async def menu_get(message: types.Message):
     """
 
     user_id = message.from_user.id
-    await message.answer('Выберите команду.', reply_markup=get_keyboard(user_id))
+    await message.answer('Выберите команду.', reply_markup=get_account_keyboard(user_id))
 
 
 @dp.callback_query_handler(text='menu')
@@ -60,7 +60,7 @@ async def menu_get_inline(callback: types.CallbackQuery):
     """
 
     user_id = callback.from_user.id
-    await callback.message.edit_text('Выберите команду.', reply_markup=get_keyboard(user_id))
+    await callback.message.edit_text('Выберите команду.', reply_markup=get_account_keyboard(user_id))
 
 
 @dp.callback_query_handler(text="tasks_actions")

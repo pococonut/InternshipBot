@@ -2,10 +2,11 @@ from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.general import get_keyboard, check_param
+from commands.general import check_param
+from commands.get_keyboard import change_keyboard, get_account_keyboard
 from commands.get_menu import callback_check_authentication, message_check_authentication
-from keyboard import change_ikb, change_worker_ikb, back_ikb
-from db.commands import select_user, get_user_type, change_inform
+from db.commands import get_user_type, change_inform
+from keyboard import back_ikb
 
 check_d = {'student_name': 'ФИО',
            'phone': 'Номер телефона',
@@ -25,23 +26,6 @@ param_for_change = {}
 class ChangeUser(StatesGroup):
     parameter = State()
     new_value = State()
-
-
-def change_keyboard(t_id):
-    """
-    Функция возвращающая клавиатуру с параметрами доступными для изменения в зависимости от типа пользователя.
-    :param t_id: Уникальный идентификатор пользователя в телеграм.
-    :return k: Inline-клавиатура.
-    """
-
-    user_exist = select_user(t_id)
-    if not user_exist:
-        return None
-
-    u_type = get_user_type(t_id)
-    if u_type[0] == 'student':
-        return change_ikb
-    return change_worker_ikb
 
 
 @dp.message_handler(commands=['change'])
@@ -106,7 +90,7 @@ async def get_val_student(message: types.Message, state: FSMContext):
     data = await state.get_data()
 
     u_type = get_user_type(user_id)[0]
-    keyboard = get_keyboard(user_id)
+    keyboard = get_account_keyboard(user_id)
     change_inform(user_id, u_type, data['parameter'], data['new_value'])
     msg_text = (f"<b>Параметр:</b> {check_d.get(data['parameter'])}\n"
                 f"<b>Новое значение:</b> {data['new_value']}\n"
