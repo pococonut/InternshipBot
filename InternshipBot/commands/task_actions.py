@@ -65,26 +65,27 @@ def check_user_values(usr_id, dict_name, dict_values):
     return dict_values
 
 
-def get_task_more_message(usr_id, callback, dict_name, dict_values):
+def get_task_more_message(callback, dict_name, dict_values):
     """
     Функция возвращает клавиатуру и информацию о задаче при подробном просмотре
-    :param usr_id: Идентификатор пользователя в телеграм
     :param callback: Кнопка
     :param dict_name: Название словаря с навигацией пользователей
     :param dict_values: Словарь с навигацией пользователей
     :return: Клавиатура и информация о задаче
     """
 
-    tasks = get_tasks_for_user(usr_id, callback)
+    usr_id = str(callback.from_user.id)
+    button = callback.data
+    tasks = get_tasks_for_user(usr_id, button)
     if list != type(tasks):
-        keyboard = get_keyboard_more_task(usr_id, tasks, callback)
+        keyboard = get_keyboard_more_task(usr_id, tasks, button)
         msg_text = short_long_task(tasks, 1)
         return keyboard, msg_text
 
     values = check_range(len(tasks), usr_id, dict_name, dict_values)[0]
     current_task = tasks[values[usr_id]]
     task_selected = current_task.student_id
-    keyboard = get_keyboard_more_task(usr_id, task_selected, callback)
+    keyboard = get_keyboard_more_task(usr_id, task_selected, button)
     msg_text = short_long_task(current_task, 1)
     return keyboard, msg_text
 

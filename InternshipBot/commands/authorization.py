@@ -3,7 +3,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from create import dp
-from commands.general import check_user_name
+from commands.general import check_user_name, check_phone
 from db.commands import select_added_users, registration_user
 from keyboard import admin_ikb, worker_ikb, login_rep, back_ikb
 
@@ -86,15 +86,13 @@ async def get_phone(message: types.Message, state=FSMContext):
     Функция получения номера телефона от пользователя.
     """
 
-    try:
-        phone = message.text
-        phonenumbers.parse(phone)
-        await state.update_data(phone=phone)
-        msg_text = "Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>"
-        await message.answer(msg_text, parse_mode='HTML')
-    except:
+    if not check_phone(message.text):
         await message.answer("Введен неверный формат.\nПожалуйста, повторите ввод.")
         return
+
+    await state.update_data(phone=message.text)
+    msg_text = "Введите <b>ФИО</b> в формате: <em>Иванов Иван Иванович</em>"
+    await message.answer(msg_text, parse_mode='HTML')
     await Authorisation.next()
 
 

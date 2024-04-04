@@ -1,8 +1,8 @@
+from commands.general import check_user_parameter
 from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.general import check_param
 from commands.get_keyboard import change_keyboard, get_account_keyboard
 from commands.get_menu import callback_check_authentication, message_check_authentication
 from db.commands import get_user_type, change_inform
@@ -79,7 +79,7 @@ async def get_val_student(message: types.Message, state: FSMContext):
     user_id = str(message.from_user.id)
     parameter = param_for_change[user_id]
     new_value = message.text
-    result_change = check_param(parameter, new_value)
+    result_change = check_user_parameter(parameter, new_value)
 
     if not result_change:
         msg_text = "Значение введено в некорректном формате. Повторите ввод."

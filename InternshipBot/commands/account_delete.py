@@ -21,7 +21,6 @@ async def del_a(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='del_a_yes', state=ConfirmDeletion.delete)
-@callback_check_authentication
 async def del_a_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция удаления аккаунта.

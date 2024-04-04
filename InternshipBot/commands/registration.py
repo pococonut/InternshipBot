@@ -3,7 +3,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from db.commands import select_user, registration_user, get_user_type
-from commands.general import check_param
+from commands.general import check_user_parameter
 from keyboard import back_cont_ikb, student_not_approved, back_ikb
 
 
@@ -76,7 +76,7 @@ async def get_student_name(message: types.Message, state: FSMContext):
         await state.finish()
         await state.reset_state(with_data=False)
     else:
-        parameter = check_param("student_name", message.text)
+        parameter = check_user_parameter("student_name", message.text)
         if not parameter:
             await message.answer('ФИО введено в некорректном формате')
             return
@@ -94,7 +94,7 @@ async def get_phone(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Номер телефона.
     """
 
-    parameter = check_param("phone", message.text)
+    parameter = check_user_parameter("phone", message.text)
     if not parameter:
         await message.answer('Номер телефона введен в некорректном формате')
         return
@@ -110,7 +110,7 @@ async def get_university(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Университет.
     """
 
-    parameter = check_param("university", message.text)
+    parameter = check_user_parameter("university", message.text)
     if not parameter:
         await message.answer('ВУЗ введен в некорректном формате')
         return
@@ -127,7 +127,7 @@ async def get_faculty(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Факультет.
     """
 
-    parameter = check_param("faculty", message.text)
+    parameter = check_user_parameter("faculty", message.text)
     if not parameter:
         await message.answer('Факультет введен в некорректном формате')
         return
@@ -144,7 +144,7 @@ async def get_specialties(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Специальность.
     """
 
-    parameter = check_param("specialties", message.text)
+    parameter = check_user_parameter("specialties", message.text)
     if not parameter:
         await message.answer('Направление введено в некорректном формате')
         return
@@ -161,7 +161,7 @@ async def get_department(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Кафедра.
     """
 
-    parameter = check_param("department", message.text)
+    parameter = check_user_parameter("department", message.text)
     if not parameter:
         await message.answer('Кафедра введена в некорректном формате')
         return
@@ -178,7 +178,7 @@ async def get_course(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Курс.
     """
 
-    parameter = check_param("course", message.text)
+    parameter = check_user_parameter("course", message.text)
     if not parameter:
         await message.answer('Курс введен в некорректном формате')
         return
@@ -195,7 +195,7 @@ async def get_group(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Группа.
     """
 
-    parameter = check_param("group", message.text)
+    parameter = check_user_parameter("group", message.text)
     if not parameter:
         await message.answer('Группа введена в некорректном формате')
         return
@@ -213,7 +213,7 @@ async def get_coursework(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Курсовые.
     """
 
-    parameter = check_param("coursework", message.text)
+    parameter = check_user_parameter("coursework", message.text)
     if not parameter:
         await message.answer('Количество слов превышает допустимое значение - 200 слов')
         return
@@ -231,7 +231,7 @@ async def get_knowledge(message: types.Message, state=FSMContext):
     Функция получения и проверки параметра заявки - Знания.
     """
 
-    parameter = check_param("coursework", message.text)
+    parameter = check_user_parameter("coursework", message.text)
     if not parameter:
         await message.answer('Количество слов превышает допустимое значение - 200 слов')
         return

@@ -25,7 +25,6 @@ async def add_user_command(callback: types.CallbackQuery):
 
 
 @dp.message_handler(state=Account.login)
-@message_check_authentication
 async def add_login(message: types.Message, state=FSMContext):
     """
     Функция получения параметра аккаунта - Пароль.
@@ -37,7 +36,6 @@ async def add_login(message: types.Message, state=FSMContext):
 
 
 @dp.message_handler(state=Account.password)
-@message_check_authentication
 async def add_password(message: types.Message, state=FSMContext):
     """
     Функция получения параметра аккаунта - Логин.
@@ -49,7 +47,6 @@ async def add_password(message: types.Message, state=FSMContext):
 
 
 @dp.callback_query_handler(text=['director', 'admin', 'worker'], state=Account.type)
-@callback_check_authentication
 async def add_type(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция получения параметра аккаунта - Тип пользователя (Директор, Администратор, Студент, Сотрудник).

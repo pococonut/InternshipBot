@@ -1,10 +1,11 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from commands.general import check_task_parameter
 from create import bot, dp
 from commands.task_actions import tasks_values
 from commands.task_actions_worker import tasks_worker_values
-from commands.get_menu import callback_check_authentication, message_check_authentication
+from commands.get_menu import callback_check_authentication
 from db.commands import select_task, change_task, get_user_type, select_worker_task
 from keyboard import change_task_ikb, selected_task, back_task_w_ikb, back_task_own_ikb
 
@@ -43,8 +44,7 @@ async def ch_task(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=change_param_task_list, state=TaskChange.param)
-@callback_check_authentication
-async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
+async def choose_task_parameter(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для получения названия параметра, который пользователь желает изменить.
     """
@@ -64,14 +64,19 @@ async def ch_task_param(callback: types.CallbackQuery, state=FSMContext):
 
 
 @dp.message_handler(state=TaskChange.value)
-@message_check_authentication
-async def ch_task_val(message: types.Message, state=FSMContext):
+async def change_task_value(message: types.Message, state=FSMContext):
     """
     Функция для получения нового значения параметра, который пользователь желает изменить.
     """
 
     await state.update_data(value=message.text)
     data = await state.get_data()
+
+    if not check_task_parameter(data['param'], message.text):
+        msg = 'Параметр введен в некорректном формате.'
+        await message.answer(msg)
+        return
+
     user_id = str(message.from_user.id)
     user_type = get_user_type(user_id)[0]
 
@@ -96,11 +101,8 @@ async def ch_task_val(message: types.Message, state=FSMContext):
                       f"</em></b> был изменен на новое значение:" \
                       f"\n<b><em>{data['value']}</em></b>."
 
-        if len(student_id) > 1:
-            for s_id in student_id.split(" "):
-                await bot.send_message(s_id, msg_student, reply_markup=selected_task, parse_mode='HTML')
-        else:
-            await bot.send_message(student_id, msg_student, reply_markup=selected_task, parse_mode='HTML')
+        for s_id in student_id.split(" "):
+            await bot.send_message(s_id, msg_student, reply_markup=selected_task, parse_mode='HTML')
 
     msg_worker = f"<b>Параметр:</b> {param_task.get(data['param'])}\n\n" \
                  f"<b>Новое значение:</b>\n{data['value']}\n\n" \

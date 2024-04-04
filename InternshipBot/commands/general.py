@@ -153,7 +153,7 @@ def check_len_txt(value):
     return value
 
 
-def check_param(parameter, value):
+def check_user_parameter(parameter, value):
     """
     Функция проверки параметра заявки на корректность.
     :param parameter: Название параметра, который пользователь хочет изменить.
@@ -173,6 +173,61 @@ def check_param(parameter, value):
                   "knowledge": check_len_txt}
 
     return parameters[parameter](value)
+
+
+def check_len_parameter(parameter, max_length):
+    """
+    Функция для проверки длины вводимого параметра
+    :param parameter: Параметр
+    :param max_length: Максимальная длинна параметра
+    :return: False - если длинна параметра превышает допустимое значение, иначе True
+    """
+
+    if len(parameter.split()) > max_length:
+        return False
+    return True
+
+
+def check_num_people(parameter):
+    """
+    Функция для проверки параметра задачи - "Количество людей"
+    :param parameter: Количество людей введенное пользователем
+    :return: False - при неправильном формате параметра, иначе True
+    """
+
+    if not parameter.isdigit():
+        return False
+    if len(parameter.split()) > 1:
+        return False
+    if any(chr.isalpha() for chr in parameter):
+        return False
+    if int(parameter) > 5:
+        return False
+    return True
+
+
+def check_task_parameter(parameter, value=None):
+    """
+    Функция проверки параметра задачи на корректность.
+    :param parameter: Название параметра, который пользователь хочет изменить.
+    :param value: Введенное пользователем новое значение параметра.
+    :return: Возвращает введенное значение, если оно прошло проверку, иначе возвращает False.
+    """
+
+    parameters = {"change_task_name": (check_len_parameter, 50),
+                  "change_task_goal": (check_len_parameter, 50),
+                  "change_task_description": (check_len_parameter, 200),
+                  "change_task_tasks": (check_len_parameter, 500),
+                  "change_task_technologies": (check_len_parameter, 200),
+                  "change_task_new_skills": (check_len_parameter, 200),
+                  "change_num_people": (check_num_people, value),
+                  "change_materials": (check_len_parameter, 200)}
+
+    func,  func_value = parameters[parameter]
+
+    if not value:
+        return func(func_value)
+    return func(value, func_value)
 
 
 def read_user_values(dict_name):

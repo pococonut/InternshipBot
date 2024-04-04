@@ -11,31 +11,33 @@ from keyboard import stud_application_ikb, student_task_show, del_stud_ikb, stud
 application_values = read_user_values("application_values")
 
 
-def get_students(f=None):
+def get_students(pending_students=None):
     """
-    Функция возвращающая список студентов
+    Функция возвращает список нерассмотренных студентов
+    если pending_students True, иначе возвращает список принятых студентов
     :return: Список студентов
     """
 
     all_students = select_students()
     applications = select_applications()
     pending_students_ids = [student.student_id for student in applications]
-    if not f:
-        return [s for s in all_students if s.telegram_id not in pending_students_ids]
-    return [s for s in all_students if s.telegram_id in pending_students_ids]
+
+    if pending_students:
+        return [s for s in all_students if s.telegram_id in pending_students_ids]
+    return [s for s in all_students if s.telegram_id not in pending_students_ids]
 
 
-def get_student_msg(callback, dict_name, dict_values, f=None):
+def get_student_msg(callback, dict_name, dict_values, pending_students=None):
     """
     Функция возвращает клавиатуру и информацию о задаче
-    :param f:
+    :param pending_students:
     :param callback: Кнопка
     :param dict_name: Название словаря с навигацией пользователей
     :param dict_values: Словарь с навигацией пользователей
     :return: Клавиатура и информация о задаче
     """
 
-    students = get_students(f)
+    students = get_students(pending_students)
     usr_id = str(callback.from_user.id)
 
     if not students:
