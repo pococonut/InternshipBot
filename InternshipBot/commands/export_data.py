@@ -90,8 +90,8 @@ async def export_task(callback: types.CallbackQuery):
         s_data = sheet.cell(row=last_idx, column=2)
         s_data.value = datetime.date.today()
 
-        wb.save(r"files\Задачи.xlsx")
-        doc = open(r"files\Задачи.xlsx", 'rb')
+        wb.save("files/Задачи.xlsx")
+        doc = open("files/Задачи.xlsx", 'rb')
 
         await callback.answer()
         await callback.message.answer_document(doc)
@@ -149,8 +149,8 @@ async def export_worker(callback: types.CallbackQuery):
         s_data = sheet.cell(row=i+1, column=2)
         s_data.value = datetime.date.today()
 
-        wb.save(r"files\Сотрудники.xlsx")
-        doc = open(r"files\Сотрудники.xlsx", 'rb')
+        wb.save("files/Сотрудники.xlsx")
+        doc = open(r"files/Сотрудники.xlsx", 'rb')
 
         await callback.answer()
         await callback.message.answer_document(doc)
@@ -216,8 +216,8 @@ async def export_applications(callback: types.CallbackQuery):
     s_data = sheet.cell(row=i + 1, column=2)
     s_data.value = datetime.date.today()
 
-    wb.save(r"files\Заявки.xlsx")
-    doc = open(r"files\Заявки.xlsx", 'rb')
+    wb.save("files/Заявки.xlsx")
+    doc = open("files/Заявки.xlsx", 'rb')
 
     await callback.answer()
     await callback.message.answer_document(doc)
@@ -287,8 +287,9 @@ async def export_approved(callback: types.CallbackQuery):
         s_data = sheet.cell(row=i + 1, column=2)
         s_data.value = datetime.date.today()
 
-        wb.save(r"files\Принятые студенты.xlsx")
-        doc = open(r"files\Принятые студенты.xlsx", 'rb')
+        wb.save("files/Принятые студенты.xlsx")
+        doc = open("files/Принятые студенты.xlsx", 'rb')
+
         await callback.answer()
         await callback.message.answer_document(doc)
 
@@ -335,8 +336,8 @@ async def export_added(callback: types.CallbackQuery):
         s_data = sheet.cell(row=last_idx, column=2)
         s_data.value = datetime.date.today()
 
-        wb.save(r"files\Добавленные аккаунты.xlsx")
-        doc = open(r"files\Добавленные аккаунты.xlsx", 'rb')
+        wb.save("files/Добавленные аккаунты.xlsx")
+        doc = open("files/Добавленные аккаунты.xlsx", 'rb')
 
         await callback.answer()
         await callback.message.answer_document(doc)
