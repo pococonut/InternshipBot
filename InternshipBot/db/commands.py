@@ -1,6 +1,8 @@
 import datetime
-from db.models.user_add import AddedUser
+
 from sqlalchemy.exc import IntegrityError
+
+from db.models.user_add import AddedUser
 from db.models.applications import Application
 from db.models.internship import Task, InternshipTask, Internship
 from db.models.user import User, Student, Worker, Admin, Director, session

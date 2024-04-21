@@ -1,4 +1,5 @@
 from sqlalchemy import Column, VARCHAR, Integer
+
 from db.models.user import Base
 
 

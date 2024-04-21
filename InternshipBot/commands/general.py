@@ -1,11 +1,13 @@
 import re
-import string
-import phonenumbers
-import logging
 import os
 import json
-from db.commands import select_task, select_user
+import string
+import logging
+
+import phonenumbers
 from aiogram.dispatcher.filters.state import StatesGroup, State
+
+from db.commands import select_task, select_user
 
 
 class ConfirmDeletion(StatesGroup):

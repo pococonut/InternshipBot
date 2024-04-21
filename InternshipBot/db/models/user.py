@@ -1,7 +1,9 @@
-from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, String, ForeignKey
-from dotenv import load_dotenv
-from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
 import datetime
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, String, ForeignKey
+from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
+
 from config import settings
 
 load_dotenv()

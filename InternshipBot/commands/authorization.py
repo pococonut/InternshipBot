@@ -1,7 +1,7 @@
-import phonenumbers
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+
 from create import dp
 from commands.general import check_user_name, check_phone
 from db.commands import select_added_users, registration_user

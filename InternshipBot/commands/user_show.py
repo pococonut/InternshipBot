@@ -1,5 +1,6 @@
-from create import dp
 from aiogram import types
+
+from create import dp
 from db.commands import select_user
 from commands.general import print_stud
 from commands.get_menu import callback_check_authentication, message_check_authentication

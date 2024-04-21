@@ -1,9 +1,10 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+
 from create import dp
 from db.commands import add_user
-from commands.get_menu import callback_check_authentication, message_check_authentication
+from commands.get_menu import callback_check_authentication
 from keyboard import back_ikb, types_users, admin_accounts_ikb
 
 

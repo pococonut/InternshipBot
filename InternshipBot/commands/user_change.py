@@ -1,8 +1,9 @@
-from commands.general import check_user_parameter
-from create import dp
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+
+from create import dp
+from commands.general import check_user_parameter
 from commands.get_keyboard import change_keyboard, get_account_keyboard
 from commands.get_menu import callback_check_authentication, message_check_authentication
 from db.commands import get_user_type, change_inform
