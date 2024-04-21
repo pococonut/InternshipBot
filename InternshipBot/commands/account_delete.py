@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from create import dp
-from commands.account_show import globalDict_added
+from commands.account_show import account_values
 from commands.get_menu import callback_check_authentication
 from commands.task_actions import check_range
 from commands.general import ConfirmDeletion
@@ -12,7 +12,7 @@ from keyboard import del_added_ikb, back_added_ikb
 
 @dp.callback_query_handler(text='del_added')
 @callback_check_authentication
-async def del_a(callback: types.CallbackQuery):
+async def del_account(callback: types.CallbackQuery):
     """
     Функция подтверждения удаления аккаунта.
     """
@@ -22,7 +22,7 @@ async def del_a(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text='del_a_yes', state=ConfirmDeletion.delete)
-async def del_a_yes(callback: types.CallbackQuery, state=FSMContext):
+async def del_account_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция удаления аккаунта.
     """
@@ -30,8 +30,8 @@ async def del_a_yes(callback: types.CallbackQuery, state=FSMContext):
     await state.update_data(delete=callback.data)
     added = select_added_users()
     usr_id = str(callback.from_user.id)
-    a_id = added[globalDict_added[usr_id]].id
-    del_added(a_id)
-    check_range(len(added), usr_id, "globalDict_added", globalDict_added)
+    account_id = added[account_values[usr_id]].id
+    del_added(account_id)
+    check_range(len(added), usr_id, "account_values", account_values)
     await state.finish()
     await callback.message.edit_text('Данные удалены.', reply_markup=back_added_ikb)

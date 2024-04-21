@@ -8,29 +8,29 @@ from commands.general import read_user_values, write_user_values
 from db.commands import select_added_users
 from keyboard import added_ikb
 
-globalDict_added = read_user_values("globalDict_added")
+account_values = read_user_values("account_values")
 
 
-def get_account_info(a):
+def get_account_info(account):
     """
     Функция просмотра информации добавленных аккаунтов.
-    :param a: Строка модели БД, относящаяся к конкретному аккаунту, с информацией о нем.
+    :param account: Строка модели БД, относящаяся к конкретному аккаунту, с информацией о нем.
     :return: Строка с информацией об аккаунте.
     """
-
-    return f"<b>Пользователь:</b> {a.name_usr if a.name_usr else 'Отсутствует'}\n\n" \
-           f"<b>Тип:</b> {a.type}\n\n" \
-           f"<b>Логин:</b> {a.login}\n\n" \
-           f"<b>Пароль:</b> {a.password}\n\n"
+    print(account.name_usr)
+    return f"<b>Пользователь:</b> {account.name_usr if account.name_usr else 'Отсутствует'}\n\n" \
+           f"<b>Тип:</b> {account.type}\n\n" \
+           f"<b>Логин:</b> {account.login}\n\n" \
+           f"<b>Пароль:</b> {account.password}\n\n"
 
 
 def get_accounts_message(callback, dict_name, dict_values):
     """
-
-    :param callback:
-    :param dict_name:
-    :param dict_values:
-    :return:
+    Функция возвращает клавиатуру и информацию об аккаунте
+    :param callback: Кнопка
+    :param dict_name: Название словаря с навигацией пользователей
+    :param dict_values: Словарь с навигацией пользователей
+    :return: Клавиатура и информация об аккаунте
     """
 
     usr_id = str(callback.from_user.id)
@@ -57,5 +57,5 @@ async def show_added(callback: types.CallbackQuery):
     Функция просмотра добавленных аккаунтов.
     """
 
-    keyboard, msg_text = get_accounts_message(callback, "globalDict_added", globalDict_added)
+    keyboard, msg_text = get_accounts_message(callback, "account_values", account_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard)

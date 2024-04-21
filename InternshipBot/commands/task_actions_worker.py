@@ -15,6 +15,7 @@ async def show_worker_task(callback: types.CallbackQuery):
     Функция просмотра задач, опубликованных сотрудником.
     """
 
+    print(callback.data)
     keyboard, msg_text = get_task_message_keyboard(callback, "tasks_worker_values", tasks_worker_values)
     await callback.message.edit_text(msg_text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
 

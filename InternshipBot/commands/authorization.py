@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from create import dp
 from commands.general import check_user_name, check_phone
-from db.commands import select_added_users, registration_user
+from db.commands import select_added_users, registration_user, change_name_added
 from keyboard import admin_ikb, worker_ikb, login_rep, back_ikb
 
 
@@ -117,6 +117,7 @@ async def get_name(message: types.Message, state=FSMContext):
         await message.answer(msg_text, reply_markup=login_rep)
         return
 
+    change_name_added(data['login'], data['name'])
     keyboard = admin_ikb
     if user_type == 'сотрудник':
         keyboard = worker_ikb

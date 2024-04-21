@@ -56,7 +56,6 @@ async def change_inline(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=student_params, state=ChangeUser.parameter)
-@callback_check_authentication
 async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция получения нового значения параметра, выбранного для изменения.
@@ -71,7 +70,6 @@ async def get_param_student(callback: types.CallbackQuery, state=FSMContext):
 
 
 @dp.message_handler(state=ChangeUser.new_value)
-@message_check_authentication
 async def get_val_student(message: types.Message, state: FSMContext):
     """
     Функция проверки и установки нового значения параметра, выбранного для изменения.

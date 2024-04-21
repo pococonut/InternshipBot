@@ -14,7 +14,7 @@ def get_tasks_for_user(usr_id, callback):
     Функция для получения списка задач в зависимости от типа пользователя
     :param usr_id: Идентификатор пользователя в телеграм
     :param callback: Кнопка
-    :return:
+    :return: Список задач
     """
 
     user_type = get_user_type(usr_id)[0]
@@ -136,7 +136,7 @@ def get_task_message_keyboard(callback, dict_name, dict_values):
     """
 
     usr_id = str(callback.from_user.id)
-    tasks = get_tasks_for_user(usr_id, callback)
+    tasks = get_tasks_for_user(usr_id, callback.data)
 
     if not tasks:
         keyboard = get_account_keyboard(usr_id)

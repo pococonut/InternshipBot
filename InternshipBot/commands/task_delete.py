@@ -36,7 +36,6 @@ async def del_t(callback: types.CallbackQuery):
 
 
 @dp.callback_query_handler(text=['del_yes', 'del_yes_worker'], state=ConfirmDeletion.delete)
-@callback_check_authentication
 async def del_t_yes(callback: types.CallbackQuery, state=FSMContext):
     """
     Функция для удаления задачи.

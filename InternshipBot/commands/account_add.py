@@ -16,7 +16,7 @@ class Account(StatesGroup):
 
 @dp.callback_query_handler(text='add_user')
 @callback_check_authentication
-async def add_user_command(callback: types.CallbackQuery):
+async def add_account_command(callback: types.CallbackQuery):
     """
     Функция начала добавления аккаунта
     """
