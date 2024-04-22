@@ -14,8 +14,8 @@ application_values = read_user_values("application_values")
 
 def get_students(pending_students=None):
     """
-    Функция возвращает список нерассмотренных студентов
-    если pending_students True, иначе возвращает список принятых студентов
+    Функция возвращает список принятых студентов если pending_students True,
+    иначе возвращает нерассмотренных студентов
     :return: Список студентов
     """
 

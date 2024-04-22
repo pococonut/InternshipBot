@@ -15,7 +15,6 @@ class AddedUser(Base):
     __tablename__ = "added_user"
 
     id = Column(Integer, unique=True, nullable=False, primary_key=True, autoincrement=True)
-    telegram_id = Column(String, unique=True, nullable=False, primary_key=True, )
     login = Column(VARCHAR(50), unique=True, nullable=False)
     password = Column(VARCHAR(50), unique=True, nullable=False)
     type = Column(VARCHAR(50), nullable=False)

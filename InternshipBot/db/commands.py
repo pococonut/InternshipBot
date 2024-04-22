@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from sqlalchemy.exc import IntegrityError
 
@@ -68,7 +69,7 @@ def registration_user(s_id, u_type, *args):
         session.commit()
         return who
     except Exception as e:
-        print(e)
+        logging.error(e)
         session.rollback()
         return False
 
@@ -139,7 +140,7 @@ def add_application(stud_id, work_id, b):
         session.commit()
     except Exception as e:
         session.rollback()  # откатываем session.add(user)
-        print(e)
+        logging.error(e)
 
 
 def select_added_users():
@@ -149,10 +150,9 @@ def select_added_users():
     """
     try:
         users = AddedUser.query.all()
+        return users
     except Exception as e:
-        print(e)
-        users = False
-    return users
+        logging.error(e)
 
 
 def select_all_users():
@@ -163,7 +163,7 @@ def select_all_users():
     try:
         user = User.query.all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         user = False
     return user
 
@@ -177,7 +177,7 @@ def select_user(user_id):
     try:
         user = session.query(User).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:
-        print(e)
+        logging.error(e)
         user = False
     return user
 
@@ -190,7 +190,7 @@ def select_task():
     try:
         task = Task.query.order_by(Task.task_id.desc()).all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         task = False
     return task
 
@@ -204,7 +204,7 @@ def select_worker_task(f_id):
     try:
         task = session.query(Task).filter(Task.from_id == str(f_id)).order_by(Task.task_id.desc()).all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         task = False
     return task
 
@@ -217,7 +217,7 @@ def select_task_for_stud():
     try:
         task = session.query(Task).filter(Task.student_id == None).order_by(Task.task_id.desc()).all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         task = False
     return task
 
@@ -237,7 +237,7 @@ def select_already_get_stud(s_id):
             else:
                 task = False
     except Exception as e:
-        print(e)
+        logging.error(e)
         task = False
     return task
 
@@ -252,7 +252,7 @@ def select_chosen_tasks(w_id):
         task = session.query(Task).filter(Task.student_id != None, Task.from_id == str(w_id)).order_by(
             Task.task_id.desc()).all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         task = False
     return task
 
@@ -265,7 +265,7 @@ def select_students():
     try:
         students = Student.query.order_by(User.reg_date.desc()).all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         students = False
     return students
 
@@ -278,7 +278,7 @@ def select_applications():
     try:
         applications = Application.query.all()
     except Exception as e:
-        print(e)
+        logging.error(e)
         applications = False
     return applications
 
@@ -385,7 +385,26 @@ def del_added(a_id):
         session.delete(x1)
         session.commit()
     except Exception as e:
-        print(e)
+        logging.error(e)
+
+
+def del_all_data(model):
+    """
+    Функция для очистки данных таблицы
+    :param model: Таблица
+    :return: True если очистка прошла успешно
+    """
+
+    models_dict = {'clr_students': Student,
+                   'clr_workers': Worker,
+                   'clr_users': User,
+                   'clr_accounts': AddedUser,
+                   'clr_tasks': Task}
+    try:
+        models_dict.get(model).query.delete()
+        return True
+    except Exception as e:
+        logging.error(e)
 
 
 def get_user_type(user_id):
@@ -398,7 +417,7 @@ def get_user_type(user_id):
     try:
         u_type = session.query(User.type).filter(User.telegram_id == str(user_id)).first()
     except Exception as e:
-        print(e)
+        logging.error(e)
         u_type = False
     return u_type
 
@@ -412,7 +431,6 @@ def stud_approve(s_id):
     try:
         approve = session.query(Application.approve).filter(Application.student_id == str(s_id)).first()
     except Exception as e:
-        print(e)
+        logging.error(e)
         approve = False
     return approve
-

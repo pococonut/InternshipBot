@@ -17,7 +17,7 @@ def get_account_info(account):
     :param account: Строка модели БД, относящаяся к конкретному аккаунту, с информацией о нем.
     :return: Строка с информацией об аккаунте.
     """
-    print(account.name_usr)
+
     return f"<b>Пользователь:</b> {account.name_usr if account.name_usr else 'Отсутствует'}\n\n" \
            f"<b>Тип:</b> {account.type}\n\n" \
            f"<b>Логин:</b> {account.login}\n\n" \

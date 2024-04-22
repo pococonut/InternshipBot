@@ -8,7 +8,7 @@ from db.models.user import Base, engine
 from keyboard import new_user_ikb
 from commands import registration, user_change, user_show, authorization, task_add, task_actions, task_actions_worker, \
     applications, task_selected_student, task_selected_worker, back, account_add, export_data, get_menu, task_change, \
-    task_delete, account_show, account_delete
+    task_delete, account_show, account_delete, clear_data
 
 
 DESCRIPTION = "Данный телеграм бот предназначен для работы с практиками," \

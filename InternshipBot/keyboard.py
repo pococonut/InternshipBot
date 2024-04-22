@@ -33,6 +33,7 @@ admin_tasks_b = InlineKeyboardButton(text="Задачи", callback_data="tasks_a
 admin_students_b = InlineKeyboardButton(text="Студенты", callback_data="students_actions")
 admin_accounts_b = InlineKeyboardButton(text="Аккаунты", callback_data="accounts_actions")
 admin_b10 = InlineKeyboardButton(text="Экспорт данных", callback_data="export")
+admin_clear_data = InlineKeyboardButton(text="Очистка данных", callback_data="clear_data")
 chat = InlineKeyboardButton(text="Чат", callback_data="chat")
 
 admin_b1 = InlineKeyboardButton(text="Добавить задачу", callback_data="add_task")
@@ -53,7 +54,7 @@ admin_students_ikb.add(admin_b7).add(admin_b11).add(menu)
 admin_accounts_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)
 admin_accounts_ikb.add(admin_b8).add(admin_b9).add(menu)
 
-admin_ikb.add(admin_tasks_b, admin_students_b, admin_accounts_b, admin_b10, chat)
+admin_ikb.add(admin_tasks_b, admin_students_b, admin_accounts_b, admin_b10, chat, admin_clear_data)
 
 # Клавиатура сотрудника
 worker_ikb = InlineKeyboardMarkup(row_width=2)
@@ -128,6 +129,22 @@ back_task_w_ikb.add(back_task_b).add(menu)
 back_applications = InlineKeyboardMarkup(row_width=2)
 back_applications_b1 = InlineKeyboardButton(text="Вернуться к просмотру", callback_data="show_applications")
 back_applications.add(back_applications_b1).add(menu)
+
+# Клавиатура для очистки данных
+clear_ikb = InlineKeyboardMarkup(row_width=2)
+clear_b1 = InlineKeyboardButton(text="Аккаунты", callback_data="clr_accounts")
+clear_b2 = InlineKeyboardButton(text="Все пользователи", callback_data="clr_users")
+clear_b3 = InlineKeyboardButton(text="Сотрудники", callback_data="clr_workers")
+clear_b4 = InlineKeyboardButton(text="Студенты", callback_data="clr_students")
+clear_b5 = InlineKeyboardButton(text="Заявки", callback_data="clr_applications")
+clear_b6 = InlineKeyboardButton(text="Задачи", callback_data="clr_tasks")
+clear_ikb.add(clear_b1, clear_b2, clear_b3, clear_b4, clear_b5, clear_b6, menu)
+
+# Клавиатура для удаления задачи (для сотрудников)
+clear_confirm_ikb = InlineKeyboardMarkup(row_width=2)
+clear_yes_ib1 = InlineKeyboardButton(text="Очистить", callback_data="clear_yes")
+clear_ib2 = InlineKeyboardButton(text="Отменить действие", callback_data="back")
+clear_confirm_ikb.add(clear_yes_ib1, back_b)
 
 # Клавиатура навигации\удаления по добавленным аккаунтам
 added_ikb = InlineKeyboardMarkup(row_width=2, one_time_keyboard=True)

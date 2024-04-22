@@ -3,6 +3,7 @@ import datetime
 import openpyxl
 from aiogram import types
 
+from commands.applications import get_students
 from create import dp
 from keyboard import exp_ikb
 from commands.get_menu import callback_check_authentication
@@ -29,72 +30,73 @@ async def export_task(callback: types.CallbackQuery):
     tasks = select_task()
     if not tasks:
         await callback.message.edit_text("Данные отсутствуют.", reply_markup=exp_ikb)
-    else:
-        wb = openpyxl.Workbook()
-        sheet = wb.active
-        sheet.title = "Задачи"
-        columns = ["Сотрудник", "Студент", "Название", "Цель", "Описание", "Задачи",
-                   "Требования к технологиям", "Новые навыки", "Количество людей", "Материалы"]
+        return
 
-        for i in range(1, len(columns)+1):
-            c = sheet.cell(row=1, column=i)
-            c.value = columns[i-1]
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Задачи"
+    columns = ["Сотрудник", "Студент", "Название", "Цель", "Описание", "Задачи",
+               "Требования к технологиям", "Новые навыки", "Количество людей", "Материалы"]
 
-        last_idx = 0
-        for i in range(2, len(tasks) + 2):
-            index = i - 2
+    for i in range(1, len(columns)+1):
+        c = sheet.cell(row=1, column=i)
+        c.value = columns[i-1]
 
-            s2 = sheet.cell(row=i, column=1)
-            worker = select_user(tasks[index].from_id)
-            task_from = tasks[index].from_id
-            if task_from and worker:
-                worker_name = worker.name
-            else:
-                worker_name = None
-            s2.value = worker_name
+    last_idx = 0
+    for i in range(2, len(tasks) + 2):
+        index = i - 2
 
-            s3 = sheet.cell(row=i, column=2)
-            if tasks[index].student_id and select_user(tasks[index].student_id):
-                s3.value = select_user(tasks[index].student_id).name
-            else:
-                s3.value = None
+        s2 = sheet.cell(row=i, column=1)
+        worker = select_user(tasks[index].from_id)
+        task_from = tasks[index].from_id
+        if task_from and worker:
+            worker_name = worker.name
+        else:
+            worker_name = None
+        s2.value = worker_name
 
-            s4 = sheet.cell(row=i, column=3)
-            s4.value = tasks[index].task_name
+        s3 = sheet.cell(row=i, column=2)
+        if tasks[index].student_id and select_user(tasks[index].student_id):
+            s3.value = select_user(tasks[index].student_id).name
+        else:
+            s3.value = None
 
-            s5 = sheet.cell(row=i, column=4)
-            s5.value = tasks[index].task_goal
+        s4 = sheet.cell(row=i, column=3)
+        s4.value = tasks[index].task_name
 
-            s6 = sheet.cell(row=i, column=5)
-            s6.value = tasks[index].task_description
+        s5 = sheet.cell(row=i, column=4)
+        s5.value = tasks[index].task_goal
 
-            s7 = sheet.cell(row=i, column=6)
-            s7.value = tasks[index].task_tasks
+        s6 = sheet.cell(row=i, column=5)
+        s6.value = tasks[index].task_description
 
-            s8 = sheet.cell(row=i, column=7)
-            s8.value = tasks[index].task_technologies
+        s7 = sheet.cell(row=i, column=6)
+        s7.value = tasks[index].task_tasks
 
-            s9 = sheet.cell(row=i, column=8)
-            s9.value = tasks[index].task_new_skills
+        s8 = sheet.cell(row=i, column=7)
+        s8.value = tasks[index].task_technologies
 
-            s10 = sheet.cell(row=i, column=9)
-            s10.value = tasks[index].num_people
+        s9 = sheet.cell(row=i, column=8)
+        s9.value = tasks[index].task_new_skills
 
-            s11 = sheet.cell(row=i, column=10)
-            s11.value = tasks[index].materials
+        s10 = sheet.cell(row=i, column=9)
+        s10.value = tasks[index].num_people
 
-            last_idx = i + 2
+        s11 = sheet.cell(row=i, column=10)
+        s11.value = tasks[index].materials
 
-        s_data = sheet.cell(row=last_idx, column=1)
-        s_data.value = "Дата экспорта:"
-        s_data = sheet.cell(row=last_idx, column=2)
-        s_data.value = datetime.date.today()
+        last_idx = i + 2
 
-        wb.save("files/Задачи.xlsx")
-        doc = open("files/Задачи.xlsx", 'rb')
+    s_data = sheet.cell(row=last_idx, column=1)
+    s_data.value = "Дата экспорта:"
+    s_data = sheet.cell(row=last_idx, column=2)
+    s_data.value = datetime.date.today()
 
-        await callback.answer()
-        await callback.message.answer_document(doc)
+    wb.save("files/Задачи.xlsx")
+    doc = open("files/Задачи.xlsx", 'rb')
+
+    await callback.answer()
+    await callback.message.answer_document(doc)
 
 
 @dp.callback_query_handler(text='exp_worker')
@@ -106,54 +108,55 @@ async def export_worker(callback: types.CallbackQuery):
     workers = select_all_users()
     if not workers:
         await callback.message.edit_text("Данные отсутствуют.", reply_markup=exp_ikb)
-    else:
-        wb = openpyxl.Workbook()
-        sheet = wb.active
-        sheet.title = "Сотрудники"
-        columns = ["Тип", "Имя", "Номер Телефона", "Дата регистрации", "Дата изменения", "Логин", "Пароль"]
+        return
 
-        for i in range(1, len(columns)+1):
-            c = sheet.cell(row=1, column=i)
-            c.value = columns[i-1]
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Сотрудники"
+    columns = ["Тип", "Имя", "Номер Телефона", "Дата регистрации", "Дата изменения", "Логин", "Пароль"]
 
-        i = 2
-        for w in range(2, len(workers) + 2):
-            index = w - 2
+    for i in range(1, len(columns)+1):
+        c = sheet.cell(row=1, column=i)
+        c.value = columns[i-1]
 
-            if workers[index].type != 'student':
-                s1 = sheet.cell(row=i, column=1)
-                s1.value = workers[index].type
+    i = 2
+    for w in range(2, len(workers) + 2):
+        index = w - 2
 
-                s2 = sheet.cell(row=i, column=2)
-                s2.value = workers[index].name
+        if workers[index].type != 'student':
+            s1 = sheet.cell(row=i, column=1)
+            s1.value = workers[index].type
 
-                s3 = sheet.cell(row=i, column=3)
-                s3.value = workers[index].phone
+            s2 = sheet.cell(row=i, column=2)
+            s2.value = workers[index].name
 
-                s4 = sheet.cell(row=i, column=4)
-                s4.value = workers[index].reg_date
+            s3 = sheet.cell(row=i, column=3)
+            s3.value = workers[index].phone
 
-                s5 = sheet.cell(row=i, column=5)
-                s5.value = workers[index].upd_date
+            s4 = sheet.cell(row=i, column=4)
+            s4.value = workers[index].reg_date
 
-                s6 = sheet.cell(row=i, column=6)
-                s6.value = workers[index].login
+            s5 = sheet.cell(row=i, column=5)
+            s5.value = workers[index].upd_date
 
-                s7 = sheet.cell(row=i, column=7)
-                s7.value = workers[index].password
+            s6 = sheet.cell(row=i, column=6)
+            s6.value = workers[index].login
 
-                i += 1
+            s7 = sheet.cell(row=i, column=7)
+            s7.value = workers[index].password
 
-        s_data = sheet.cell(row=i + 1, column=1)
-        s_data.value = "Дата экспорта:"
-        s_data = sheet.cell(row=i+1, column=2)
-        s_data.value = datetime.date.today()
+            i += 1
 
-        wb.save("files/Сотрудники.xlsx")
-        doc = open(r"files/Сотрудники.xlsx", 'rb')
+    s_data = sheet.cell(row=i + 1, column=1)
+    s_data.value = "Дата экспорта:"
+    s_data = sheet.cell(row=i+1, column=2)
+    s_data.value = datetime.date.today()
 
-        await callback.answer()
-        await callback.message.answer_document(doc)
+    wb.save("files/Сотрудники.xlsx")
+    doc = open(r"files/Сотрудники.xlsx", 'rb')
+
+    await callback.answer()
+    await callback.message.answer_document(doc)
 
 
 @dp.callback_query_handler(text='exp_appl')
@@ -162,7 +165,12 @@ async def export_applications(callback: types.CallbackQuery):
     """
     Функция возвращающая excel-файл с параметрами заявок студентов.
     """
-    students = select_all_users()
+
+    students = get_students()
+    if not students:
+        await callback.message.edit_text("Данные отсутствуют.", reply_markup=exp_ikb)
+        return
+
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.title = "Заявки"
@@ -232,66 +240,67 @@ async def export_approved(callback: types.CallbackQuery):
     students = select_all_users()
     if not students:
         await callback.message.edit_text("Данные отсутствуют.", parse_mode='HTML', reply_markup=exp_ikb)
-    else:
-        wb = openpyxl.Workbook()
-        sheet = wb.active
-        sheet.title = "Заявки"
-        columns = ["ФИО", "Номер Телефона", "ВУЗ", "Факультет", "Направление",
-                   "Кафедра", "Курс", "Группа", "Курсовые", "Знания"]
+        return
 
-        for i in range(1, len(columns) + 1):
-            c = sheet.cell(row=1, column=i)
-            c.value = columns[i - 1]
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Принятые студенты"
+    columns = ["ФИО", "Номер Телефона", "ВУЗ", "Факультет", "Направление",
+               "Кафедра", "Курс", "Группа", "Курсовые", "Знания"]
 
-        i = 2
-        for s in range(2, len(students) + 2):
-            index = s - 2
+    for i in range(1, len(columns) + 1):
+        c = sheet.cell(row=1, column=i)
+        c.value = columns[i - 1]
 
-            result = stud_approve(students[index].telegram_id)
+    i = 2
+    for s in range(2, len(students) + 2):
+        index = s - 2
 
-            if result:
-                s1 = sheet.cell(row=i, column=1)
-                s1.value = students[index].student_name
+        result = stud_approve(students[index].telegram_id)
 
-                s2 = sheet.cell(row=i, column=2)
-                s2.value = students[index].phone
+        if result:
+            s1 = sheet.cell(row=i, column=1)
+            s1.value = students[index].student_name
 
-                s3 = sheet.cell(row=i, column=3)
-                s3.value = students[index].university
+            s2 = sheet.cell(row=i, column=2)
+            s2.value = students[index].phone
 
-                s4 = sheet.cell(row=i, column=4)
-                s4.value = students[index].faculty
+            s3 = sheet.cell(row=i, column=3)
+            s3.value = students[index].university
 
-                s5 = sheet.cell(row=i, column=5)
-                s5.value = students[index].specialties
+            s4 = sheet.cell(row=i, column=4)
+            s4.value = students[index].faculty
 
-                s6 = sheet.cell(row=i, column=6)
-                s6.value = students[index].department
+            s5 = sheet.cell(row=i, column=5)
+            s5.value = students[index].specialties
 
-                s7 = sheet.cell(row=i, column=7)
-                s7.value = students[index].course
+            s6 = sheet.cell(row=i, column=6)
+            s6.value = students[index].department
 
-                s8 = sheet.cell(row=i, column=8)
-                s8.value = students[index].group
+            s7 = sheet.cell(row=i, column=7)
+            s7.value = students[index].course
 
-                s9 = sheet.cell(row=i, column=9)
-                s9.value = students[index].coursework
+            s8 = sheet.cell(row=i, column=8)
+            s8.value = students[index].group
 
-                s10 = sheet.cell(row=i, column=10)
-                s10.value = students[index].knowledge
+            s9 = sheet.cell(row=i, column=9)
+            s9.value = students[index].coursework
 
-                i += 1
+            s10 = sheet.cell(row=i, column=10)
+            s10.value = students[index].knowledge
 
-        s_data = sheet.cell(row=i + 1, column=1)
-        s_data.value = "Дата экспорта:"
-        s_data = sheet.cell(row=i + 1, column=2)
-        s_data.value = datetime.date.today()
+            i += 1
 
-        wb.save("files/Принятые студенты.xlsx")
-        doc = open("files/Принятые студенты.xlsx", 'rb')
+    s_data = sheet.cell(row=i + 1, column=1)
+    s_data.value = "Дата экспорта:"
+    s_data = sheet.cell(row=i + 1, column=2)
+    s_data.value = datetime.date.today()
 
-        await callback.answer()
-        await callback.message.answer_document(doc)
+    wb.save("files/Принятые студенты.xlsx")
+    doc = open("files/Принятые студенты.xlsx", 'rb')
+
+    await callback.answer()
+    await callback.message.answer_document(doc)
 
 
 @dp.callback_query_handler(text='exp_added')
@@ -303,41 +312,42 @@ async def export_added(callback: types.CallbackQuery):
     added_users = select_added_users()
     if not added_users:
         await callback.message.edit_text("Данные отсутствуют.", parse_mode='HTML', reply_markup=exp_ikb)
-    else:
-        wb = openpyxl.Workbook()
-        sheet = wb.active
-        sheet.title = "Добавленные аккаунты"
-        columns = ["Логин", "Пароль", "Тип", "ФИО"]
-        last_idx = 0
+        return
 
-        for i in range(1, len(columns) + 1):
-            c = sheet.cell(row=1, column=i)
-            c.value = columns[i - 1]
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Добавленные аккаунты"
+    columns = ["Логин", "Пароль", "Тип", "ФИО"]
+    last_idx = 0
 
-        for i in range(2, len(added_users) + 2):
-            index = i - 2
+    for i in range(1, len(columns) + 1):
+        c = sheet.cell(row=1, column=i)
+        c.value = columns[i - 1]
 
-            s1 = sheet.cell(row=i, column=1)
-            s1.value = added_users[index].login
+    for i in range(2, len(added_users) + 2):
+        index = i - 2
 
-            s2 = sheet.cell(row=i, column=2)
-            s2.value = added_users[index].password
+        s1 = sheet.cell(row=i, column=1)
+        s1.value = added_users[index].login
 
-            s3 = sheet.cell(row=i, column=3)
-            s3.value = added_users[index].type
+        s2 = sheet.cell(row=i, column=2)
+        s2.value = added_users[index].password
 
-            s4 = sheet.cell(row=i, column=4)
-            s4.value = added_users[index].name_usr
+        s3 = sheet.cell(row=i, column=3)
+        s3.value = added_users[index].type
 
-            last_idx = i + 2
+        s4 = sheet.cell(row=i, column=4)
+        s4.value = added_users[index].name_usr
 
-        s_data = sheet.cell(row=last_idx, column=1)
-        s_data.value = "Дата экспорта:"
-        s_data = sheet.cell(row=last_idx, column=2)
-        s_data.value = datetime.date.today()
+        last_idx = i + 2
 
-        wb.save("files/Добавленные аккаунты.xlsx")
-        doc = open("files/Добавленные аккаунты.xlsx", 'rb')
+    s_data = sheet.cell(row=last_idx, column=1)
+    s_data.value = "Дата экспорта:"
+    s_data = sheet.cell(row=last_idx, column=2)
+    s_data.value = datetime.date.today()
 
-        await callback.answer()
-        await callback.message.answer_document(doc)
+    wb.save("files/Добавленные аккаунты.xlsx")
+    doc = open("files/Добавленные аккаунты.xlsx", 'rb')
+
+    await callback.answer()
+    await callback.message.answer_document(doc)
