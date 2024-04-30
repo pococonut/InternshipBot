@@ -1,22 +1,8 @@
 import datetime
 
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, VARCHAR, TEXT, DATE, String, ForeignKey
-from sqlalchemy.orm import scoped_session, declarative_base, sessionmaker
+from sqlalchemy import Column, VARCHAR, TEXT, DATE, String, ForeignKey
 
-from config import settings
-
-load_dotenv()
-
-host = settings.host
-password = settings.password
-database = settings.database
-
-engine = create_engine(f"postgresql+psycopg2://postgres:{password}@{host}/{database}")
-
-session = scoped_session(sessionmaker(bind=engine))
-Base = declarative_base()
-Base.query = session.query_property()
+from config import Base, engine
 
 
 class User(Base):

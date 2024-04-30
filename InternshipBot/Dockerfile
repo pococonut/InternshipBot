@@ -1,6 +1,4 @@
-FROM python:3.8
-
-EXPOSE 8000
+FROM python:3.8-alpine
 
 WORKDIR /InternshipBot
 

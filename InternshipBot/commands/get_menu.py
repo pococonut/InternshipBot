@@ -49,7 +49,7 @@ async def menu_get(message: types.Message):
     """
     Функция получения меню для зарегистрированного пользователя и авторизации/регистрации для незарегистрированного.
     """
-
+    print('menu')
     user_id = message.from_user.id
     await message.answer('Выберите команду.', reply_markup=get_account_keyboard(user_id))
 

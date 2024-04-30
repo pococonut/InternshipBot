@@ -17,6 +17,7 @@ DESCRIPTION = "Данный телеграм бот предназначен д�
 
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
+    print('start')
     await message.answer("Добро пожаловать!\n\n" + DESCRIPTION, reply_markup=new_user_ikb)
 
 

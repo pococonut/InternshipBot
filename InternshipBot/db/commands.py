@@ -3,10 +3,11 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
+from config import session
 from db.models.user_add import AddedUser
 from db.models.applications import Application
 from db.models.internship import Task, InternshipTask, Internship
-from db.models.user import User, Student, Worker, Admin, Director, session
+from db.models.user import User, Student, Worker, Admin, Director
 
 
 def registration_user(s_id, u_type, *args):
